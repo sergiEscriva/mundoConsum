@@ -1,0 +1,26 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="watchdog" />
+          <option value="Kivy" />
+          <option value="pygame" />
+          <option value="Pillow" />
+          <option value="requests" />
+          <option value="multitasking" />
+          <option value="javaobj-py3" />
+          <option value="pycryptodomex" />
+          <option value="protobuf" />
+          <option value="emoji" />
+          <option value="pandas" />
+          <option value="pymysql" />
+          <option value="sqlalchemy" />
+          <option value="cryptography" />
+          <option value="lxml" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
