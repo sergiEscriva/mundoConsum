@@ -5,7 +5,7 @@ Flujo:
   2. Por cada ticket: clic en el elemento del DOM → navega a ticketdetail.html
      → extraer el <pre> con el contenido del ticket directamente del DOM
 """
-import asyncio, json, os, re, sys, html as html_module
+import asyncio, json, os, re, sys, html as html_module, urllib.parse
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -192,8 +192,84 @@ async def load_all_tickets_in_list(page, total_expected: int):
         """)
         await page.wait_for_timeout(1200)
 
+async def ensure_ticket_visible(page, ticket_id: str, max_scrolls: int = 35):
+    """Asegura que el ticket exista en DOM en listas virtualizadas/infinite-scroll."""
+    selector = f'div[id="{ticket_id}"]'
+
+    # Empezar siempre desde arriba evita perdernos tickets fuera de la ventana actual.
+    await page.evaluate("""
+        () => {
+            const scroller = document.getElementById('scroller');
+            if (scroller) {
+                scroller.scrollTop = 0;
+                scroller.dispatchEvent(new Event('scroll', { bubbles: true }));
+            }
+            window.scrollTo(0, 0);
+        }
+    """)
+    await page.wait_for_timeout(450)
+
+    for _ in range(max_scrolls):
+        el = await page.query_selector(selector)
+        if el:
+            try:
+                await el.scroll_into_view_if_needed()
+            except Exception:
+                pass
+            return el
+        await page.evaluate("""
+            () => {
+                const scroller = document.getElementById('scroller');
+                if (scroller) {
+                    scroller.scrollTop = Math.min(scroller.scrollTop + 700, scroller.scrollHeight);
+                    scroller.dispatchEvent(new Event('scroll', { bubbles: true }));
+                }
+                window.scrollBy(0, 700);
+            }
+        """)
+        await page.wait_for_timeout(650)
+
+    # Fallback: algunos scroll containers cargan más ítems solo con wheel real.
+    for _ in range(12):
+        el = await page.query_selector(selector)
+        if el:
+            return el
+        await page.mouse.wheel(0, 1200)
+        await page.wait_for_timeout(400)
+
+    return None
+
+async def get_dom_ticket_ids(page) -> list[str]:
+    return await page.evaluate("""
+        () => {
+            const a = Array.from(document.querySelectorAll('#thelist .panel.panel-default[id]'));
+            if (a.length) return a.map(e => e.id);
+            return Array.from(document.querySelectorAll('#thelist div[id]')).map(e => e.id);
+        }
+    """)
+
+def build_ticketdetail_url(ticket_id: str, pass_token: str, mytickets_url: str) -> str:
+    v_match = re.search(r"[?&]v=(\d+)", mytickets_url)
+    version = v_match.group(1) if v_match else "20251201"
+    pass_q = urllib.parse.quote(pass_token, safe="")
+    return (
+        f"https://nomastickets.consum.es/app/ticketdetail.html"
+        f"?ticketId={ticket_id}&pass={pass_q}&dni=&v={version}"
+    )
+
+async def extract_pre_direct(page, ticket_id: str, pass_token: str, mytickets_url: str):
+    detail_url = build_ticketdetail_url(ticket_id, pass_token, mytickets_url)
+    await page.goto(detail_url, wait_until="domcontentloaded", timeout=30000)
+    await page.wait_for_timeout(2200)
+    return await page.evaluate("""
+        () => {
+            const pre = document.querySelector('#ticketpre');
+            return pre ? pre.innerHTML : null;
+        }
+    """)
+
 async def process_tickets(context, mytickets_url: str, tickets_to_process: list,
-                           total_tickets: int, tickets_dir: Path):
+                           total_tickets: int, tickets_dir: Path, pass_token: str):
     """
     Abre mytickets.html UNA sola vez, carga todos los tickets con scroll,
     luego por cada ticket: clic → extrae pre → vuelve atrás.
@@ -210,6 +286,15 @@ async def process_tickets(context, mytickets_url: str, tickets_to_process: list,
         )
         print(f"  ✅ {visible} tickets visibles en DOM")
 
+        # Procesar en orden visual reduce saltos en listas virtualizadas.
+        dom_ids = await get_dom_ticket_ids(page)
+        if dom_ids:
+            dom_pos = {tid: i for i, tid in enumerate(dom_ids)}
+            tickets_to_process = sorted(
+                tickets_to_process,
+                key=lambda t: dom_pos.get(str(t["Id"]), 10**9)
+            )
+
         success = 0
         for i, api_t in enumerate(tickets_to_process):
             tid   = str(api_t["Id"])
@@ -223,24 +308,31 @@ async def process_tickets(context, mytickets_url: str, tickets_to_process: list,
 
             pre_html = None
             try:
-                selector = f'div[id="{tid}"]'
-                el = await page.query_selector(selector)
-                if el:
-                    await el.click()
-                    await page.wait_for_url("**/ticketdetail.html**", timeout=10000)
-                    await page.wait_for_timeout(1500)
-                    pre_html = await page.evaluate("""
-                        () => {
-                            const pre = document.querySelector('#ticketpre');
-                            return pre ? pre.innerHTML : null;
-                        }
-                    """)
-                    # Volver a la lista
-                    await page.go_back()
-                    await page.wait_for_url("**/mytickets.html**", timeout=10000)
-                    await page.wait_for_timeout(1000)
-                else:
-                    print(f"    ⚠️  Ticket {tid} no encontrado en DOM")
+                # Ruta principal: abrir detalle directo por ticketId+pass.
+                pre_html = await extract_pre_direct(page, tid, pass_token, mytickets_url)
+
+                # Fallback por DOM para no perder compatibilidad si cambia ticketdetail.
+                if not pre_html:
+                    print(f"    ⚠️  Detalle directo vacío; probando flujo DOM...")
+                    await page.goto(mytickets_url, wait_until="domcontentloaded", timeout=20000)
+                    await page.wait_for_timeout(2000)
+                    await page.wait_for_selector("#thelist", timeout=10000)
+                    el = await ensure_ticket_visible(page, tid)
+                    if not el:
+                        await load_all_tickets_in_list(page, total_tickets)
+                        el = await ensure_ticket_visible(page, tid)
+                    if el:
+                        await el.click()
+                        await page.wait_for_url("**/ticketdetail.html**", timeout=10000)
+                        await page.wait_for_timeout(1500)
+                        pre_html = await page.evaluate("""
+                            () => {
+                                const pre = document.querySelector('#ticketpre');
+                                return pre ? pre.innerHTML : null;
+                            }
+                        """)
+                    else:
+                        print(f"    ⚠️  Ticket {tid} no encontrado en DOM")
             except Exception as e:
                 print(f"    ⚠️  Error: {e}")
                 # Intentar volver a mytickets si algo falló
@@ -314,7 +406,8 @@ async def main():
         success = await process_tickets(
             context, mytickets_url, to_process,
             total_tickets=len(all_tickets),
-            tickets_dir=TICKETS_DIR
+            tickets_dir=TICKETS_DIR,
+            pass_token=pass_token
         )
 
         await browser.close()
