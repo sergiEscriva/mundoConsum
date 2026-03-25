@@ -1,0 +1,27 @@
+{
+    "generated_at": null,
+    "total_tickets": 0,
+    "total_spent": 0,
+    "avg_ticket": 0,
+    "avg_monthly_spent": 0,
+    "monthly_data": [],
+    "categories": [],
+    "top_products": [],
+    "recent_tickets": [],
+    "health_tips": [
+        {
+            "icon": "\ud83d\udced",
+            "type": "info",
+            "title": "Sin datos todav\u00eda",
+            "text": "Cuando se procese el primer ticket, aqu\u00ed aparecer\u00e1n tus recomendaciones de salud."
+        }
+    ],
+    "saving_tips": [
+        {
+            "icon": "\ud83d\udced",
+            "type": "info",
+            "title": "Sin datos todav\u00eda",
+            "text": "Cuando se procese el primer ticket, aqu\u00ed aparecer\u00e1n tus consejos de ahorro."
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+  "last_updated": null,
+  "monthly_spending": [],
+  "categories_total": [],
+  "categories_this_month": [],
+  "stats": {
+    "total_mes_actual": 0,
+    "visitas_mes_actual": 0,
+    "avg_ticket": 0,
+    "top_productos": [],
+    "total_tickets_historico": 0
+  },
+  "recent_tickets": [],
+  "recommendations": {
+    "salud": [],
+    "ahorro": []
+  }
+}
