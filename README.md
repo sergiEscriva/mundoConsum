@@ -1,10 +1,15 @@
-#  Consum Tracker
+# Consum Tracker
+
+[![Daily workflow](https://github.com/sergiEscriva/mundoConsum/actions/workflows/daily.yml/badge.svg)](https://github.com/sergiEscriva/mundoConsum/actions/workflows/daily.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-brightgreen?logo=github)](https://sergiescriva.github.io/mundoConsum/dashboard/)
 
 Dashboard personal para monitorizar tus compras en Consum, con actualización automática diaria via GitHub Actions y visualización en GitHub Pages.
 
 ---
 
-##  Requisitos previos
+## Requisitos previos
 
 - Cuenta en GitHub (con [GitHub Student](https://education.github.com/pack) si quieres repos privados gratis)
 - Python 3.10 o superior instalado en tu ordenador
@@ -12,9 +17,9 @@ Dashboard personal para monitorizar tus compras en Consum, con actualización au
 
 ---
 
-##  Instalación paso a paso
+## Instalación paso a paso
 
-### PASO 1 — Crear el repositorio en GitHub
+### Paso 1 — Crear el repositorio en GitHub
 
 1. Ve a [github.com/new](https://github.com/new)
 2. Nombre: `consum-tracker`
@@ -24,14 +29,14 @@ Dashboard personal para monitorizar tus compras en Consum, con actualización au
 
 ---
 
-### PASO 2 — Subir este código al repositorio
+### Paso 2 — Subir este código al repositorio
 
 Abre una terminal en la carpeta donde hayas descargado este proyecto y ejecuta:
 
 ```bash
 git init
 git add .
-git commit -m " Primer commit — Consum Tracker"
+git commit -m "Primer commit — Consum Tracker"
 git branch -M main
 git remote add origin https://github.com/TU_USUARIO/consum-tracker.git
 git push -u origin main
@@ -41,7 +46,7 @@ git push -u origin main
 
 ---
 
-### PASO 3 — Instalar dependencias localmente
+### Paso 3 — Instalar dependencias localmente
 
 ```bash
 # Crear un entorno virtual (recomendado)
@@ -60,7 +65,7 @@ playwright install chromium
 
 ---
 
-### PASO 4 — Capturar las cookies de sesión (¡importante!)
+### Paso 4 — Capturar las cookies de sesión (importante)
 
 Este es el paso clave. El script abre un navegador para que tú hagas login con tu usuario y contraseña + 2FA:
 
@@ -75,15 +80,15 @@ python scripts/get_cookie.py
 4. Pulsas `ENTER`
 5. Se genera el archivo `cookies.json` con tu sesión
 
->  **NUNCA subas `cookies.json` a GitHub.** Ya está en `.gitignore` pero sé cuidadoso.
+> **NUNCA subas `cookies.json` a GitHub.** Ya está en `.gitignore` pero sé cuidadoso.
 
 ---
 
-### PASO 5 — Guardar las cookies en GitHub Secrets
+### Paso 5 — Guardar las cookies en GitHub Secrets
 
 1. Ve a tu repositorio en GitHub
 2. Haz clic en **Settings** (pestaña superior)
-3. En el menú izquierdo: **Secrets and variables → Actions**
+3. En el menú izquierdo: **Secrets and variables > Actions**
 4. Haz clic en **New repository secret**
 5. Rellena:
    - **Name:** `CONSUM_COOKIES`
@@ -92,9 +97,9 @@ python scripts/get_cookie.py
 
 ---
 
-### PASO 6 — Activar GitHub Pages
+### Paso 6 — Activar GitHub Pages
 
-1. En tu repositorio, ve a **Settings → Pages**
+1. En tu repositorio, ve a **Settings > Pages**
 2. En **Source**, selecciona **Deploy from a branch**
 3. Branch: `main` | Folder: `/ (root)`
 4. Haz clic en **Save**
@@ -103,21 +108,21 @@ python scripts/get_cookie.py
 
 ---
 
-### PASO 7 — Probar manualmente el primer ciclo
+### Paso 7 — Probar manualmente el primer ciclo
 
 Para verificar que todo funciona antes de esperar al día siguiente:
 
 1. Ve a tu repositorio en GitHub
 2. Haz clic en **Actions** (pestaña superior)
-3. En el menú izquierdo: ** Consum Daily Tracker**
-4. Haz clic en **Run workflow → Run workflow**
+3. En el menú izquierdo: **Consum Daily Tracker**
+4. Haz clic en **Run workflow > Run workflow**
 5. Observa los logs en tiempo real
 
-Si todo va bien, verás los pasos en verde .
+Si todo va bien, verás todos los pasos en verde.
 
 ---
 
-##  Uso diario
+## Uso diario
 
 El sistema funciona solo. Cada mañana a las 8:00 (hora España):
 
@@ -132,11 +137,12 @@ El sistema funciona solo. Cada mañana a las 8:00 (hora España):
 
 ---
 
-##  Cuando las cookies expiren (cada ~2-4 semanas)
+## Cuando las cookies expiren (cada ~2-4 semanas)
 
 Sabrás que han expirado porque recibirás un email de GitHub diciendo que el Action falló.
 
 Para renovarlas:
+
 ```bash
 # Activa el entorno virtual si lo tienes
 source venv/bin/activate
@@ -149,16 +155,20 @@ Luego actualiza el Secret en GitHub (Paso 5).
 
 ---
 
-##  Estructura del proyecto
+## Estructura del proyecto
 
 ```
-consum-tracker/
+mundoConsum/
 ├── .github/
-│   └── workflows/
-│       └── daily.yml          ← Automatización diaria (GitHub Actions)
+│   ├── ISSUE_TEMPLATE/        ← Plantillas para issues
+│   ├── workflows/
+│   │   ├── daily.yml          ← Automatización diaria (GitHub Actions)
+│   │   └── release.yml        ← Crea un GitHub Release al publicar un tag
+│   ├── dependabot.yml         ← Actualizaciones automáticas de dependencias
+│   └── PULL_REQUEST_TEMPLATE.md
 ├── scripts/
 │   ├── get_cookie.py          ← Ejecutas localmente para capturar sesión
-│   ├── scraper.py             ← Descarga tickets y extrae artículos (ejecutado por Actions)
+│   ├── scraper.py             ← Descarga tickets y extrae artículos
 │   └── build_data.py          ← Genera summary.json para el dashboard
 ├── data/
 │   ├── tickets/               ← Un .json por ticket procesado
@@ -166,13 +176,17 @@ consum-tracker/
 ├── dashboard/
 │   └── index.html             ← El dashboard (GitHub Pages)
 ├── .gitignore
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── SECURITY.md
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-##  Solución de problemas
+## Solución de problemas
 
 | Problema | Solución |
 |---|---|
@@ -183,6 +197,14 @@ consum-tracker/
 
 ---
 
-##  Nota legal
+## Contribuir
+
+Las contribuciones son bienvenidas. Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para las pautas.
+
+## Licencia
+
+Distribuido bajo la licencia [MIT](LICENSE).
+
+## Nota legal
 
 Este proyecto es para uso personal. Automatizar el acceso a sitios web puede ir contra sus términos de servicio. Úsalo con moderación y responsabilidad.
