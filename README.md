@@ -123,8 +123,8 @@ El sistema funciona solo. Cada mañana a las 8:00 (hora España):
 
 1. GitHub Actions se despierta
 2. Entra a Consum con tus cookies
-3. Descarga los PDFs nuevos
-4. Los parsea y actualiza `data/summary.json`
+3. Descarga tickets nuevos y actualiza `data/tickets/*.json`
+4. Regenera `data/summary.json`
 5. Hace commit automático
 6. GitHub Pages actualiza el dashboard
 
@@ -158,8 +158,7 @@ consum-tracker/
 │       └── daily.yml          ← Automatización diaria (GitHub Actions)
 ├── scripts/
 │   ├── get_cookie.py          ← Ejecutas localmente para capturar sesión
-│   ├── scraper.py             ← Descarga PDFs (ejecutado por Actions)
-│   ├── parse_pdf.py           ← Extrae datos de los PDFs
+│   ├── scraper.py             ← Descarga tickets y extrae artículos (ejecutado por Actions)
 │   └── build_data.py          ← Genera summary.json para el dashboard
 ├── data/
 │   ├── tickets/               ← Un .json por ticket procesado
@@ -187,4 +186,3 @@ consum-tracker/
 ## ⚠️ Nota legal
 
 Este proyecto es para uso personal. Automatizar el acceso a sitios web puede ir contra sus términos de servicio. Úsalo con moderación y responsabilidad.
-

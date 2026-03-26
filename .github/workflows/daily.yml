@@ -35,7 +35,7 @@ jobs:
           pip install -r requirements.txt
           playwright install chromium --with-deps
 
-      # ── 4. Descargar PDFs nuevos ───────────────────────────
+      # ── 4. Descargar tickets nuevos ────────────────────────
       - name: 🌐 Descargar tickets nuevos
         id: scrape
         env:
@@ -46,16 +46,11 @@ jobs:
         # exit code 2 = no hay tickets nuevos (no es un error)
         continue-on-error: true
 
-      # ── 5. Parsear PDFs ────────────────────────────────────
-      - name: 📄 Parsear tickets PDF
-        if: steps.scrape.outputs.exit_code != '2'
-        run: python scripts/parse_pdf.py
-
-      # ── 6. Generar summary.json ────────────────────────────
+      # ── 5. Generar summary.json ────────────────────────────
       - name: 🔧 Generar datos del dashboard
         run: python scripts/build_data.py
 
-      # ── 7. Commit y push si hay cambios ───────────────────
+      # ── 6. Commit y push si hay cambios ───────────────────
       - name: 💾 Guardar cambios en el repositorio
         run: |
           git config user.name  "github-actions[bot]"
@@ -70,7 +65,7 @@ jobs:
             git push
           fi
 
-      # ── 8. Notificar si las cookies han expirado ───────────
+      # ── 7. Notificar si las cookies han expirado ───────────
       - name: ⚠️ Notificar si las cookies expiraron
         if: failure()
         run: |
