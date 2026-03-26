@@ -1,11 +1,11 @@
-name:  Consum Daily Tracker
+name: Consum Daily Tracker
 
 on:
   schedule:
-    # Cada día a las 08:00 hora de España (UTC+2 en verano → 06:00 UTC)
+    # Cada día a las 08:00 hora de España (UTC+2 en verano -> 06:00 UTC)
     - cron: "0 6 * * *"
   workflow_dispatch:
-    # Permite ejecutarlo manualmente desde GitHub → Actions → Run workflow
+    # Permite ejecutarlo manualmente desde GitHub > Actions > Run workflow
 
 jobs:
   update-tracker:
@@ -16,27 +16,27 @@ jobs:
       contents: write   # necesario para hacer commit
 
     steps:
-      # ── 1. Clonar el repositorio ───────────────────────────
-      - name:  Checkout
+      # 1. Clonar el repositorio
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # ── 2. Configurar Python ───────────────────────────────
-      - name:  Set up Python 3.12
+      # 2. Configurar Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
 
-      # ── 3. Instalar dependencias ───────────────────────────
-      - name:  Instalar dependencias
+      # 3. Instalar dependencias
+      - name: Instalar dependencias
         run: |
           pip install -r requirements.txt
           playwright install chromium --with-deps
 
-      # ── 4. Descargar tickets nuevos ────────────────────────
-      - name:  Descargar tickets nuevos
+      # 4. Descargar tickets nuevos
+      - name: Descargar tickets nuevos
         id: scrape
         env:
           CONSUM_COOKIES: ${{ secrets.CONSUM_COOKIES }}
@@ -46,12 +46,12 @@ jobs:
         # exit code 2 = no hay tickets nuevos (no es un error)
         continue-on-error: true
 
-      # ── 5. Generar summary.json ────────────────────────────
-      - name:  Generar datos del dashboard
+      # 5. Generar summary.json
+      - name: Generar datos del dashboard
         run: python scripts/build_data.py
 
-      # ── 6. Commit y push si hay cambios ───────────────────
-      - name:  Guardar cambios en el repositorio
+      # 6. Commit y push si hay cambios
+      - name: Guardar cambios en el repositorio
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -61,12 +61,12 @@ jobs:
             echo "Sin cambios que guardar hoy."
           else
             FECHA=$(date +'%d/%m/%Y')
-            git commit -m " Tickets actualizados — $FECHA"
+            git commit -m "Tickets actualizados — $FECHA"
             git push
           fi
 
-      # ── 7. Notificar si las cookies han expirado ───────────
-      - name:  Notificar si las cookies expiraron
+      # 7. Notificar si las cookies han expirado
+      - name: Notificar si las cookies expiraron
         if: failure()
         run: |
           echo "::error::Las cookies de Consum han expirado."

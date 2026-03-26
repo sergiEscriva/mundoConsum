@@ -1,0 +1,41 @@
+# Dependencias y entornos virtuales
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# Secretos y sesiones (nunca subir a GitHub)
+cookies.json
+scripts/cookies.json
+*.env
+.env
+.env.*
+
+# Datos de depuracion
+debug_api_response.json
+debug_apirest.js
+scripts/data/
+
+# IDEs y editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Playwright
+playwright-report/
+test-results/
+
+# Logs
+*.log
