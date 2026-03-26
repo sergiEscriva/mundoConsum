@@ -13,7 +13,7 @@ from urllib.parse import quote
 try:
     from playwright.async_api import async_playwright, BrowserContext
 except ImportError:
-    print("❌ playwright no instalado"); sys.exit(1)
+    print(" playwright no instalado"); sys.exit(1)
 
 MAIN_URL    = "https://www.consum.es/mundoconsum/mi-ahorro/"
 API_BASE    = "https://nomastickets.consum.es/api"
@@ -83,13 +83,13 @@ def load_cookies():
     if not raw:
         local = Path("cookies.json")
         if local.exists():
-            raw = local.read_text(); print("ℹ️  Usando cookies.json local")
+            raw = local.read_text(); print("Info: usando cookies.json local")
         else:
-            print("❌ No se encontró CONSUM_COOKIES ni cookies.json"); sys.exit(1)
+            print(" No se encontró CONSUM_COOKIES ni cookies.json"); sys.exit(1)
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
-        print("❌ CONSUM_COOKIES no es JSON válido"); sys.exit(1)
+        print(" CONSUM_COOKIES no es JSON válido"); sys.exit(1)
 
 def already_with_items():
     done = set()
@@ -123,28 +123,28 @@ def build_ticket_from_api(t):
 async def get_iframe_info(context: BrowserContext) -> tuple[str, str, str]:
     """Devuelve (iframe_url, pass_token, version)."""
     page = await context.new_page()
-    print("🌐 Cargando página principal...")
+    print(" Cargando página principal...")
     await page.goto(MAIN_URL, wait_until="domcontentloaded", timeout=30000)
     await page.wait_for_timeout(3000)
     if "acceso" in page.url or "login" in page.url.lower():
-        print("❌ Sesión expirada."); await page.close(); sys.exit(1)
+        print(" Sesión expirada."); await page.close(); sys.exit(1)
     html = await page.content()
     await page.close()
     m = re.search(r'src="(https://nomastickets\.consum\.es/app/index\.html[^"]+)"', html)
     if not m:
-        print("❌ No se encontró el iframe"); sys.exit(1)
+        print(" No se encontró el iframe"); sys.exit(1)
     iframe_url = m.group(1).replace("&amp;", "&")
     pass_match = re.search(r'pass=([^&]+)', iframe_url)
     pass_token = pass_match.group(1) if pass_match else ""
     ver_match  = re.search(r'[?&]v=(\d+)', iframe_url)
     version    = ver_match.group(1) if ver_match else "20251201"
-    print("✅ Sesión activa")
+    print(" Sesión activa")
     return iframe_url, pass_token, version
 
 async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
     """Descarga la lista completa de tickets paginando la API."""
     all_tickets, seen_ids = [], set()
-    print("\n📋 Descargando lista de tickets...")
+    print("\n Descargando lista de tickets...")
 
     # Usar una sola página para toda la paginación
     page = await context.new_page()
@@ -153,7 +153,7 @@ async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
 
     page_num = 0
     while True:
-        print(f"  📄 Página {page_num}...", end=" ", flush=True)
+        print(f"   Página {page_num}...", end=" ", flush=True)
         body = (f"email=null&password={pass_token}&isTicketOnline=false"
                 f"&page={page_num}&elements={PAGE_SIZE}&latitude=0&longitude=0")
         await page.evaluate(f"window.__b = {json.dumps(body)};")
@@ -203,7 +203,7 @@ async def fetch_ticket_detail(context, ticket_id: str, pass_token: str, version:
         """)
         return pre_html
     except Exception as e:
-        print(f"    ⚠️  Error: {e}")
+        print(f"      Error: {e}")
         return None
     finally:
         await page.close()
@@ -211,7 +211,7 @@ async def fetch_ticket_detail(context, ticket_id: str, pass_token: str, version:
 async def main():
     cookies = load_cookies()
     existing = already_with_items()
-    print(f"ℹ️  Tickets ya con artículos: {len(existing)}")
+    print(f"Info: tickets ya con artículos: {len(existing)}")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -225,12 +225,12 @@ async def main():
         iframe_url, pass_token, version = await get_iframe_info(context)
         all_tickets = await fetch_tickets_list(context, iframe_url, pass_token)
 
-        print(f"\n✅ Total tickets: {len(all_tickets)}")
+        print(f"\n Total tickets: {len(all_tickets)}")
         to_process = [t for t in all_tickets if str(t["Id"]) not in existing]
-        print(f"🆕 A procesar: {len(to_process)}")
+        print(f"A procesar: {len(to_process)}")
 
         if not to_process:
-            print("ℹ️  Todos los tickets ya tienen artículos.")
+            print("Info: todos los tickets ya tienen artículos.")
             await browser.close(); sys.exit(2)
 
         success = 0
@@ -250,9 +250,9 @@ async def main():
                 items = parse_items_from_pre(pre_html)
                 base["items"] = items
                 base["source"] = "dom_extracted"
-                print(f"    ✅ {len(items)} artículos")
+                print(f"     {len(items)} artículos")
             else:
-                print(f"    ⚠️  Sin pre, guardando datos básicos")
+                print(f"      Sin pre, guardando datos básicos")
                 base["source"] = "api_only"
 
             jf.write_text(json.dumps(base, indent=2, ensure_ascii=False))
@@ -261,7 +261,7 @@ async def main():
         await browser.close()
 
     print(f"\n{'='*50}")
-    print(f"✅ {success}/{len(to_process)} tickets procesados")
+    print(f" {success}/{len(to_process)} tickets procesados")
     if success == 0: sys.exit(1)
 
 if __name__ == "__main__":

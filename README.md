@@ -1,10 +1,10 @@
-# 🛒 Consum Tracker
+#  Consum Tracker
 
 Dashboard personal para monitorizar tus compras en Consum, con actualización automática diaria via GitHub Actions y visualización en GitHub Pages.
 
 ---
 
-## 📋 Requisitos previos
+##  Requisitos previos
 
 - Cuenta en GitHub (con [GitHub Student](https://education.github.com/pack) si quieres repos privados gratis)
 - Python 3.10 o superior instalado en tu ordenador
@@ -12,7 +12,7 @@ Dashboard personal para monitorizar tus compras en Consum, con actualización au
 
 ---
 
-## 🚀 Instalación paso a paso
+##  Instalación paso a paso
 
 ### PASO 1 — Crear el repositorio en GitHub
 
@@ -31,7 +31,7 @@ Abre una terminal en la carpeta donde hayas descargado este proyecto y ejecuta:
 ```bash
 git init
 git add .
-git commit -m "🎉 Primer commit — Consum Tracker"
+git commit -m " Primer commit — Consum Tracker"
 git branch -M main
 git remote add origin https://github.com/TU_USUARIO/consum-tracker.git
 git push -u origin main
@@ -75,7 +75,7 @@ python scripts/get_cookie.py
 4. Pulsas `ENTER`
 5. Se genera el archivo `cookies.json` con tu sesión
 
-> ⚠️ **NUNCA subas `cookies.json` a GitHub.** Ya está en `.gitignore` pero sé cuidadoso.
+>  **NUNCA subas `cookies.json` a GitHub.** Ya está en `.gitignore` pero sé cuidadoso.
 
 ---
 
@@ -109,15 +109,15 @@ Para verificar que todo funciona antes de esperar al día siguiente:
 
 1. Ve a tu repositorio en GitHub
 2. Haz clic en **Actions** (pestaña superior)
-3. En el menú izquierdo: **🛒 Consum Daily Tracker**
+3. En el menú izquierdo: ** Consum Daily Tracker**
 4. Haz clic en **Run workflow → Run workflow**
 5. Observa los logs en tiempo real
 
-Si todo va bien, verás los pasos en verde ✅.
+Si todo va bien, verás los pasos en verde .
 
 ---
 
-## 🔄 Uso diario
+##  Uso diario
 
 El sistema funciona solo. Cada mañana a las 8:00 (hora España):
 
@@ -132,7 +132,7 @@ El sistema funciona solo. Cada mañana a las 8:00 (hora España):
 
 ---
 
-## ♻️ Cuando las cookies expiren (cada ~2-4 semanas)
+##  Cuando las cookies expiren (cada ~2-4 semanas)
 
 Sabrás que han expirado porque recibirás un email de GitHub diciendo que el Action falló.
 
@@ -149,7 +149,7 @@ Luego actualiza el Secret en GitHub (Paso 5).
 
 ---
 
-## 📁 Estructura del proyecto
+##  Estructura del proyecto
 
 ```
 consum-tracker/
@@ -172,7 +172,7 @@ consum-tracker/
 
 ---
 
-## 🛠️ Solución de problemas
+##  Solución de problemas
 
 | Problema | Solución |
 |---|---|
@@ -183,6 +183,6 @@ consum-tracker/
 
 ---
 
-## ⚠️ Nota legal
+##  Nota legal
 
 Este proyecto es para uso personal. Automatizar el acceso a sitios web puede ir contra sus términos de servicio. Úsalo con moderación y responsabilidad.
