@@ -1,0 +1,13 @@
+{
+  "id": "778045713",
+  "ticket_code": "21629",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-10",
+  "datetime_iso": "2026-02-10T17:02:24",
+  "total": 5.6,
+  "payment_method": "Tarjeta",
+  "items": [],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

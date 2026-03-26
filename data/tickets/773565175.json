@@ -1,0 +1,30 @@
+{
+  "id": "773565175",
+  "ticket_code": "215887",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-01-30",
+  "datetime_iso": "2026-01-30T14:36:53",
+  "total": 4.4,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "PECHUGA DE POLLO",
+      "quantity": 1.0,
+      "unit_price": 3.2,
+      "total": 3.2,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PAT.CAMPESINAS CONS",
+      "quantity": 1.0,
+      "unit_price": 1.2,
+      "total": 1.2,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

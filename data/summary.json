@@ -1,27 +1,276 @@
 {
-    "generated_at": null,
-    "total_tickets": 0,
-    "total_spent": 0,
-    "avg_ticket": 0,
-    "avg_monthly_spent": 0,
-    "monthly_data": [],
-    "categories": [],
-    "top_products": [],
-    "recent_tickets": [],
-    "health_tips": [
-        {
-            "icon": "\ud83d\udced",
-            "type": "info",
-            "title": "Sin datos todav\u00eda",
-            "text": "Cuando se procese el primer ticket, aqu\u00ed aparecer\u00e1n tus recomendaciones de salud."
-        }
-    ],
-    "saving_tips": [
-        {
-            "icon": "\ud83d\udced",
-            "type": "info",
-            "title": "Sin datos todav\u00eda",
-            "text": "Cuando se procese el primer ticket, aqu\u00ed aparecer\u00e1n tus consejos de ahorro."
-        }
-    ]
+  "generated_at": "2026-03-26T07:07:32.035672",
+  "total_tickets": 42,
+  "total_spent": 372.07,
+  "avg_ticket": 8.86,
+  "avg_monthly_spent": 93.02,
+  "monthly_data": [
+    {
+      "month": "2025-12",
+      "label": "Dec 2025",
+      "total": 23.61,
+      "visits": 2
+    },
+    {
+      "month": "2026-01",
+      "label": "Jan 2026",
+      "total": 148.06,
+      "visits": 16
+    },
+    {
+      "month": "2026-02",
+      "label": "Feb 2026",
+      "total": 110.92,
+      "visits": 11
+    },
+    {
+      "month": "2026-03",
+      "label": "Mar 2026",
+      "total": 89.48,
+      "visits": 13
+    }
+  ],
+  "categories": [
+    {
+      "name": "Otros",
+      "total": 188.63,
+      "count": 76
+    },
+    {
+      "name": "Carne y Pescado",
+      "total": 72.93,
+      "count": 19
+    },
+    {
+      "name": "Pan y Bollería",
+      "total": 20.02,
+      "count": 15
+    },
+    {
+      "name": "Frutas y Verduras",
+      "total": 19.74,
+      "count": 8
+    },
+    {
+      "name": "Lácteos y Huevos",
+      "total": 10.89,
+      "count": 4
+    },
+    {
+      "name": "Congelados y Preparados",
+      "total": 8.5,
+      "count": 3
+    },
+    {
+      "name": "Conservas y Salsas",
+      "total": 8.25,
+      "count": 5
+    },
+    {
+      "name": "Bebidas",
+      "total": 7.16,
+      "count": 3
+    },
+    {
+      "name": "Higiene y Limpieza",
+      "total": 2.5,
+      "count": 1
+    }
+  ],
+  "top_products": [
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "times": 6,
+      "total_spent": 1.49
+    },
+    {
+      "name": "BARRA ESPIGA TRADIC",
+      "times": 5,
+      "total_spent": 3.45
+    },
+    {
+      "name": "CHAP.CRISTAL ACEITE",
+      "times": 4,
+      "total_spent": 6.3
+    },
+    {
+      "name": "SAZ. FAJITA 24X30G",
+      "times": 3,
+      "total_spent": 3.0
+    },
+    {
+      "name": "POLLO LIMPIO",
+      "times": 3,
+      "total_spent": 19.63
+    },
+    {
+      "name": "BONIATO ROJO",
+      "times": 3,
+      "total_spent": 7.76
+    },
+    {
+      "name": "PECHUGA DE POLLO",
+      "times": 2,
+      "total_spent": 8.38
+    },
+    {
+      "name": "HUEVO L DOCENA",
+      "times": 2,
+      "total_spent": 6.6
+    },
+    {
+      "name": "GALL.TOSTA RICA760",
+      "times": 2,
+      "total_spent": 7.98
+    },
+    {
+      "name": "PATATA FREIR 2 KG",
+      "times": 2,
+      "total_spent": 7.7
+    },
+    {
+      "name": "ALBONDIGA MIXTA",
+      "times": 2,
+      "total_spent": 6.5
+    },
+    {
+      "name": "BURGER POLLO VERDUR",
+      "times": 2,
+      "total_spent": 5.09
+    },
+    {
+      "name": "PIMIENTO TRICOLOR",
+      "times": 2,
+      "total_spent": 3.98
+    },
+    {
+      "name": "KIWI VERDE BANDEJA",
+      "times": 2,
+      "total_spent": 5.38
+    },
+    {
+      "name": "LONGANIZA POLLO",
+      "times": 2,
+      "total_spent": 5.79
+    },
+    {
+      "name": "TOR. TRIGO CONS 10U",
+      "times": 2,
+      "total_spent": 2.3
+    },
+    {
+      "name": "JAMÓN G.R.CONSU120G",
+      "times": 2,
+      "total_spent": 4.9
+    },
+    {
+      "name": "BARRA DE PAN 2 UDS",
+      "times": 2,
+      "total_spent": 3.84
+    },
+    {
+      "name": "ALAS PARTIDAS POLLO",
+      "times": 2,
+      "total_spent": 5.96
+    },
+    {
+      "name": "BAGUETTE RÚSTICA",
+      "times": 1,
+      "total_spent": 0.96
+    }
+  ],
+  "recent_tickets": [
+    {
+      "date": "2026-03-24",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 10.97,
+      "items_count": 2,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-23",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 3.18,
+      "items_count": 1,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-21",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 8.24,
+      "items_count": 3,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-21",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 38.91,
+      "items_count": 14,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-13",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 2.19,
+      "items_count": 2,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-11",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 1.15,
+      "items_count": 1,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-10",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 9.84,
+      "items_count": 3,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-09",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 2.88,
+      "items_count": 1,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-06",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 0.89,
+      "items_count": 1,
+      "payment": "Tarjeta"
+    },
+    {
+      "date": "2026-03-05",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 2.78,
+      "items_count": 1,
+      "payment": "Tarjeta"
+    }
+  ],
+  "health_tips": [
+    {
+      "icon": "🥦",
+      "type": "warning",
+      "title": "Poca fruta y verdura",
+      "text": "Solo el 5.3% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
+    }
+  ],
+  "saving_tips": [
+    {
+      "icon": "🏷️",
+      "type": "info",
+      "title": "Prueba la marca propia",
+      "text": "Los productos de marca Consum suelen ser un 20-30% más baratos con calidad similar."
+    },
+    {
+      "icon": "🛒",
+      "type": "info",
+      "title": "Muchas visitas al súper",
+      "text": "Fuiste 13 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
+    }
+  ]
 }

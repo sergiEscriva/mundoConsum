@@ -1,0 +1,30 @@
+{
+  "id": "790843828",
+  "ticket_code": "226130",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-03-13",
+  "datetime_iso": "2026-03-13T09:12:35",
+  "total": 2.19,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "BERLIBLANCA RAYADA",
+      "quantity": 1.0,
+      "unit_price": 1.0,
+      "total": 1.0,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "COOKIE CHOCO LECHE",
+      "quantity": 1.0,
+      "unit_price": 1.19,
+      "total": 1.19,
+      "category": "Lácteos y Huevos",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

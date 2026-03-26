@@ -1,0 +1,22 @@
+{
+  "id": "784008178",
+  "ticket_code": "112719",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-24",
+  "datetime_iso": "2026-02-24T20:10:59",
+  "total": 3.27,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "SERV.NEGRA 40X40CON",
+      "quantity": 1.0,
+      "unit_price": 1.65,
+      "total": 1.65,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

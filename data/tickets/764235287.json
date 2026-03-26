@@ -1,0 +1,46 @@
+{
+  "id": "764235287",
+  "ticket_code": "7138",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-01-07",
+  "datetime_iso": "2026-01-07T21:07:50",
+  "total": 9.8,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "BROCHETA DE POLLO",
+      "quantity": 1.0,
+      "unit_price": 2.89,
+      "total": 2.89,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BARRA ESPIGA TRADIC",
+      "quantity": 1.0,
+      "unit_price": 0.69,
+      "total": 0.69,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PALETA LONCHAS CONS",
+      "quantity": 1.0,
+      "unit_price": 2.1,
+      "total": 2.1,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "quantity": 1.0,
+      "unit_price": 0.07,
+      "total": 0.07,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}
