@@ -31,7 +31,7 @@ def load_all_tickets() -> list[dict]:
 
             # Normalizar a UTF-8 si hacía falta
             if used_encoding != "utf-8":
-                print(f"  ℹ️  Normalizando {f.name} desde {used_encoding} a utf-8")
+                print(f"  Info: normalizando {f.name} desde {used_encoding} a utf-8")
                 f.write_text(
                     json.dumps(data, indent=2, ensure_ascii=False),
                     encoding="utf-8",
@@ -41,7 +41,7 @@ def load_all_tickets() -> list[dict]:
             if data.get("date"):
                 tickets.append(data)
         except Exception as e:
-            print(f"  ⚠️  Error leyendo {f.name}: {e}")
+            print(f"    Error leyendo {f.name}: {e}")
     return tickets
 
 
@@ -140,7 +140,7 @@ def build_summary(tickets: list[dict]) -> dict:
 def generate_health_tips(category_totals: dict, total_spent: float) -> list[dict]:
     tips = []
     if total_spent == 0:
-        return [{"icon":"✅","type":"success","title":"Sin datos aún","text":"Ejecuta el scraper para ver recomendaciones."}]
+        return [{"icon":"","type":"success","title":"Sin datos aún","text":"Ejecuta el scraper para ver recomendaciones."}]
 
     fv_pct        = (category_totals.get("Frutas y Verduras", 0) / total_spent) * 100
     snack_pct     = (category_totals.get("Snacks y Dulces", 0) / total_spent) * 100
@@ -148,26 +148,26 @@ def generate_health_tips(category_totals: dict, total_spent: float) -> list[dict
     beverages_pct = (category_totals.get("Bebidas", 0) / total_spent) * 100
 
     if fv_pct < 10:
-        tips.append({"icon":"🥦","type":"warning","title":"Poca fruta y verdura",
+        tips.append({"icon":"","type":"warning","title":"Poca fruta y verdura",
             "text":f"Solo el {fv_pct:.1f}% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."})
     elif fv_pct >= 20:
-        tips.append({"icon":"🥗","type":"success","title":"¡Genial consumo de vegetales!",
+        tips.append({"icon":"","type":"success","title":"¡Genial consumo de vegetales!",
             "text":f"El {fv_pct:.1f}% de tu gasto va a frutas y verduras. ¡Sigue así!"})
 
     if snack_pct > 15:
-        tips.append({"icon":"🍬","type":"warning","title":"Alto consumo de snacks",
+        tips.append({"icon":"","type":"warning","title":"Alto consumo de snacks",
             "text":f"El {snack_pct:.1f}% de tu gasto son snacks y dulces. Intenta sustituirlos por fruta o frutos secos."})
 
     if processed_pct > 20:
-        tips.append({"icon":"🍕","type":"info","title":"Muchos alimentos procesados",
+        tips.append({"icon":"","type":"info","title":"Muchos alimentos procesados",
             "text":f"El {processed_pct:.1f}% es en congelados/preparados. Cocinar más en casa suele ser más sano y económico."})
 
     if beverages_pct > 10:
-        tips.append({"icon":"🥤","type":"info","title":"Gasto elevado en bebidas",
+        tips.append({"icon":"","type":"info","title":"Gasto elevado en bebidas",
             "text":f"El {beverages_pct:.1f}% en bebidas. El agua del grifo filtrada puede ahorrarte dinero."})
 
     if not tips:
-        tips.append({"icon":"✅","type":"success","title":"Cesta equilibrada",
+        tips.append({"icon":"","type":"success","title":"Cesta equilibrada",
             "text":"Tu distribución de compra parece variada y equilibrada."})
 
     return tips
@@ -180,47 +180,47 @@ def generate_saving_tips(category_totals, monthly_data, avg_ticket, top_products
         last3 = monthly_data[-3:]
         if last3[0]["total"] > 0 and last3[-1]["total"] > last3[0]["total"] * 1.15:
             pct = ((last3[-1]["total"] / last3[0]["total"]) - 1) * 100
-            tips.append({"icon":"📈","type":"warning","title":"Gasto creciente",
+            tips.append({"icon":"","type":"warning","title":"Gasto creciente",
                 "text":f"Tu gasto ha subido un {pct:.0f}% en los últimos 3 meses."})
 
     consum_brand = sum(1 for p in top_products
         if "CONSUM" in p["name"].upper() or "HACENDADO" in p["name"].upper())
     if consum_brand < 3 and len(top_products) > 5:
-        tips.append({"icon":"🏷️","type":"info","title":"Prueba la marca propia",
+        tips.append({"icon":"","type":"info","title":"Prueba la marca propia",
             "text":"Los productos de marca Consum suelen ser un 20-30% más baratos con calidad similar."})
 
     if monthly_data:
         last = monthly_data[-1]
         if last["visits"] >= 8:
-            tips.append({"icon":"🛒","type":"info","title":"Muchas visitas al súper",
+            tips.append({"icon":"","type":"info","title":"Muchas visitas al súper",
                 "text":f"Fuiste {last['visits']} veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."})
 
     if category_totals.get("Bebidas", 0) > 20:
-        tips.append({"icon":"💧","type":"info","title":"Ahorra en agua embotellada",
+        tips.append({"icon":"","type":"info","title":"Ahorra en agua embotellada",
             "text":"Un filtro de grifo cuesta ~15€ y se amortiza en pocas semanas si compras agua regularmente."})
 
     if not tips:
-        tips.append({"icon":"💰","type":"success","title":"Buen control del gasto",
+        tips.append({"icon":"","type":"success","title":"Buen control del gasto",
             "text":"No se detectan patrones de gasto excesivo. ¡Sigue con tu lista!"})
 
     return tips
 
 
 if __name__ == "__main__":
-    print("📂 Cargando tickets...")
+    print(" Cargando tickets...")
     tickets = load_all_tickets()
-    print(f"  ✅ {len(tickets)} tickets cargados")
+    print(f"   {len(tickets)} tickets cargados")
 
     if not tickets:
-        print("⚠️  No hay tickets. Ejecuta primero: python scripts/scraper.py")
+        print("  No hay tickets. Ejecuta primero: python scripts/scraper.py")
     else:
-        print("🔧 Generando summary.json...")
+        print(" Generando summary.json...")
         summary = build_summary(tickets)
         OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
         OUTPUT_FILE.write_text(
             json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
         )
-        print(f"  ✅ summary.json generado:")
+        print(f"   summary.json generado:")
         print(f"     · {summary['total_tickets']} tickets")
         print(f"     · {summary['total_spent']}€ gasto total")
         print(f"     · {summary['avg_ticket']}€ ticket medio")

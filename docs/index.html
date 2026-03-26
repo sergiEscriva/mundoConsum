@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🛒 Consum Tracker</title>
+  <title> Consum Tracker</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     /* ── Variables ────────────────────────────────────── */
@@ -286,7 +286,7 @@
           <div class="last-updated" id="last-updated">Cargando...</div>
         </div>
       </div>
-      <div id="sync-badge">🔄 Sincronización diaria automática</div>
+      <div id="sync-badge"> Sincronización diaria automática</div>
     </div>
   </div>
 </header>
@@ -303,25 +303,25 @@
 
       <!-- ── STATS ─────────────────────────────────────── -->
       <div class="section">
-        <div class="section-title">📊 Resumen del mes</div>
+        <div class="section-title"> Resumen del mes</div>
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="icon">💶</div>
+            <div class="icon"></div>
             <div class="label">Gasto este mes</div>
             <div class="value" id="stat-total">—<span> €</span></div>
           </div>
           <div class="stat-card">
-            <div class="icon">🛒</div>
+            <div class="icon"></div>
             <div class="label">Visitas este mes</div>
             <div class="value" id="stat-visitas">—</div>
           </div>
           <div class="stat-card">
-            <div class="icon">🧾</div>
+            <div class="icon"></div>
             <div class="label">Ticket medio</div>
             <div class="value" id="stat-avg">—<span> €</span></div>
           </div>
           <div class="stat-card">
-            <div class="icon">📦</div>
+            <div class="icon"></div>
             <div class="label">Tickets en total</div>
             <div class="value" id="stat-historico">—</div>
           </div>
@@ -330,7 +330,7 @@
 
       <!-- ── GASTO MENSUAL + CATEGORÍAS ─────────────────── -->
       <div class="section">
-        <div class="section-title">📈 Evolución y categorías</div>
+        <div class="section-title"> Evolución y categorías</div>
         <div class="grid-2">
           <div class="card">
             <div class="card-title">Gasto mensual (€)</div>
@@ -349,7 +349,7 @@
 
       <!-- ── DESGLOSE CATEGORÍAS + TOP PRODUCTOS ─────────── -->
       <div class="section">
-        <div class="section-title">🏷️ Detalle</div>
+        <div class="section-title"> Detalle</div>
         <div class="grid-2">
           <div class="card">
             <div class="card-title">Gasto por categoría (mes actual)</div>
@@ -364,14 +364,14 @@
 
       <!-- ── RECOMENDACIONES ────────────────────────────── -->
       <div class="section">
-        <div class="section-title">💡 Recomendaciones personalizadas</div>
+        <div class="section-title"> Recomendaciones personalizadas</div>
         <div class="rec-grid">
           <div class="card">
-            <div class="rec-section-title">🥗 Salud</div>
+            <div class="rec-section-title"> Salud</div>
             <div id="rec-salud"></div>
           </div>
           <div class="card">
-            <div class="rec-section-title">💰 Ahorro</div>
+            <div class="rec-section-title"> Ahorro</div>
             <div id="rec-ahorro"></div>
           </div>
         </div>
@@ -379,7 +379,7 @@
 
       <!-- ── TICKETS RECIENTES ──────────────────────────── -->
       <div class="section">
-        <div class="section-title">🧾 Últimos tickets</div>
+        <div class="section-title"> Últimos tickets</div>
         <div class="card" style="padding: 0 22px;">
           <table class="tickets-table">
             <thead>
@@ -426,7 +426,7 @@ async function loadData() {
     return await res.json();
   } catch (e) {
     document.getElementById('loading').innerHTML = `
-      <span class="emoji">⚠️</span>
+      <span class="emoji"></span>
       <strong>No hay datos aún</strong>
       <span style="font-size:.85rem;color:var(--text2);max-width:400px;text-align:center">
         El archivo <code>docs/data/summary.json</code> aún no existe.<br>
@@ -560,7 +560,7 @@ function renderTickets(tickets) {
   const tbody = document.getElementById('tickets-tbody');
   if (!tickets || tickets.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty">
-      <span class="emoji">🧾</span>
+      <span class="emoji"></span>
       Aún no hay tickets. El primer sync los traerá.
     </td></tr>`;
     return;
