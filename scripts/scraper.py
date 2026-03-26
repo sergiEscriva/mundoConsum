@@ -13,7 +13,8 @@ from urllib.parse import quote
 try:
     from playwright.async_api import async_playwright, BrowserContext
 except ImportError:
-    print(" playwright no instalado"); sys.exit(1)
+    print("Error: Playwright no instalado")
+    sys.exit(1)
 
 MAIN_URL    = "https://www.consum.es/mundoconsum/mi-ahorro/"
 API_BASE    = "https://nomastickets.consum.es/api"
@@ -83,13 +84,16 @@ def load_cookies():
     if not raw:
         local = Path("cookies.json")
         if local.exists():
-            raw = local.read_text(); print("Info: usando cookies.json local")
+            raw = local.read_text()
+            print("Info: usando cookies.json local")
         else:
-            print(" No se encontró CONSUM_COOKIES ni cookies.json"); sys.exit(1)
+            print("Error: no se encontró CONSUM_COOKIES ni cookies.json")
+            sys.exit(1)
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
-        print(" CONSUM_COOKIES no es JSON válido"); sys.exit(1)
+        print("Error: CONSUM_COOKIES no es JSON válido")
+        sys.exit(1)
 
 def already_with_items():
     done = set()
@@ -123,22 +127,25 @@ def build_ticket_from_api(t):
 async def get_iframe_info(context: BrowserContext) -> tuple[str, str, str]:
     """Devuelve (iframe_url, pass_token, version)."""
     page = await context.new_page()
-    print(" Cargando página principal...")
+    print("Info: cargando página principal...")
     await page.goto(MAIN_URL, wait_until="domcontentloaded", timeout=30000)
     await page.wait_for_timeout(3000)
     if "acceso" in page.url or "login" in page.url.lower():
-        print(" Sesión expirada."); await page.close(); sys.exit(1)
+        print("Error: sesión expirada.")
+        await page.close()
+        sys.exit(1)
     html = await page.content()
     await page.close()
     m = re.search(r'src="(https://nomastickets\.consum\.es/app/index\.html[^"]+)"', html)
     if not m:
-        print(" No se encontró el iframe"); sys.exit(1)
+        print("Error: no se encontró el iframe")
+        sys.exit(1)
     iframe_url = m.group(1).replace("&amp;", "&")
     pass_match = re.search(r'pass=([^&]+)', iframe_url)
     pass_token = pass_match.group(1) if pass_match else ""
     ver_match  = re.search(r'[?&]v=(\d+)', iframe_url)
     version    = ver_match.group(1) if ver_match else "20251201"
-    print(" Sesión activa")
+    print("Info: sesión activa")
     return iframe_url, pass_token, version
 
 async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
