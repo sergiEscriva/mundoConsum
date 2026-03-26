@@ -1,0 +1,30 @@
+{
+  "id": "795558282",
+  "ticket_code": "924421",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-03-24",
+  "datetime_iso": "2026-03-24T20:53:53",
+  "total": 10.97,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "PIZZA RIST.BABACOA",
+      "quantity": 1.0,
+      "unit_price": 3.35,
+      "total": 3.35,
+      "category": "Congelados y Preparados",
+      "sold_by_kg": false
+    },
+    {
+      "name": "A.FONTVELLA 1,5 P-6",
+      "quantity": 1.0,
+      "unit_price": 4.32,
+      "total": 4.32,
+      "category": "Bebidas",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

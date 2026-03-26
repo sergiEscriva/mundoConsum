@@ -1,0 +1,30 @@
+{
+  "id": "778215663",
+  "ticket_code": "21836",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-10",
+  "datetime_iso": "2026-02-10T20:57:00",
+  "total": 5.89,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "BONIATO ROJO",
+      "quantity": 1.0,
+      "unit_price": 2.87,
+      "total": 2.87,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "MUSLO DESHUESADO",
+      "quantity": 1.0,
+      "unit_price": 3.02,
+      "total": 3.02,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

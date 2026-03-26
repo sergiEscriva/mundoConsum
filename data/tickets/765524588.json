@@ -1,0 +1,22 @@
+{
+  "id": "765524588",
+  "ticket_code": "8388",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-01-10",
+  "datetime_iso": "2026-01-10T15:37:28",
+  "total": 3.8,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "BROWNIE CHOCO MILKA",
+      "quantity": 1.0,
+      "unit_price": 3.8,
+      "total": 3.8,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

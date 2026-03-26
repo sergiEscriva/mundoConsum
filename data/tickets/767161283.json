@@ -1,0 +1,38 @@
+{
+  "id": "767161283",
+  "ticket_code": "10309",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-01-14",
+  "datetime_iso": "2026-01-14T20:49:15",
+  "total": 13.23,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "BARRA ESPIGA TRADIC",
+      "quantity": 1.0,
+      "unit_price": 0.69,
+      "total": 0.69,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "TOM.FRITO CONSU.P-3",
+      "quantity": 1.0,
+      "unit_price": 1.35,
+      "total": 1.35,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PULEVA CALC.ENTE.1L",
+      "quantity": 6.0,
+      "unit_price": 1.59,
+      "total": 9.54,
+      "category": "Otros",
+      "sold_by_kg": true
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

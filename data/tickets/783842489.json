@@ -1,0 +1,94 @@
+{
+  "id": "783842489",
+  "ticket_code": "598180",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-24",
+  "datetime_iso": "2026-02-24T16:03:13",
+  "total": 28.68,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "PLÁTANO CANARIO IGP",
+      "quantity": 1.0,
+      "unit_price": 2.12,
+      "total": 2.12,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "KIWI VERDE BANDEJA",
+      "quantity": 1.0,
+      "unit_price": 2.69,
+      "total": 2.69,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BONIATO ROJO",
+      "quantity": 1.0,
+      "unit_price": 2.6,
+      "total": 2.6,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "POLLO LIMPIO",
+      "quantity": 1.0,
+      "unit_price": 6.23,
+      "total": 6.23,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BURGER POLLO PAVO",
+      "quantity": 1.0,
+      "unit_price": 2.53,
+      "total": 2.53,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "LONGANIZA SIN TRIPA",
+      "quantity": 1.0,
+      "unit_price": 2.47,
+      "total": 2.47,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "JAMÓN G.R.CONSU120G",
+      "quantity": 1.0,
+      "unit_price": 2.45,
+      "total": 2.45,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "HUEVO M DOCENA",
+      "quantity": 1.0,
+      "unit_price": 3.1,
+      "total": 3.1,
+      "category": "Lácteos y Huevos",
+      "sold_by_kg": false
+    },
+    {
+      "name": "AJO MOLIDO CONS 85G",
+      "quantity": 1.0,
+      "unit_price": 0.89,
+      "total": 0.89,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "quantity": 2.0,
+      "unit_price": 0.15,
+      "total": 0.3,
+      "category": "Otros",
+      "sold_by_kg": true
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

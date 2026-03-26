@@ -1,0 +1,126 @@
+{
+  "id": "774838807",
+  "ticket_code": "18118",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-02",
+  "datetime_iso": "2026-02-02T21:03:49",
+  "total": 37.52,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "BONIATO ROJO",
+      "quantity": 1.0,
+      "unit_price": 2.29,
+      "total": 2.29,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CEBOLLA DULCE 500 G",
+      "quantity": 1.0,
+      "unit_price": 1.79,
+      "total": 1.79,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PIMIENTO TRICOLOR",
+      "quantity": 1.0,
+      "unit_price": 1.99,
+      "total": 1.99,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "POLLO LIMPIO",
+      "quantity": 1.0,
+      "unit_price": 6.35,
+      "total": 6.35,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "LONGANIZA POLLO",
+      "quantity": 1.0,
+      "unit_price": 2.88,
+      "total": 2.88,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CHAP.CRISTAL ACEITE",
+      "quantity": 2.0,
+      "unit_price": 1.05,
+      "total": 2.1,
+      "category": "Conservas y Salsas",
+      "sold_by_kg": true
+    },
+    {
+      "name": "YOG.PRO.STRAC 00%X4",
+      "quantity": 1.0,
+      "unit_price": 1.99,
+      "total": 1.99,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "SAZ. FAJITA 24X30G",
+      "quantity": 1.0,
+      "unit_price": 1.0,
+      "total": 1.0,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "TOR. TRIGO CONS 10U",
+      "quantity": 1.0,
+      "unit_price": 1.15,
+      "total": 1.15,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "FIDEO Nº0 GALLO 400",
+      "quantity": 1.0,
+      "unit_price": 1.0,
+      "total": 1.0,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "SPAGHETT BARILLA500",
+      "quantity": 1.0,
+      "unit_price": 1.69,
+      "total": 1.69,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "M.DES.GILLE BL.SL.P",
+      "quantity": 1.0,
+      "unit_price": 2.99,
+      "total": 2.99,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "HILO DENTAL C/FLUOR",
+      "quantity": 1.0,
+      "unit_price": 1.15,
+      "total": 1.15,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "quantity": 4.0,
+      "unit_price": 0.15,
+      "total": 0.6,
+      "category": "Otros",
+      "sold_by_kg": true
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}
