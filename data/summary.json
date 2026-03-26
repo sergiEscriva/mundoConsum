@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-26T07:07:32.035672",
-  "total_tickets": 42,
-  "total_spent": 372.07,
-  "avg_ticket": 8.86,
-  "avg_monthly_spent": 93.02,
+  "generated_at": "2026-03-26T16:06:35.830846",
+  "total_tickets": 46,
+  "total_spent": 381.73,
+  "avg_ticket": 8.3,
+  "avg_monthly_spent": 95.43,
   "monthly_data": [
     {
       "month": "2025-12",
@@ -14,27 +14,27 @@
     {
       "month": "2026-01",
       "label": "Jan 2026",
-      "total": 148.06,
-      "visits": 16
+      "total": 151.85,
+      "visits": 18
     },
     {
       "month": "2026-02",
       "label": "Feb 2026",
-      "total": 110.92,
-      "visits": 11
+      "total": 116.52,
+      "visits": 12
     },
     {
       "month": "2026-03",
       "label": "Mar 2026",
-      "total": 89.48,
-      "visits": 13
+      "total": 89.75,
+      "visits": 14
     }
   ],
   "categories": [
     {
       "name": "Otros",
-      "total": 188.63,
-      "count": 76
+      "total": 198.48,
+      "count": 80
     },
     {
       "name": "Carne y Pescado",
@@ -43,8 +43,8 @@
     },
     {
       "name": "Pan y Bollería",
-      "total": 20.02,
-      "count": 15
+      "total": 21.01,
+      "count": 16
     },
     {
       "name": "Frutas y Verduras",
@@ -57,6 +57,11 @@
       "count": 4
     },
     {
+      "name": "Bebidas",
+      "total": 8.78,
+      "count": 4
+    },
+    {
       "name": "Congelados y Preparados",
       "total": 8.5,
       "count": 3
@@ -65,11 +70,6 @@
       "name": "Conservas y Salsas",
       "total": 8.25,
       "count": 5
-    },
-    {
-      "name": "Bebidas",
-      "total": 7.16,
-      "count": 3
     },
     {
       "name": "Higiene y Limpieza",
@@ -204,6 +204,13 @@
     {
       "date": "2026-03-21",
       "store": "55 - V.Arquitecto Alfaro",
+      "total": 0.27,
+      "items_count": 2,
+      "payment": " "
+    },
+    {
+      "date": "2026-03-21",
+      "store": "55 - V.Arquitecto Alfaro",
       "total": 38.91,
       "items_count": 14,
       "payment": "Tarjeta"
@@ -242,13 +249,6 @@
       "total": 0.89,
       "items_count": 1,
       "payment": "Tarjeta"
-    },
-    {
-      "date": "2026-03-05",
-      "store": "55 - V.Arquitecto Alfaro",
-      "total": 2.78,
-      "items_count": 1,
-      "payment": "Tarjeta"
     }
   ],
   "health_tips": [
@@ -256,7 +256,7 @@
       "icon": "🥦",
       "type": "warning",
       "title": "Poca fruta y verdura",
-      "text": "Solo el 5.3% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
+      "text": "Solo el 5.2% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
     }
   ],
   "saving_tips": [
@@ -270,7 +270,7 @@
       "icon": "🛒",
       "type": "info",
       "title": "Muchas visitas al súper",
-      "text": "Fuiste 13 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
+      "text": "Fuiste 14 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
     }
   ]
 }

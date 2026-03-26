@@ -7,7 +7,24 @@
   "datetime_iso": "2026-02-10T17:02:24",
   "total": 5.6,
   "payment_method": "Tarjeta",
-  "items": [],
+  "items": [
+    {
+      "name": "D.LÍQ.FRES.CONSUM52",
+      "quantity": 1.0,
+      "unit_price": 3.7,
+      "total": 3.7,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "SUAV.FR.CONSUM80LV",
+      "quantity": 1.0,
+      "unit_price": 1.9,
+      "total": 1.9,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
   "tax_breakdown": [],
   "source": "dom_extracted"
 }
