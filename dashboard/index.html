@@ -354,10 +354,7 @@ const PALETTE = [
 
 // ── Carga de datos ────────────────────────────────────────
 async function loadData() {
-  // Permite tanto GitHub Pages como desarrollo local
-  const base = location.hostname === "localhost" || location.protocol === "file:"
-    ? "../data/summary.json"
-    : "./data/summary.json";
+  const base = "../data/summary.json";
 
   const resp = await fetch(base + "?t=" + Date.now());
   if (!resp.ok) throw new Error("HTTP " + resp.status);
