@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-26T16:26:47.889021",
-  "total_tickets": 46,
-  "total_spent": 381.73,
-  "avg_ticket": 8.3,
-  "avg_monthly_spent": 95.43,
+  "generated_at": "2026-03-27T07:03:38.515138",
+  "total_tickets": 47,
+  "total_spent": 391.73,
+  "avg_ticket": 8.33,
+  "avg_monthly_spent": 97.93,
   "monthly_data": [
     {
       "month": "2025-12",
@@ -26,15 +26,15 @@
     {
       "month": "2026-03",
       "label": "Mar 2026",
-      "total": 89.75,
-      "visits": 14
+      "total": 99.75,
+      "visits": 15
     }
   ],
   "categories": [
     {
       "name": "Otros",
-      "total": 198.48,
-      "count": 80
+      "total": 206.86,
+      "count": 83
     },
     {
       "name": "Carne y Pescado",
@@ -58,8 +58,8 @@
     },
     {
       "name": "Bebidas",
-      "total": 8.78,
-      "count": 4
+      "total": 10.4,
+      "count": 5
     },
     {
       "name": "Congelados y Preparados",
@@ -174,12 +174,19 @@
       "total_spent": 5.96
     },
     {
-      "name": "BAGUETTE RÚSTICA",
-      "times": 1,
-      "total_spent": 0.96
+      "name": "AGUA CONSUM 1,5L",
+      "times": 2,
+      "total_spent": 3.24
     }
   ],
   "recent_tickets": [
+    {
+      "date": "2026-03-26",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 10,
+      "items_count": 4,
+      "payment": "Tarjeta"
+    },
     {
       "date": "2026-03-24",
       "store": "55 - V.Arquitecto Alfaro",
@@ -242,35 +249,28 @@
       "total": 2.88,
       "items_count": 1,
       "payment": "Tarjeta"
-    },
-    {
-      "date": "2026-03-06",
-      "store": "55 - V.Arquitecto Alfaro",
-      "total": 0.89,
-      "items_count": 1,
-      "payment": "Tarjeta"
     }
   ],
   "health_tips": [
     {
-      "icon": "🥦",
+      "icon": "",
       "type": "warning",
       "title": "Poca fruta y verdura",
-      "text": "Solo el 5.2% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
+      "text": "Solo el 5.0% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
     }
   ],
   "saving_tips": [
     {
-      "icon": "🏷️",
+      "icon": "",
       "type": "info",
       "title": "Prueba la marca propia",
       "text": "Los productos de marca Consum suelen ser un 20-30% más baratos con calidad similar."
     },
     {
-      "icon": "🛒",
+      "icon": "",
       "type": "info",
       "title": "Muchas visitas al súper",
-      "text": "Fuiste 14 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
+      "text": "Fuiste 15 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
     }
   ]
 }
