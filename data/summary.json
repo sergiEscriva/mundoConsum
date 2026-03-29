@@ -1,16 +1,10 @@
 {
-  "generated_at": "2026-03-29T07:00:29.403359",
-  "total_tickets": 47,
-  "total_spent": 391.73,
-  "avg_ticket": 8.33,
-  "avg_monthly_spent": 97.93,
+  "generated_at": "2026-03-29T19:40:03.807580",
+  "total_tickets": 45,
+  "total_spent": 368.12,
+  "avg_ticket": 8.18,
+  "avg_monthly_spent": 122.71,
   "monthly_data": [
-    {
-      "month": "2025-12",
-      "label": "Dec 2025",
-      "total": 23.61,
-      "visits": 2
-    },
     {
       "month": "2026-01",
       "label": "Jan 2026",
@@ -32,52 +26,77 @@
   ],
   "categories": [
     {
-      "name": "Otros",
-      "total": 206.86,
-      "count": 83
-    },
-    {
       "name": "Carne y Pescado",
-      "total": 72.93,
-      "count": 19
-    },
-    {
-      "name": "Pan y Bollería",
-      "total": 21.01,
-      "count": 16
-    },
-    {
-      "name": "Frutas y Verduras",
-      "total": 19.74,
-      "count": 8
-    },
-    {
-      "name": "Lácteos y Huevos",
-      "total": 10.89,
-      "count": 4
-    },
-    {
-      "name": "Bebidas",
-      "total": 10.4,
-      "count": 5
-    },
-    {
-      "name": "Congelados y Preparados",
-      "total": 8.5,
-      "count": 3
-    },
-    {
-      "name": "Conservas y Salsas",
-      "total": 8.25,
-      "count": 5
+      "total": 138.86,
+      "count": 41
     },
     {
       "name": "Higiene y Limpieza",
-      "total": 2.5,
+      "total": 45.89,
+      "count": 24
+    },
+    {
+      "name": "Lácteos y Huevos",
+      "total": 37.27,
+      "count": 13
+    },
+    {
+      "name": "Frutas y Verduras",
+      "total": 32.7,
+      "count": 14
+    },
+    {
+      "name": "Pan y Bollería",
+      "total": 32.2,
+      "count": 22
+    },
+    {
+      "name": "Bebidas",
+      "total": 28.43,
+      "count": 16
+    },
+    {
+      "name": "Conservas y Salsas",
+      "total": 24.03,
+      "count": 14
+    },
+    {
+      "name": "Snacks y Dulces",
+      "total": 16.94,
+      "count": 5
+    },
+    {
+      "name": "Otros",
+      "total": 12.16,
+      "count": 4
+    },
+    {
+      "name": "Congelados y Preparados",
+      "total": 11.05,
+      "count": 4
+    },
+    {
+      "name": "Pasta, Arroz y Legumbres",
+      "total": 2.69,
+      "count": 2
+    },
+    {
+      "name": "Repostería",
+      "total": 2.1,
       "count": 1
     }
   ],
   "top_products": [
+    {
+      "name": "AGUA CONSUM 1,5L",
+      "times": 9,
+      "total_spent": 14.22
+    },
+    {
+      "name": "MOZZAR.RALL.CONSUM",
+      "times": 8,
+      "total_spent": 18.15
+    },
     {
       "name": "BOLSA COMPRA RECICL",
       "times": 6,
@@ -92,6 +111,11 @@
       "name": "CHAP.CRISTAL ACEITE",
       "times": 4,
       "total_spent": 6.3
+    },
+    {
+      "name": "B.BASURA30LCONSUM20",
+      "times": 3,
+      "total_spent": 4.35
     },
     {
       "name": "SAZ. FAJITA 24X30G",
@@ -109,19 +133,14 @@
       "total_spent": 7.76
     },
     {
-      "name": "PECHUGA DE POLLO",
-      "times": 2,
-      "total_spent": 8.38
-    },
-    {
-      "name": "HUEVO L DOCENA",
-      "times": 2,
-      "total_spent": 6.6
-    },
-    {
       "name": "GALL.TOSTA RICA760",
       "times": 2,
       "total_spent": 7.98
+    },
+    {
+      "name": "PESTO CONSUM 185 G",
+      "times": 2,
+      "total_spent": 3.9
     },
     {
       "name": "PATATA FREIR 2 KG",
@@ -144,6 +163,11 @@
       "total_spent": 3.98
     },
     {
+      "name": "WRAP TRIGO CONSUM",
+      "times": 2,
+      "total_spent": 3.0
+    },
+    {
       "name": "KIWI VERDE BANDEJA",
       "times": 2,
       "total_spent": 5.38
@@ -162,21 +186,6 @@
       "name": "JAMÓN G.R.CONSU120G",
       "times": 2,
       "total_spent": 4.9
-    },
-    {
-      "name": "BARRA DE PAN 2 UDS",
-      "times": 2,
-      "total_spent": 3.84
-    },
-    {
-      "name": "ALAS PARTIDAS POLLO",
-      "times": 2,
-      "total_spent": 5.96
-    },
-    {
-      "name": "AGUA CONSUM 1,5L",
-      "times": 2,
-      "total_spent": 3.24
     }
   ],
   "recent_tickets": [
@@ -191,7 +200,7 @@
       "date": "2026-03-24",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 10.97,
-      "items_count": 2,
+      "items_count": 3,
       "payment": "Tarjeta"
     },
     {
@@ -256,21 +265,21 @@
       "icon": "",
       "type": "warning",
       "title": "Poca fruta y verdura",
-      "text": "Solo el 5.0% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
+      "text": "Solo el 8.9% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
     }
   ],
   "saving_tips": [
     {
       "icon": "",
       "type": "info",
-      "title": "Prueba la marca propia",
-      "text": "Los productos de marca Consum suelen ser un 20-30% más baratos con calidad similar."
+      "title": "Muchas visitas al súper",
+      "text": "Fuiste 15 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
     },
     {
       "icon": "",
       "type": "info",
-      "title": "Muchas visitas al súper",
-      "text": "Fuiste 15 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
+      "title": "Ahorra en agua embotellada",
+      "text": "Un filtro de grifo cuesta ~15€ y se amortiza en pocas semanas si compras agua regularmente."
     }
   ]
 }

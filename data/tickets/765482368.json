@@ -1,0 +1,30 @@
+{
+  "id": "765482368",
+  "ticket_code": "142741",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-01-10",
+  "datetime_iso": "2026-01-10T14:21:15",
+  "total": 5.43,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "CHULETA DE AGUJA",
+      "quantity": 1.0,
+      "unit_price": 3.48,
+      "total": 3.48,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PESTO CONSUM 185 G",
+      "quantity": 1.0,
+      "unit_price": 1.95,
+      "total": 1.95,
+      "category": "Conservas y Salsas",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

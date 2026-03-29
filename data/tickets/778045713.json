@@ -1,0 +1,30 @@
+{
+  "id": "778045713",
+  "ticket_code": "21629",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-10",
+  "datetime_iso": "2026-02-10T17:02:24",
+  "total": 5.6,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "D.LÍQ.FRES.CONSUM52",
+      "quantity": 1.0,
+      "unit_price": 3.7,
+      "total": 3.7,
+      "category": "Higiene y Limpieza",
+      "sold_by_kg": false
+    },
+    {
+      "name": "SUAV.FR.CONSUM80LV",
+      "quantity": 1.0,
+      "unit_price": 1.9,
+      "total": 1.9,
+      "category": "Higiene y Limpieza",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

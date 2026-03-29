@@ -1,0 +1,22 @@
+{
+  "id": "790369489",
+  "ticket_code": "919581",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-03-11",
+  "datetime_iso": "2026-03-11T20:58:39",
+  "total": 1.15,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "TOR. TRIGO CONS 10U",
+      "quantity": 1.0,
+      "unit_price": 1.15,
+      "total": 1.15,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

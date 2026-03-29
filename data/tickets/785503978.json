@@ -1,0 +1,22 @@
+{
+  "id": "785503978",
+  "ticket_code": "151176",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-27",
+  "datetime_iso": "2026-02-27T21:25:10",
+  "total": 0.95,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "COCA-COLA 0,33L.",
+      "quantity": 1.0,
+      "unit_price": 0.95,
+      "total": 0.95,
+      "category": "Bebidas",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

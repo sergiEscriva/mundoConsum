@@ -1,0 +1,22 @@
+{
+  "id": "775224883",
+  "ticket_code": "216820",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-03",
+  "datetime_iso": "2026-02-03T19:07:24",
+  "total": 3,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "J.CURADO NAVIDUL 45",
+      "quantity": 3.0,
+      "unit_price": 1.0,
+      "total": 3.0,
+      "category": "Carne y Pescado",
+      "sold_by_kg": true
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}

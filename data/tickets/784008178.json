@@ -1,0 +1,30 @@
+{
+  "id": "784008178",
+  "ticket_code": "112719",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-02-24",
+  "datetime_iso": "2026-02-24T20:10:59",
+  "total": 3.27,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "AGUA CONSUM 1,5L",
+      "quantity": 6.0,
+      "unit_price": 0.27,
+      "total": 1.62,
+      "category": "Bebidas",
+      "sold_by_kg": true
+    },
+    {
+      "name": "SERV.NEGRA 40X40CON",
+      "quantity": 1.0,
+      "unit_price": 1.65,
+      "total": 1.65,
+      "category": "Higiene y Limpieza",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}
