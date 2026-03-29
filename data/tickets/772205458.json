@@ -1,0 +1,30 @@
+{
+  "id": "772205458",
+  "ticket_code": "215087",
+  "store": "55 - V.Arquitecto Alfaro",
+  "store_address": "C/ Arquitecto Alfaro,5",
+  "date": "2026-01-27",
+  "datetime_iso": "2026-01-27T14:58:05",
+  "total": 1.74,
+  "payment_method": "Tarjeta",
+  "items": [
+    {
+      "name": "BARRA ESPIGA TRADIC",
+      "quantity": 1.0,
+      "unit_price": 0.69,
+      "total": 0.69,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CHAP.CRISTAL ACEITE",
+      "quantity": 1.0,
+      "unit_price": 1.05,
+      "total": 1.05,
+      "category": "Conservas y Salsas",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted"
+}
