@@ -1,157 +1,218 @@
 # Consum Tracker
 
-[![Daily workflow](https://github.com/sergiEscriva/mundoConsum/actions/workflows/daily.yml/badge.svg)](https://github.com/sergiEscriva/mundoConsum/actions/workflows/daily.yml)
+[![Daily Tracker](https://github.com/sergiEscriva/mundoConsum/actions/workflows/daily.yml/badge.svg)](https://github.com/sergiEscriva/mundoConsum/actions/workflows/daily.yml)
+[![Tests](https://github.com/sergiEscriva/mundoConsum/actions/workflows/tests.yml/badge.svg)](https://github.com/sergiEscriva/mundoConsum/actions/workflows/tests.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-brightgreen?logo=github)](https://sergiescriva.github.io/mundoConsum/dashboard/)
+[![GitHub Pages](https://img.shields.io/badge/dashboard-live-brightgreen?logo=github)](https://sergiescriva.github.io/mundoConsum/dashboard/)
 
-Dashboard personal para monitorizar tus compras en Consum, con actualización automática diaria via GitHub Actions y visualización en GitHub Pages.
+**Consum Tracker** es un sistema automatizado que descarga, clasifica y visualiza tus compras en [Consum](https://www.consum.es/mundoconsum/). Se ejecuta a diario mediante GitHub Actions y publica los resultados en un dashboard interactivo servido con GitHub Pages.
+
+---
+
+## Tabla de contenidos
+
+- [Características](#características)
+- [Arquitectura](#arquitectura)
+- [Requisitos previos](#requisitos-previos)
+- [Instalación](#instalación)
+- [Configuración de secretos](#configuración-de-secretos)
+- [Despliegue del dashboard](#despliegue-del-dashboard)
+- [Uso](#uso)
+- [Renovación de cookies](#renovación-de-cookies)
+- [Presupuestos y alertas](#presupuestos-y-alertas)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Tests](#tests)
+- [Solución de problemas](#solución-de-problemas)
+- [Contribuir](#contribuir)
+- [Licencia](#licencia)
+- [Aviso legal](#aviso-legal)
+
+---
+
+## Características
+
+- **Scraping automatizado** de tickets mediante Playwright y la API de `nomastickets.consum.es`.
+- **Clasificación por categorías** (carne, bebidas, frutas, higiene, etc.) con reglas configurables en `data/categories.json`.
+- **Dashboard interactivo** con Chart.js: gasto mensual, distribución por categoría, productos frecuentes, media móvil y comparativas temporales.
+- **Presupuestos por categoría** con barras de progreso y alertas visuales cuando se excede el límite.
+- **Exportación a CSV** directamente desde el dashboard.
+- **Buscador de productos** integrado con filtro por categoría.
+- **Tips de salud y ahorro** generados a partir de los patrones de compra.
+- **Notificaciones automáticas**: issue en GitHub y notificación opcional por Telegram cuando las cookies expiran.
+- **Ejecución diaria desatendida** vía GitHub Actions (cron a las 08:00 hora de España).
+- **Suite de tests** con pytest para validar la lógica de negocio.
+
+---
+
+## Arquitectura
+
+```
+                   ┌──────────────────────────────────┐
+                   │        GitHub Actions (cron)      │
+                   │  daily.yml — cada día a las 08:00 │
+                   └────────┬─────────────┬────────────┘
+                            │             │
+                   ┌────────▼──────┐  ┌───▼──────────────┐
+                   │  scraper.py   │  │  build_data.py    │
+                   │  (Playwright) │  │  (Agregación)     │
+                   └────────┬──────┘  └───┬──────────────┘
+                            │             │
+                   ┌────────▼─────────────▼────────────┐
+                   │         data/                      │
+                   │   tickets/*.json  summary.json     │
+                   └────────────────┬──────────────────┘
+                                    │
+                   ┌────────────────▼──────────────────┐
+                   │     dashboard/index.html           │
+                   │     (GitHub Pages — Chart.js)      │
+                   └───────────────────────────────────┘
+```
 
 ---
 
 ## Requisitos previos
 
-- Cuenta en GitHub (con [GitHub Student](https://education.github.com/pack) si quieres repos privados gratis)
-- Python 3.10 o superior instalado en tu ordenador
-- Cuenta en [Consum Mundo Consum](https://www.consum.es/mundoconsum/)
+| Requisito | Detalle |
+|-----------|---------|
+| Python | 3.10 o superior |
+| Cuenta GitHub | Se recomienda visibilidad privada para el repositorio |
+| Cuenta Consum | Registrada en [Mundo Consum](https://www.consum.es/mundoconsum/) con 2FA activo |
 
 ---
 
-## Instalación paso a paso
-
-### Paso 1 — Crear el repositorio en GitHub
-
-1. Ve a [github.com/new](https://github.com/new)
-2. Nombre: `consum-tracker`
-3. Visibilidad: **Private** (recomendado, con Student es gratis)
-4. NO marques ninguna opción de inicialización (sin README, sin .gitignore)
-5. Haz clic en **Create repository**
-
----
-
-### Paso 2 — Subir este código al repositorio
-
-Abre una terminal en la carpeta donde hayas descargado este proyecto y ejecuta:
+## Instalación
 
 ```bash
-git init
-git add .
-git commit -m "Primer commit — Consum Tracker"
-git branch -M main
-git remote add origin https://github.com/TU_USUARIO/consum-tracker.git
-git push -u origin main
-```
+# 1. Clonar el repositorio
+git clone https://github.com/TU_USUARIO/consum-tracker.git
+cd consum-tracker
 
-> Sustituye `TU_USUARIO` por tu nombre de usuario de GitHub.
-
----
-
-### Paso 3 — Instalar dependencias localmente
-
-```bash
-# Crear un entorno virtual (recomendado)
+# 2. Crear y activar un entorno virtual
 python -m venv venv
+source venv/bin/activate        # macOS / Linux
+venv\Scripts\activate           # Windows
 
-# Activarlo
-# En macOS/Linux:
-source venv/bin/activate
-# En Windows:
-venv\Scripts\activate
-
-# Instalar dependencias
+# 3. Instalar dependencias
 pip install -r requirements.txt
 playwright install chromium
 ```
 
 ---
 
-### Paso 4 — Capturar las cookies de sesión (importante)
+## Configuración de secretos
 
-Este es el paso clave. El script abre un navegador para que tú hagas login con tu usuario y contraseña + 2FA:
+### Captura de cookies de sesión
+
+El scraper necesita cookies de sesión válidas. Para obtenerlas, ejecuta el asistente interactivo:
 
 ```bash
 python scripts/get_cookie.py
 ```
 
-**¿Qué pasará?**
-1. Se abrirá una ventana de Chrome con la página de login de Consum
-2. Introduces tu email, contraseña y el código 2FA (SMS o email)
-3. Cuando veas tu perfil cargado, vuelves a la terminal
-4. Pulsas `ENTER`
-5. Se genera el archivo `cookies.json` con tu sesión
+El script abrirá un navegador donde deberás:
 
-> **NUNCA subas `cookies.json` a GitHub.** Ya está en `.gitignore` pero sé cuidadoso.
+1. Introducir tus credenciales de Consum.
+2. Completar la verificación 2FA.
+3. Esperar a que cargue el panel de usuario.
+4. Volver a la terminal y pulsar `ENTER`.
 
----
+El fichero `cookies.json` se generará en la raíz del proyecto. **Este fichero nunca debe subirse al repositorio** (ya está incluido en `.gitignore`).
 
-### Paso 5 — Guardar las cookies en GitHub Secrets
+### Guardar el secreto en GitHub
 
-1. Ve a tu repositorio en GitHub
-2. Haz clic en **Settings** (pestaña superior)
-3. En el menú izquierdo: **Secrets and variables > Actions**
-4. Haz clic en **New repository secret**
-5. Rellena:
-   - **Name:** `CONSUM_COOKIES`
-   - **Value:** copia y pega TODO el contenido del archivo `cookies.json`
-6. Haz clic en **Add secret**
+1. Ve a **Settings > Secrets and variables > Actions** en tu repositorio.
+2. Crea un nuevo secreto con nombre `CONSUM_COOKIES`.
+3. Pega el contenido íntegro de `cookies.json` como valor.
 
----
+### Secretos opcionales
 
-### Paso 6 — Activar GitHub Pages
-
-1. En tu repositorio, ve a **Settings > Pages**
-2. En **Source**, selecciona **Deploy from a branch**
-3. Branch: `main` | Folder: `/ (root)`
-4. Haz clic en **Save**
-5. En unos minutos, tu dashboard estará en:
-   `https://TU_USUARIO.github.io/consum-tracker/dashboard/`
+| Secreto | Descripción |
+|---------|-------------|
+| `TELEGRAM_BOT_TOKEN` | Token del bot de Telegram para recibir notificaciones |
+| `TELEGRAM_CHAT_ID` | ID del chat donde enviar las notificaciones |
 
 ---
 
-### Paso 7 — Probar manualmente el primer ciclo
+## Despliegue del dashboard
 
-Para verificar que todo funciona antes de esperar al día siguiente:
+1. En tu repositorio, accede a **Settings > Pages**.
+2. Selecciona **Deploy from a branch**.
+3. Configura: branch `main`, carpeta `/ (root)`.
+4. Guarda los cambios.
 
-1. Ve a tu repositorio en GitHub
-2. Haz clic en **Actions** (pestaña superior)
-3. En el menú izquierdo: **Consum Daily Tracker**
-4. Haz clic en **Run workflow > Run workflow**
-5. Observa los logs en tiempo real
+El dashboard estará disponible en:
 
-Si todo va bien, verás todos los pasos en verde.
-
----
-
-## Uso diario
-
-El sistema funciona solo. Cada mañana a las 8:00 (hora España):
-
-1. GitHub Actions se despierta
-2. Entra a Consum con tus cookies
-3. Descarga tickets nuevos y actualiza `data/tickets/*.json`
-4. Regenera `data/summary.json`
-5. Hace commit automático
-6. GitHub Pages actualiza el dashboard
-
-**Tú no tienes que hacer nada.** Solo abrir el dashboard cuando quieras ver tus datos.
+```
+https://TU_USUARIO.github.io/consum-tracker/dashboard/
+```
 
 ---
 
-## Cuando las cookies expiren (cada ~2-4 semanas)
+## Uso
 
-Sabrás que han expirado porque recibirás un email de GitHub diciendo que el Action falló.
+### Ejecución automática
+
+El workflow `daily.yml` se ejecuta cada día a las 08:00 (hora de España). El proceso completo es:
+
+1. Autenticación con las cookies almacenadas.
+2. Descarga de tickets nuevos desde la API de Consum.
+3. Extracción y clasificación de artículos por categoría.
+4. Generación del fichero `data/summary.json`.
+5. Commit automático y actualización del dashboard.
+
+No requiere intervención manual.
+
+### Ejecución manual
+
+Para lanzar el workflow manualmente, ve a **Actions > Consum Daily Tracker > Run workflow**.
+
+### Códigos de salida del scraper
+
+| Código | Significado |
+|--------|-------------|
+| `0` | Tickets nuevos procesados correctamente |
+| `1` | Error de autenticación (cookies expiradas o inválidas) |
+| `2` | Sin tickets nuevos por procesar (no-op) |
+
+---
+
+## Renovación de cookies
+
+Las cookies de sesión expiran aproximadamente cada 2 a 4 semanas. Cuando esto ocurra:
+
+- El workflow fallará y se creará automáticamente un **issue** en el repositorio.
+- Si tienes configurado Telegram, recibirás una **notificación** en tu chat.
 
 Para renovarlas:
 
 ```bash
-# Activa el entorno virtual si lo tienes
-source venv/bin/activate
-
-# Ejecuta el capturador
+source venv/bin/activate          # o venv\Scripts\activate en Windows
 python scripts/get_cookie.py
 ```
 
-Luego actualiza el Secret en GitHub (Paso 5).
+Después, actualiza el secreto `CONSUM_COOKIES` en GitHub con el nuevo contenido de `cookies.json`.
+
+---
+
+## Presupuestos y alertas
+
+Puedes definir presupuestos mensuales por categoría editando `data/budgets.json`:
+
+```json
+{
+  "monthly": {
+    "Carne y Pescado": 80,
+    "Bebidas": 20,
+    "Frutas y Verduras": 40
+  },
+  "alert_monthly_total": 300
+}
+```
+
+- El dashboard mostrará **barras de progreso** por categoría (verde / naranja / rojo).
+- Si el gasto total del mes supera `alert_monthly_total`, aparecerá una **alerta visual**.
+- Las categorías de productos se configuran en `data/categories.json`.
 
 ---
 
@@ -160,51 +221,74 @@ Luego actualiza el Secret en GitHub (Paso 5).
 ```
 mundoConsum/
 ├── .github/
-│   ├── ISSUE_TEMPLATE/        ← Plantillas para issues
+│   ├── ISSUE_TEMPLATE/             Plantillas para issues
 │   ├── workflows/
-│   │   ├── daily.yml          ← Automatización diaria (GitHub Actions)
-│   │   └── release.yml        ← Crea un GitHub Release al publicar un tag
-│   ├── dependabot.yml         ← Actualizaciones automáticas de dependencias
+│   │   ├── daily.yml               Automatización diaria
+│   │   ├── release.yml             Release automático por tags
+│   │   └── tests.yml               CI con pytest
+│   ├── dependabot.yml              Actualizaciones de dependencias
 │   └── PULL_REQUEST_TEMPLATE.md
 ├── scripts/
-│   ├── get_cookie.py          ← Ejecutas localmente para capturar sesión
-│   ├── scraper.py             ← Descarga tickets y extrae artículos
-│   └── build_data.py          ← Genera summary.json para el dashboard
+│   ├── get_cookie.py               Captura interactiva de cookies
+│   ├── scraper.py                  Descarga y parseo de tickets
+│   └── build_data.py               Generación de summary.json
+├── tests/
+│   ├── test_scraper.py             Tests del scraper
+│   └── test_build_data.py          Tests del agregador
 ├── data/
-│   ├── tickets/               ← Un .json por ticket procesado
-│   └── summary.json           ← Datos agregados que lee el dashboard
+│   ├── tickets/                    Un JSON por ticket procesado
+│   ├── categories.json             Reglas de categorización
+│   ├── budgets.json                Presupuestos por categoría
+│   └── summary.json                Datos agregados para el dashboard
 ├── dashboard/
-│   └── index.html             ← El dashboard (GitHub Pages)
+│   └── index.html                  Dashboard interactivo (GitHub Pages)
 ├── .gitignore
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
-├── LICENSE
 ├── SECURITY.md
+├── LICENSE
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
+## Tests
+
+El proyecto incluye una suite de tests unitarios que cubren la lógica de clasificación, parseo de tickets y generación del resumen.
+
+```bash
+pytest tests/ -v
+```
+
+Los tests se ejecutan automáticamente en CI con cada push a `main` y en cada pull request.
+
+---
+
 ## Solución de problemas
 
-| Problema | Solución |
-|---|---|
-| El Action falla con "sesión expirada" | Regenera cookies con `get_cookie.py` y actualiza el Secret |
-| No aparecen tickets en el dashboard | El scraper puede no reconocer el HTML de Consum. Abre un Issue en el repo |
-| El dashboard no carga (`summary.json` no encontrado) | Asegúrate de que GitHub Pages apunta a la raíz (`/`) del branch `main` |
-| `playwright install` falla en Windows | Ejecuta la terminal como Administrador |
+| Problema | Causa probable | Solución |
+|----------|---------------|----------|
+| El workflow falla con "sesión expirada" | Cookies caducadas | Ejecutar `get_cookie.py` y actualizar el secreto |
+| El dashboard no carga datos | `summary.json` no existe | Verificar que GitHub Pages apunta a la raíz de `main` |
+| No aparecen artículos en los tickets | Cambio en el HTML de Consum | Abrir un issue con los logs del scraper |
+| `playwright install` falla en Windows | Permisos insuficientes | Ejecutar la terminal como administrador |
+| Muchos productos en categoría "Otros" | Palabras clave no cubiertas | Editar `data/categories.json` y añadir las keywords |
 
 ---
 
 ## Contribuir
 
-Las contribuciones son bienvenidas. Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para las pautas.
+Las contribuciones son bienvenidas. Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para conocer las pautas del proyecto.
+
+---
 
 ## Licencia
 
-Distribuido bajo la licencia [MIT](LICENSE).
+Distribuido bajo la licencia [MIT](LICENSE). Copyright (c) 2026 Sergi Escriva Siscar.
 
-## Nota legal
+---
 
-Este proyecto es para uso personal. Automatizar el acceso a sitios web puede ir contra sus términos de servicio. Úsalo con moderación y responsabilidad.
+## Aviso legal
+
+Este proyecto es de uso estrictamente personal. La automatización del acceso a sitios web de terceros puede contravenir sus condiciones de servicio. El autor no se responsabiliza del uso que se haga de este software. Utilízalo con moderación y bajo tu propia responsabilidad.
