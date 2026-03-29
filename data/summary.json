@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-29T19:40:03.807580",
+  "generated_at": "2026-03-29T20:04:23.886194",
   "total_tickets": 45,
   "total_spent": 368.12,
   "avg_ticket": 8.18,
@@ -9,19 +9,25 @@
       "month": "2026-01",
       "label": "Jan 2026",
       "total": 151.85,
-      "visits": 18
+      "visits": 18,
+      "change_pct": null,
+      "moving_avg": 151.85
     },
     {
       "month": "2026-02",
       "label": "Feb 2026",
       "total": 116.52,
-      "visits": 12
+      "visits": 12,
+      "change_pct": -23.3,
+      "moving_avg": 134.19
     },
     {
       "month": "2026-03",
       "label": "Mar 2026",
       "total": 99.75,
-      "visits": 15
+      "visits": 15,
+      "change_pct": -14.4,
+      "moving_avg": 122.71
     }
   ],
   "categories": [
