@@ -4,12 +4,45 @@ que leerá el dashboard.
 """
 
 import json
+import logging
 from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
+from typing import Any
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger("build_data")
 
 TICKETS_DIR = Path("data/tickets")
 OUTPUT_FILE = Path("data/summary.json")
+
+REQUIRED_TICKET_FIELDS = {"id", "date", "total", "items", "source"}
+REQUIRED_ITEM_FIELDS = {"name", "quantity", "total", "category"}
+
+
+def validate_ticket(data: dict[str, Any], filename: str) -> list[str]:
+    """Valida el esquema de un ticket y devuelve lista de problemas encontrados."""
+    issues: list[str] = []
+    missing = REQUIRED_TICKET_FIELDS - set(data.keys())
+    if missing:
+        issues.append(f"Campos faltantes: {missing}")
+    if not isinstance(data.get("items"), list):
+        issues.append("'items' no es una lista")
+    elif data["items"]:
+        for i, item in enumerate(data["items"]):
+            item_missing = REQUIRED_ITEM_FIELDS - set(item.keys())
+            if item_missing:
+                issues.append(f"Item {i}: campos faltantes {item_missing}")
+    if data.get("total") is not None and not isinstance(data["total"], (int, float)):
+        issues.append(f"'total' no es numérico: {type(data['total']).__name__}")
+    if issues:
+        for issue in issues:
+            log.warning("Validación %s: %s", filename, issue)
+    return issues
 
 
 def load_ticket_json(f: Path) -> tuple[dict, str]:
@@ -31,17 +64,18 @@ def load_all_tickets() -> list[dict]:
 
             # Normalizar a UTF-8 si hacía falta
             if used_encoding != "utf-8":
-                print(f"  Info: normalizando {f.name} desde {used_encoding} a utf-8")
+                log.info("Normalizando %s desde %s a utf-8", f.name, used_encoding)
                 f.write_text(
                     json.dumps(data, indent=2, ensure_ascii=False),
                     encoding="utf-8",
                 )
 
-            # Ignorar tickets sin fecha (no parseados bien)
+            validate_ticket(data, f.name)
+
             if data.get("date"):
                 tickets.append(data)
         except Exception as e:
-            print(f"    Error leyendo {f.name}: {e}")
+            log.error("Error leyendo %s: %s", f.name, e)
     return tickets
 
 
@@ -99,6 +133,16 @@ def build_summary(tickets: list[dict]) -> dict:
         ],
         key=lambda x: -x["times"],
     )[:20]
+
+    # ── Comparativas mes a mes ──────────────────────────────────
+    for i, m in enumerate(monthly_data):
+        if i == 0:
+            m["change_pct"] = None
+        else:
+            prev = monthly_data[i - 1]["total"]
+            m["change_pct"] = round(((m["total"] - prev) / prev) * 100, 1) if prev else None
+        window = monthly_data[max(0, i - 2):i + 1]
+        m["moving_avg"] = round(sum(w["total"] for w in window) / len(window), 2)
 
     # ── Stats generales ────────────────────────────────────────
     all_totals  = [t["total"] for t in tickets if t.get("total")]
@@ -207,22 +251,22 @@ def generate_saving_tips(category_totals, monthly_data, avg_ticket, top_products
 
 
 if __name__ == "__main__":
-    print(" Cargando tickets...")
+    log.info("Cargando tickets...")
     tickets = load_all_tickets()
-    print(f"   {len(tickets)} tickets cargados")
+    log.info("%d tickets cargados", len(tickets))
 
     if not tickets:
-        print("  No hay tickets. Ejecuta primero: python scripts/scraper.py")
+        log.warning("No hay tickets. Ejecuta primero: python scripts/scraper.py")
     else:
-        print(" Generando summary.json...")
+        log.info("Generando summary.json...")
         summary = build_summary(tickets)
         OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
         OUTPUT_FILE.write_text(
             json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
         )
-        print(f"   summary.json generado:")
-        print(f"     · {summary['total_tickets']} tickets")
-        print(f"     · {summary['total_spent']}€ gasto total")
-        print(f"     · {summary['avg_ticket']}€ ticket medio")
-        print(f"     · {summary['avg_monthly_spent']}€ media mensual")
-        print(f"     · {len(summary['categories'])} categorías")
+        log.info("summary.json generado:")
+        log.info("  · %d tickets", summary["total_tickets"])
+        log.info("  · %s€ gasto total", summary["total_spent"])
+        log.info("  · %s€ ticket medio", summary["avg_ticket"])
+        log.info("  · %s€ media mensual", summary["avg_monthly_spent"])
+        log.info("  · %d categorías", len(summary["categories"]))

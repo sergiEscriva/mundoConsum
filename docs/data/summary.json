@@ -1,18 +1,13 @@
 {
-  "last_updated": null,
-  "monthly_spending": [],
-  "categories_total": [],
-  "categories_this_month": [],
-  "stats": {
-    "total_mes_actual": 0,
-    "visitas_mes_actual": 0,
-    "avg_ticket": 0,
-    "top_productos": [],
-    "total_tickets_historico": 0
-  },
+  "generated_at": null,
+  "total_tickets": 0,
+  "total_spent": 0,
+  "avg_ticket": 0,
+  "avg_monthly_spent": 0,
+  "monthly_data": [],
+  "categories": [],
+  "top_products": [],
   "recent_tickets": [],
-  "recommendations": {
-    "salud": [],
-    "ahorro": []
-  }
+  "health_tips": [],
+  "saving_tips": []
 }

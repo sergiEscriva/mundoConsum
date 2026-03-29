@@ -6,7 +6,6 @@
 <title>Consum Tracker — Mi Cesta</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  /* ── Reset y variables ────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -33,7 +32,6 @@
     min-height: 100vh;
   }
 
-  /* ── Header ───────────────────────────────────────── */
   header {
     background: var(--green);
     color: #fff;
@@ -42,251 +40,137 @@
     align-items: center;
     gap: 1rem;
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    flex-wrap: wrap;
   }
-  header .logo {
-    font-size: 1.6rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-  }
+  header .logo { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
   header .logo span { color: var(--yellow); }
-  header .subtitle {
-    font-size: .85rem;
-    opacity: .85;
-    margin-left: auto;
-  }
+  header .subtitle { font-size: .85rem; opacity: .85; margin-left: auto; }
   header .last-update {
-    font-size: .78rem;
-    opacity: .7;
-    background: rgba(255,255,255,.15);
-    padding: .25rem .7rem;
-    border-radius: 20px;
+    font-size: .78rem; opacity: .7; background: rgba(255,255,255,.15);
+    padding: .25rem .7rem; border-radius: 20px;
   }
 
-  /* ── Layout ───────────────────────────────────────── */
-  main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem 3rem;
-  }
+  main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 
-  /* ── Loading / Error ──────────────────────────────── */
-  #loading, #error-msg {
-    text-align: center;
-    padding: 4rem 1rem;
-    color: var(--gray-3);
-    font-size: 1.1rem;
-  }
+  #loading, #error-msg { text-align: center; padding: 4rem 1rem; color: var(--gray-3); font-size: 1.1rem; }
   #error-msg { color: var(--red); display: none; }
 
-  /* ── KPI Cards ────────────────────────────────────── */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
   .kpi {
-    background: #fff;
-    border-radius: var(--radius);
-    padding: 1.2rem 1.4rem;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
+    background: #fff; border-radius: var(--radius); padding: 1.2rem 1.4rem;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
   }
-  .kpi::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0;
-    width: 4px; height: 100%;
-    background: var(--green);
-    border-radius: 4px 0 0 4px;
-  }
-  .kpi .label {
-    font-size: .78rem;
-    color: var(--gray-3);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    margin-bottom: .3rem;
-  }
-  .kpi .value {
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--green);
-    line-height: 1;
-  }
-  .kpi .value small {
-    font-size: 1rem;
-    font-weight: 400;
-    color: var(--gray-4);
-  }
-  .kpi .sub {
-    font-size: .8rem;
-    color: var(--gray-3);
-    margin-top: .3rem;
-  }
+  .kpi::after { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--green); border-radius:4px 0 0 4px; }
+  .kpi .label { font-size:.78rem; color:var(--gray-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:.3rem; }
+  .kpi .value { font-size:1.9rem; font-weight:700; color:var(--green); line-height:1; }
+  .kpi .value small { font-size:1rem; font-weight:400; color:var(--gray-4); }
+  .kpi .sub { font-size:.8rem; color:var(--gray-3); margin-top:.3rem; }
+  .kpi .change { font-size:.78rem; margin-top:.2rem; font-weight:600; }
+  .kpi .change.up { color: var(--red); }
+  .kpi .change.down { color: var(--green); }
 
-  /* ── Cards genéricas ──────────────────────────────── */
-  .card {
-    background: #fff;
-    border-radius: var(--radius);
-    padding: 1.4rem;
-    box-shadow: var(--shadow);
-    margin-bottom: 1rem;
-  }
-  .card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--gray-4);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-  }
+  .card { background:#fff; border-radius:var(--radius); padding:1.4rem; box-shadow:var(--shadow); margin-bottom:1rem; }
+  .card-title { font-size:1rem; font-weight:600; color:var(--gray-4); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
 
-  /* ── 2-col grid ────────────────────────────────────── */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  @media (max-width: 700px) {
-    .two-col { grid-template-columns: 1fr; }
-  }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  @media (max-width:700px) { .two-col { grid-template-columns:1fr; } }
 
-  /* ── Chart wrappers ───────────────────────────────── */
-  .chart-wrap {
-    position: relative;
-    height: 260px;
-  }
-  .chart-wrap-tall {
-    position: relative;
-    height: 320px;
-  }
+  .chart-wrap { position:relative; height:260px; }
+  .chart-wrap-tall { position:relative; height:320px; }
 
-  /* ── Tips ─────────────────────────────────────────── */
-  .tips-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: .8rem;
-    margin-bottom: 1rem;
-  }
-  .tip {
-    display: flex;
-    gap: .8rem;
-    align-items: flex-start;
-    background: #fff;
-    border-radius: var(--radius);
-    padding: 1rem 1.2rem;
-    box-shadow: var(--shadow);
-    border-left: 4px solid var(--gray-2);
-  }
-  .tip.success { border-color: var(--green); background: var(--green-lt); }
-  .tip.warning { border-color: var(--orange); background: #fff8f0; }
-  .tip.info    { border-color: var(--blue);   background: #f0f4ff; }
-  .tip .icon   { font-size: 1.5rem; flex-shrink: 0; }
-  .tip .tip-title { font-weight: 600; font-size: .9rem; margin-bottom: .2rem; }
-  .tip .tip-text  { font-size: .82rem; color: var(--gray-4); line-height: 1.4; }
+  .tips-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:.8rem; margin-bottom:1rem; }
+  .tip { display:flex; gap:.8rem; align-items:flex-start; background:#fff; border-radius:var(--radius); padding:1rem 1.2rem; box-shadow:var(--shadow); border-left:4px solid var(--gray-2); }
+  .tip.success { border-color:var(--green); background:var(--green-lt); }
+  .tip.warning { border-color:var(--orange); background:#fff8f0; }
+  .tip.info    { border-color:var(--blue);   background:#f0f4ff; }
+  .tip .icon   { font-size:1.5rem; flex-shrink:0; }
+  .tip .tip-title { font-weight:600; font-size:.9rem; margin-bottom:.2rem; }
+  .tip .tip-text  { font-size:.82rem; color:var(--gray-4); line-height:1.4; }
 
-  /* ── Tabla tickets recientes ──────────────────────── */
-  .tickets-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: .88rem;
-  }
-  .tickets-table th {
-    text-align: left;
-    font-size: .75rem;
-    text-transform: uppercase;
-    color: var(--gray-3);
-    letter-spacing: .4px;
-    padding: .5rem .8rem;
-    border-bottom: 2px solid var(--gray-2);
-  }
-  .tickets-table td {
-    padding: .65rem .8rem;
-    border-bottom: 1px solid var(--gray-1);
-    vertical-align: middle;
-  }
-  .tickets-table tr:last-child td { border: none; }
-  .tickets-table tr:hover td { background: var(--gray-1); }
-  .badge {
-    display: inline-block;
-    padding: .15rem .55rem;
-    border-radius: 20px;
-    font-size: .75rem;
-    font-weight: 600;
-    background: var(--green-lt);
-    color: var(--green);
-  }
+  .tickets-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  .tickets-table th { text-align:left; font-size:.75rem; text-transform:uppercase; color:var(--gray-3); letter-spacing:.4px; padding:.5rem .8rem; border-bottom:2px solid var(--gray-2); }
+  .tickets-table td { padding:.65rem .8rem; border-bottom:1px solid var(--gray-1); vertical-align:middle; }
+  .tickets-table tr:last-child td { border:none; }
+  .tickets-table tr:hover td { background:var(--gray-1); }
+  .badge { display:inline-block; padding:.15rem .55rem; border-radius:20px; font-size:.75rem; font-weight:600; background:var(--green-lt); color:var(--green); }
 
-  /* ── Productos top ────────────────────────────────── */
-  .product-row {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    padding: .5rem 0;
-    border-bottom: 1px solid var(--gray-1);
-    font-size: .88rem;
-  }
-  .product-row:last-child { border: none; }
-  .product-rank {
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 50%;
-    background: var(--green-lt);
-    color: var(--green);
-    font-size: .72rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .product-name { flex: 1; font-weight: 500; }
-  .product-times {
-    font-size: .78rem;
-    color: var(--gray-3);
-    white-space: nowrap;
-  }
-  .product-price {
-    font-weight: 600;
-    color: var(--green);
-    white-space: nowrap;
-  }
+  .product-row { display:flex; align-items:center; gap:.75rem; padding:.5rem 0; border-bottom:1px solid var(--gray-1); font-size:.88rem; }
+  .product-row:last-child { border:none; }
+  .product-rank { width:1.5rem; height:1.5rem; border-radius:50%; background:var(--green-lt); color:var(--green); font-size:.72rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .product-name { flex:1; font-weight:500; }
+  .product-times { font-size:.78rem; color:var(--gray-3); white-space:nowrap; }
+  .product-price { font-weight:600; color:var(--green); white-space:nowrap; }
 
-  /* ── Footer ───────────────────────────────────────── */
-  footer {
-    text-align: center;
-    font-size: .78rem;
-    color: var(--gray-3);
-    padding: 1rem;
-    border-top: 1px solid var(--gray-2);
-    margin-top: 2rem;
+  /* Budget bars */
+  .budget-row { margin-bottom:.8rem; }
+  .budget-header { display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:.25rem; }
+  .budget-header .cat-name { font-weight:500; }
+  .budget-header .amounts { color:var(--gray-3); }
+  .budget-bar-bg { background:var(--gray-2); border-radius:6px; height:10px; overflow:hidden; }
+  .budget-bar-fill { height:100%; border-radius:6px; transition:width .5s ease; }
+  .budget-bar-fill.ok { background:var(--green); }
+  .budget-bar-fill.warn { background:var(--orange); }
+  .budget-bar-fill.over { background:var(--red); }
+
+  /* Search */
+  .search-box { display:flex; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+  .search-box input, .search-box select {
+    padding:.55rem .9rem; border:1px solid var(--gray-2); border-radius:8px;
+    font-size:.88rem; outline:none; transition:border .2s;
   }
+  .search-box input:focus, .search-box select:focus { border-color:var(--green); }
+  .search-box input { flex:1; min-width:180px; }
+  #search-results { max-height:320px; overflow-y:auto; }
+  #search-results .product-row { padding:.4rem 0; }
+
+  /* Toolbar */
+  .toolbar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .btn {
+    display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem;
+    border:1px solid var(--gray-2); border-radius:8px; background:#fff;
+    font-size:.82rem; cursor:pointer; transition:all .2s; color:var(--gray-4);
+  }
+  .btn:hover { border-color:var(--green); color:var(--green); }
+
+  .alert-banner {
+    padding: 1rem 1.4rem; border-radius: var(--radius); margin-bottom: 1rem;
+    font-size: .9rem; font-weight: 500; display: flex; align-items: center; gap: .6rem;
+  }
+  .alert-banner.danger { background: #fdecea; color: var(--red); border: 1px solid #f5c6cb; }
+  .alert-banner.warn { background: #fff8f0; color: var(--orange); border: 1px solid #ffd8b2; }
+
+  footer { text-align:center; font-size:.78rem; color:var(--gray-3); padding:1rem; border-top:1px solid var(--gray-2); margin-top:2rem; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">🛒 Consum<span>Tracker</span></div>
+  <div class="logo">Consum<span>Tracker</span></div>
   <div class="subtitle">Mi cesta inteligente</div>
-  <div class="last-update" id="last-update">Cargando…</div>
+  <div class="last-update" id="last-update">Cargando...</div>
 </header>
 
 <main>
-  <div id="loading">⏳ Cargando datos…</div>
-  <div id="error-msg">❌ No se pudieron cargar los datos.<br>
+  <div id="loading">Cargando datos...</div>
+  <div id="error-msg">No se pudieron cargar los datos.<br>
     Asegúrate de que <code>data/summary.json</code> existe.</div>
 
   <div id="content" style="display:none">
 
+    <!-- Alertas de gasto -->
+    <div id="spending-alert" style="display:none"></div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <button class="btn" onclick="exportCSV()">Exportar CSV</button>
+    </div>
+
     <!-- KPIs -->
     <div class="kpi-grid" id="kpi-grid"></div>
 
-    <!-- Gasto mensual -->
+    <!-- Gasto mensual con media móvil -->
     <div class="card">
-      <div class="card-title">📅 Gasto mensual</div>
+      <div class="card-title">Gasto mensual</div>
       <div class="chart-wrap-tall">
         <canvas id="chart-monthly"></canvas>
       </div>
@@ -295,32 +179,53 @@
     <!-- Categorías + Top productos -->
     <div class="two-col">
       <div class="card">
-        <div class="card-title">🏷️ Gasto por categoría</div>
+        <div class="card-title">Gasto por categoría</div>
         <div class="chart-wrap">
           <canvas id="chart-categories"></canvas>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">⭐ Productos más frecuentes</div>
+        <div class="card-title">Productos más frecuentes</div>
         <div id="top-products"></div>
       </div>
     </div>
 
+    <!-- Presupuestos -->
+    <div class="card" id="budget-card">
+      <div class="card-title">Presupuesto por categoría (este mes)</div>
+      <div style="font-size:.82rem;color:var(--gray-3);margin-bottom:.8rem">
+        Configura tus presupuestos editando <code>data/budgets.json</code>
+      </div>
+      <div id="budget-bars"></div>
+    </div>
+
+    <!-- Búsqueda de productos -->
+    <div class="card">
+      <div class="card-title">Buscar producto</div>
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Escribe un producto..." oninput="doSearch()">
+        <select id="search-cat" onchange="doSearch()">
+          <option value="">Todas las categorías</option>
+        </select>
+      </div>
+      <div id="search-results"></div>
+    </div>
+
     <!-- Tips de salud -->
     <div class="card-title" style="margin:.5rem 0 .6rem .2rem">
-      💚 Recomendaciones de salud
+      Recomendaciones de salud
     </div>
     <div class="tips-grid" id="health-tips"></div>
 
     <!-- Tips de ahorro -->
     <div class="card-title" style="margin:.5rem 0 .6rem .2rem">
-      💰 Consejos de ahorro
+      Consejos de ahorro
     </div>
     <div class="tips-grid" id="saving-tips"></div>
 
     <!-- Tickets recientes -->
     <div class="card">
-      <div class="card-title">🧾 Últimas compras</div>
+      <div class="card-title">Últimas compras</div>
       <div style="overflow-x:auto">
         <table class="tickets-table" id="tickets-table">
           <thead>
@@ -337,7 +242,7 @@
       </div>
     </div>
 
-  </div><!-- #content -->
+  </div>
 </main>
 
 <footer>
@@ -345,82 +250,110 @@
 </footer>
 
 <script>
-// ── Colores para gráficos ─────────────────────────────────
 const PALETTE = [
   "#00843D","#4caf7d","#80cfa0","#b3e4c3",
   "#1565c0","#5e92f3","#ffd700","#f57c00",
   "#e53935","#9c27b0","#607d8b","#795548",
 ];
 
-// ── Carga de datos ────────────────────────────────────────
+let DATA = null;
+let BUDGETS = null;
+
 async function loadData() {
   const base = "../data/summary.json";
-
   const resp = await fetch(base + "?t=" + Date.now());
   if (!resp.ok) throw new Error("HTTP " + resp.status);
   return resp.json();
 }
 
-// ── Helpers ───────────────────────────────────────────────
-const eur = v => v != null ? v.toFixed(2) + " €" : "—";
+async function loadBudgets() {
+  try {
+    const resp = await fetch("../data/budgets.json?t=" + Date.now());
+    if (resp.ok) return resp.json();
+  } catch {}
+  return null;
+}
+
+const eur = v => v != null ? v.toFixed(2) + " \u20AC" : "\u2014";
 const fmt_date = iso => {
-  if (!iso) return "—";
+  if (!iso) return "\u2014";
   const [y,m,d] = iso.split("-");
   return `${d}/${m}/${y}`;
 };
 
-// ── KPI cards ─────────────────────────────────────────────
 function renderKPIs(data) {
-  const last = data.monthly_data.at(-1) || {};
+  const md = data.monthly_data;
+  const last = md.at(-1) || {};
+  const prev = md.at(-2) || {};
+  const changePct = last.change_pct;
+
+  let changeHtml = "";
+  if (changePct != null) {
+    const cls = changePct > 0 ? "up" : "down";
+    const arrow = changePct > 0 ? "\u25B2" : "\u25BC";
+    changeHtml = `<div class="change ${cls}">${arrow} ${Math.abs(changePct)}% vs mes anterior</div>`;
+  }
+
   document.getElementById("kpi-grid").innerHTML = [
     { label:"Gasto total",    value: eur(data.total_spent),        sub: `${data.total_tickets} tickets` },
     { label:"Ticket medio",   value: eur(data.avg_ticket),         sub: "por visita" },
-    { label:"Media mensual",  value: eur(data.avg_monthly_spent),  sub: "últimos meses" },
-    { label:"Este mes",       value: eur(last.total),              sub: `${last.visits||0} visitas` },
+    { label:"Media mensual",  value: eur(data.avg_monthly_spent),  sub: "todos los meses" },
+    { label:"Este mes",       value: eur(last.total),              sub: `${last.visits||0} visitas`, extra: changeHtml },
   ].map(k => `
     <div class="kpi">
       <div class="label">${k.label}</div>
       <div class="value">${k.value}</div>
       <div class="sub">${k.sub}</div>
+      ${k.extra || ""}
     </div>
   `).join("");
 }
 
-// ── Gráfico mensual (barras) ──────────────────────────────
 function renderMonthly(data) {
   const labels = data.monthly_data.map(m => m.label);
   const values = data.monthly_data.map(m => m.total);
+  const movAvg = data.monthly_data.map(m => m.moving_avg);
+
   new Chart(document.getElementById("chart-monthly"), {
     type: "bar",
     data: {
       labels,
-      datasets: [{
-        label: "Gasto (€)",
-        data: values,
-        backgroundColor: PALETTE[0],
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
+      datasets: [
+        {
+          label: "Gasto (\u20AC)",
+          data: values,
+          backgroundColor: PALETTE[0],
+          borderRadius: 6,
+          borderSkipped: false,
+          order: 2,
+        },
+        {
+          label: "Media m\u00F3vil (3m)",
+          data: movAvg,
+          type: "line",
+          borderColor: PALETTE[7],
+          backgroundColor: "transparent",
+          borderWidth: 2,
+          pointRadius: 3,
+          tension: 0.3,
+          order: 1,
+        }
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { display: true, position: "top", labels: { font: { size: 11 } } },
         tooltip: { callbacks: { label: ctx => " " + eur(ctx.raw) } }
       },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { callback: v => v + "€" },
-          grid: { color: "#f0f0f0" }
-        },
+        y: { beginAtZero: true, ticks: { callback: v => v + "\u20AC" }, grid: { color: "#f0f0f0" } },
         x: { grid: { display: false } }
       }
     }
   });
 }
 
-// ── Gráfico categorías (donut) ────────────────────────────
 function renderCategories(data) {
   const cats = data.categories.slice(0, 10);
   new Chart(document.getElementById("chart-categories"), {
@@ -437,22 +370,14 @@ function renderCategories(data) {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: "bottom",
-          labels: { font: { size: 11 }, boxWidth: 12 }
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.label}: ${eur(ctx.raw)}`
-          }
-        }
+        legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${eur(ctx.raw)}` } }
       },
       cutout: "60%",
     }
   });
 }
 
-// ── Top productos ─────────────────────────────────────────
 function renderTopProducts(data) {
   const list = data.top_products.slice(0, 8);
   document.getElementById("top-products").innerHTML =
@@ -466,7 +391,6 @@ function renderTopProducts(data) {
     `).join("") || "<p style='color:#9e9e9e;font-size:.85rem'>Sin datos</p>";
 }
 
-// ── Tips ──────────────────────────────────────────────────
 function renderTips(tips, containerId) {
   document.getElementById(containerId).innerHTML =
     tips.map(t => `
@@ -480,7 +404,6 @@ function renderTips(tips, containerId) {
     `).join("") || "";
 }
 
-// ── Tickets recientes ─────────────────────────────────────
 function renderTickets(data) {
   document.getElementById("tickets-body").innerHTML =
     data.recent_tickets.map(t => `
@@ -488,7 +411,7 @@ function renderTickets(data) {
         <td>${fmt_date(t.date)}</td>
         <td>${t.store || "Consum"}</td>
         <td><span class="badge">${t.items_count} art.</span></td>
-        <td>${t.payment || "—"}</td>
+        <td>${t.payment || "\u2014"}</td>
         <td><strong>${eur(t.total)}</strong></td>
       </tr>
     `).join("") ||
@@ -497,23 +420,158 @@ function renderTickets(data) {
     </td></tr>`;
 }
 
-// ── Init ──────────────────────────────────────────────────
+function renderBudgets(data, budgets) {
+  const container = document.getElementById("budget-bars");
+  if (!budgets || !budgets.monthly) {
+    container.innerHTML = '<p style="color:#9e9e9e;font-size:.85rem">Sin presupuestos definidos. Crea <code>data/budgets.json</code> para activarlos.</p>';
+    return;
+  }
+
+  const lastMonth = (data.monthly_data.at(-1) || {}).month;
+  if (!lastMonth) { container.innerHTML = ""; return; }
+
+  const catSpentThisMonth = {};
+  data.categories.forEach(c => { catSpentThisMonth[c.name] = c.total; });
+
+  const html = Object.entries(budgets.monthly).map(([cat, limit]) => {
+    const spent = catSpentThisMonth[cat] || 0;
+    const pct = Math.min((spent / limit) * 100, 100);
+    const cls = pct >= 100 ? "over" : pct >= 80 ? "warn" : "ok";
+    return `
+      <div class="budget-row">
+        <div class="budget-header">
+          <span class="cat-name">${cat}</span>
+          <span class="amounts">${eur(spent)} / ${eur(limit)}</span>
+        </div>
+        <div class="budget-bar-bg">
+          <div class="budget-bar-fill ${cls}" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }).join("");
+  container.innerHTML = html;
+}
+
+function renderSearchCategories(data) {
+  const sel = document.getElementById("search-cat");
+  const cats = [...new Set(data.top_products.map(p => {
+    const found = data.categories.find(c => c.name);
+    return found ? found.name : null;
+  }).filter(Boolean))];
+  data.categories.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.name;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+}
+
+function doSearch() {
+  const q = document.getElementById("search-input").value.trim().toUpperCase();
+  const cat = document.getElementById("search-cat").value;
+  const container = document.getElementById("search-results");
+  if (!q && !cat) { container.innerHTML = ""; return; }
+
+  const allProducts = DATA.top_products;
+  let results = allProducts.filter(p => {
+    const nameMatch = !q || p.name.toUpperCase().includes(q);
+    return nameMatch;
+  });
+
+  if (results.length === 0) {
+    container.innerHTML = '<p style="color:#9e9e9e;font-size:.85rem;padding:.5rem 0">Sin resultados</p>';
+    return;
+  }
+
+  container.innerHTML = results.slice(0, 15).map((p, i) => `
+    <div class="product-row">
+      <div class="product-name">${p.name}</div>
+      <div class="product-times">${p.times}x comprado</div>
+      <div class="product-price">${eur(p.total_spent)}</div>
+    </div>
+  `).join("");
+}
+
+function renderSpendingAlert(data, budgets) {
+  const el = document.getElementById("spending-alert");
+  if (!budgets || !budgets.alert_monthly_total) { el.style.display = "none"; return; }
+  const lastMonth = data.monthly_data.at(-1);
+  if (!lastMonth) return;
+  const limit = budgets.alert_monthly_total;
+  if (lastMonth.total > limit) {
+    el.style.display = "";
+    el.innerHTML = `<div class="alert-banner danger">
+      Has superado tu presupuesto mensual: ${eur(lastMonth.total)} de ${eur(limit)} (${lastMonth.label})
+    </div>`;
+  } else if (lastMonth.total > limit * 0.85) {
+    el.style.display = "";
+    el.innerHTML = `<div class="alert-banner warn">
+      Estás cerca de tu presupuesto mensual: ${eur(lastMonth.total)} de ${eur(limit)} (${lastMonth.label})
+    </div>`;
+  }
+}
+
+function exportCSV() {
+  if (!DATA) return;
+  const rows = [["Mes", "Gasto (\u20AC)", "Visitas", "Variación (%)", "Media móvil (\u20AC)"]];
+  DATA.monthly_data.forEach(m => {
+    rows.push([m.label, m.total, m.visits, m.change_pct ?? "", m.moving_avg ?? ""]);
+  });
+
+  rows.push([]);
+  rows.push(["Categoría", "Gasto total (\u20AC)", "N\u00BA artículos"]);
+  DATA.categories.forEach(c => {
+    rows.push([c.name, c.total, c.count]);
+  });
+
+  rows.push([]);
+  rows.push(["Producto", "Veces comprado", "Gasto total (\u20AC)"]);
+  DATA.top_products.forEach(p => {
+    rows.push([p.name, p.times, p.total_spent]);
+  });
+
+  rows.push([]);
+  rows.push(["Fecha", "Tienda", "Artículos", "Pago", "Total (\u20AC)"]);
+  DATA.recent_tickets.forEach(t => {
+    rows.push([t.date, t.store, t.items_count, t.payment, t.total]);
+  });
+
+  const csvContent = rows.map(r => r.map(cell => {
+    const s = String(cell ?? "");
+    return s.includes(",") || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+  }).join(",")).join("\n");
+
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `consum_tracker_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 (async () => {
   try {
-    const data = await loadData();
+    const [data, budgets] = await Promise.all([loadData(), loadBudgets()]);
+    DATA = data;
+    BUDGETS = budgets;
+
     document.getElementById("loading").style.display = "none";
     document.getElementById("content").style.display = "";
 
     const upd = data.generated_at
       ? new Date(data.generated_at).toLocaleDateString("es-ES",
           { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
-      : "—";
+      : "\u2014";
     document.getElementById("last-update").textContent = "Actualizado: " + upd;
 
+    renderSpendingAlert(data, budgets);
     renderKPIs(data);
     renderMonthly(data);
     renderCategories(data);
     renderTopProducts(data);
+    renderBudgets(data, budgets);
+    renderSearchCategories(data);
     renderTips(data.health_tips,  "health-tips");
     renderTips(data.saving_tips,  "saving-tips");
     renderTickets(data);

@@ -1,0 +1,15 @@
+{
+  "monthly": {
+    "Carne y Pescado": 80,
+    "Lácteos y Huevos": 30,
+    "Bebidas": 20,
+    "Frutas y Verduras": 40,
+    "Pan y Bollería": 25,
+    "Congelados y Preparados": 20,
+    "Pasta, Arroz y Legumbres": 15,
+    "Conservas y Salsas": 15,
+    "Snacks y Dulces": 15,
+    "Higiene y Limpieza": 20
+  },
+  "alert_monthly_total": 300
+}

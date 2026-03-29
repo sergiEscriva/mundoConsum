@@ -5,15 +5,23 @@ Descubrimiento clave: ticketdetail.html acepta parámetros directos:
 No hace falta mytickets.html, scroll ni clics.
 Simplemente navegar a esa URL carga el ticket y el <pre> está en el DOM.
 """
-import asyncio, json, os, re, sys, html as html_module
+import asyncio, json, logging, os, re, sys, html as html_module
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from urllib.parse import quote
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger("scraper")
 
 try:
     from playwright.async_api import async_playwright, BrowserContext
 except ImportError:
-    print("Error: Playwright no instalado")
+    logging.error("Playwright no instalado")
     sys.exit(1)
 
 MAIN_URL    = "https://www.consum.es/mundoconsum/mi-ahorro/"
@@ -22,70 +30,16 @@ TICKETS_DIR = Path("data/tickets")
 TICKETS_DIR.mkdir(parents=True, exist_ok=True)
 PAGE_SIZE   = 10
 
-CATEGORIES = {
-    "Carne y Pescado": [
-        "POLLO","PECHUGA","SOLOMILLO","MUSLO","CONTR.","ALAS","BROCHETA",
-        "CERDO","TERNERA","PANCETA","TAQUITO","CHORIZO","LONGANIZA",
-        "ALBONDIGA","CARNE","FILETE","FIGATELL","FLTE","FLT.",
-        "JAMÓN","JAMON","J.CUR","J.COC","PALETA","LONCHAS","SALCHICH",
-        "FIAMBRE","CHOPIR","PATÉ","PATE","MIK.",
-        "MERLUZA","MLZA","SALMON","ATUN","GAMBA","MEJILLON","BACALAO",
-        "CHULETA","COSTILL",
-    ],
-    "Lácteos y Huevos": [
-        "LECHE","PULEVA","MOZZAR","QUESO","YOGUR","YOG.","NATA",
-        "HUEVO","KEFIR","BATIDO",
-    ],
-    "Bebidas": [
-        "AGUA","FONTVELLA","A.FONT","ZUMO","REFRESC","CERVEZA","VINO",
-        "COCA-COLA","FANTA","NESTEA","HORCHATA","CHUFI","CAFÉ","CAFE",
-    ],
-    "Frutas y Verduras": [
-        "MANZANA","NARANJA","PLATANO","PLÁTANO","BANANA","KIWI","FRESA",
-        "MELON","PERA","UVA","MANGO","TOMATE","LECHUGA","ZANAHORIA",
-        "CEBOLLA","AJO","PIMIENTO","PEPINO","BROCOLI","ESPINACA",
-        "CALABACIN","BERENJENA","PATATA","PAT.","BONIATO","ALCACHOFA",
-        "AGUACATE","CHAMPIÑON",
-    ],
-    "Pan y Bollería": [
-        "PAN","BARRA","BAGUET","BOLLO","CROISSANT","GALL.","GALLETA",
-        "BIZCOCHO","TOR. TRIGO","TOR.TRIGO","HAMBUR.","P.HAMBUR",
-        "PAN RUSTIC","PAN RALLADO","ESPIGA","ALDEANA","RÚSTICA","RUSTICA",
-        "DULCESOL","VALENC.","PORRA","BERLINA","BERLI","CEREALES",
-        "BURGER CRISTAL",
-    ],
-    "Congelados y Preparados": [
-        "PIZZA","LASAÑA","CANELONES","NUGGET","CROQUETA",
-        "CONGELAD","PRECOCID","COCIDO MADR",
-    ],
-    "Pasta, Arroz y Legumbres": [
-        "PASTA","ESPAGUETI","SPAGHETT","MACARRON","ARROZ",
-        "LENTEJA","GARBANZO","QUINOA","FIDEO",
-    ],
-    "Conservas y Salsas": [
-        "TOM.FRITO","T.FRITO","TOMATE FRITO","KETCHUP","MAYONESA",
-        "AC.OL.","ACEITE","VINAGRE","SALSA","ALLIOLI","PESTO",
-        "SAZ.","FAJITA","CHOVI",
-    ],
-    "Snacks y Dulces": [
-        "CHIPS","CHOCOLATE","CHOCO","CARAMELO","FRUTOS SECOS","ALMENDRA",
-        "PIPAS","ANACARDO","BARRITA","BARRITAS","JUG.","KINDER","KIDNDER",
-        "COOKIE","BROWNIE","MILKA","CACAO","TURRÓN",
-    ],
-    "Repostería": [
-        "AROM.","VAINILL","LEVADURA","HARINA","AZUCAR","PANELA",
-        "CANELA","MANTEQUI","CACAO POLV",
-    ],
-    "Higiene y Limpieza": [
-        "CHAMPU","GEL","JABON","JABÓN","COLONIA","DESODORANTE",
-        "COMPRESA","COMPRESAS","HIG.","HIGIEN",
-        "HILO DENTAL","D.C.LIMP","ORALB","REC.SENS","M.DES.",
-        "SOLUCIÓN ÚNICA","GOMA LIMP","LIMP.CALZ","CEPILLO BETUNE",
-        "BAYETA","LAVAVAJIL","DETERGENTE","D.LÍQ","D.LIQ",
-        "SUAVIZANTE","SUAV.","SERVILLETA","SERV.","BOLSA","B.BASURA",
-        "R.COCINA","MOLDE PAPEL","HIG.COMPACT",
-    ],
-}
+CATEGORIES_FILE = Path("data/categories.json")
+
+def load_categories() -> dict[str, list[str]]:
+    if CATEGORIES_FILE.exists():
+        return json.loads(CATEGORIES_FILE.read_text(encoding="utf-8"))
+    log.warning("No se encontró %s, usando categorías por defecto", CATEGORIES_FILE)
+    return {}
+
+CATEGORIES = load_categories()
+_uncategorized: set[str] = set()
 
 SKIP = {"FACTURA","IMPORTE","CAMBIO","TOTAL","BASE","IVA","CUOTA",
         "SILLA","SOCIO","TARJ","BBVA","VISA","OPERACI","AUTORI",
@@ -97,6 +51,9 @@ def categorize(name):
     for cat, kws in CATEGORIES.items():
         if any(kw in n for kw in kws):
             return cat
+    if n not in _uncategorized:
+        _uncategorized.add(n)
+        log.debug("Producto sin categoría: %s", name)
     return "Otros"
 
 def parse_items_from_pre(pre_text: str) -> list:
@@ -135,14 +92,14 @@ def load_cookies():
         local = Path("cookies.json")
         if local.exists():
             raw = local.read_text()
-            print("Info: usando cookies.json local")
+            log.info("Usando cookies.json local")
         else:
-            print("Error: no se encontró CONSUM_COOKIES ni cookies.json")
+            log.error("No se encontró CONSUM_COOKIES ni cookies.json")
             sys.exit(1)
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
-        print("Error: CONSUM_COOKIES no es JSON válido")
+        log.error("CONSUM_COOKIES no es JSON válido")
         sys.exit(1)
 
 def already_with_items():
@@ -158,7 +115,8 @@ def build_ticket_from_api(t):
     dt = date_str = None
     if dt_str:
         try:
-            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%SZ") + timedelta(hours=1)
+            utc_dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%SZ").replace(tzinfo=timezone.utc)
+            dt = utc_dt.astimezone(ZoneInfo("Europe/Madrid"))
             date_str = dt.strftime("%Y-%m-%d")
         except ValueError:
             pass
@@ -177,31 +135,31 @@ def build_ticket_from_api(t):
 async def get_iframe_info(context: BrowserContext) -> tuple[str, str, str]:
     """Devuelve (iframe_url, pass_token, version)."""
     page = await context.new_page()
-    print("Info: cargando página principal...")
+    log.info("Cargando página principal...")
     await page.goto(MAIN_URL, wait_until="domcontentloaded", timeout=30000)
     await page.wait_for_timeout(3000)
     if "acceso" in page.url or "login" in page.url.lower():
-        print("Error: sesión expirada.")
+        log.error("Sesión expirada.")
         await page.close()
         sys.exit(1)
     html = await page.content()
     await page.close()
     m = re.search(r'src="(https://nomastickets\.consum\.es/app/index\.html[^"]+)"', html)
     if not m:
-        print("Error: no se encontró el iframe")
+        log.error("No se encontró el iframe")
         sys.exit(1)
     iframe_url = m.group(1).replace("&amp;", "&")
     pass_match = re.search(r'pass=([^&]+)', iframe_url)
     pass_token = pass_match.group(1) if pass_match else ""
     ver_match  = re.search(r'[?&]v=(\d+)', iframe_url)
     version    = ver_match.group(1) if ver_match else "20251201"
-    print("Info: sesión activa")
+    log.info("Sesión activa")
     return iframe_url, pass_token, version
 
 async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
     """Descarga la lista completa de tickets paginando la API."""
     all_tickets, seen_ids = [], set()
-    print("\n Descargando lista de tickets...")
+    log.info("Descargando lista de tickets...")
 
     # Usar una sola página para toda la paginación
     page = await context.new_page()
@@ -210,7 +168,7 @@ async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
 
     page_num = 0
     while True:
-        print(f"   Página {page_num}...", end=" ", flush=True)
+        log.info("Página %d...", page_num)
         body = (f"email=null&password={pass_token}&isTicketOnline=false"
                 f"&page={page_num}&elements={PAGE_SIZE}&latitude=0&longitude=0")
         await page.evaluate(f"window.__b = {json.dumps(body)};")
@@ -228,11 +186,11 @@ async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
             }}
         """)
         if not pts or not isinstance(pts, list):
-            print("+0"); break
+            log.info("Sin más tickets"); break
         new = [t for t in pts if str(t["Id"]) not in seen_ids]
         for t in new: seen_ids.add(str(t["Id"]))
         all_tickets.extend(new)
-        print(f"+{len(new)} (total: {len(all_tickets)})")
+        log.info("+%d (total: %d)", len(new), len(all_tickets))
         if len(pts) < PAGE_SIZE or not new: break
         page_num += 1
         if page_num > 100: break
@@ -260,7 +218,7 @@ async def fetch_ticket_detail(context, ticket_id: str, pass_token: str, version:
         """)
         return pre_html
     except Exception as e:
-        print(f"      Error: {e}")
+        log.error("Error obteniendo detalle: %s", e)
         return None
     finally:
         await page.close()
@@ -268,7 +226,7 @@ async def fetch_ticket_detail(context, ticket_id: str, pass_token: str, version:
 async def main():
     cookies = load_cookies()
     existing = already_with_items()
-    print(f"Info: tickets ya con artículos: {len(existing)}")
+    log.info("Tickets ya con artículos: %d", len(existing))
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -282,12 +240,12 @@ async def main():
         iframe_url, pass_token, version = await get_iframe_info(context)
         all_tickets = await fetch_tickets_list(context, iframe_url, pass_token)
 
-        print(f"\n Total tickets: {len(all_tickets)}")
+        log.info("Total tickets: %d", len(all_tickets))
         to_process = [t for t in all_tickets if str(t["Id"]) not in existing]
-        print(f"A procesar: {len(to_process)}")
+        log.info("A procesar: %d", len(to_process))
 
         if not to_process:
-            print("Info: todos los tickets ya tienen artículos.")
+            log.info("Todos los tickets ya tienen artículos.")
             await browser.close(); sys.exit(2)
 
         success = 0
@@ -296,7 +254,7 @@ async def main():
             store = api_t.get("Store","")
             date  = api_t.get("SaleTimestamp","")[:10]
             total = api_t.get("TotalPrice","?")
-            print(f"\n  [{i+1}/{len(to_process)}] {store} — {date} — {total}€")
+            log.info("[%d/%d] %s — %s — %s€", i+1, len(to_process), store, date, total)
 
             pre_html = await fetch_ticket_detail(context, tid, pass_token, version)
 
@@ -307,9 +265,9 @@ async def main():
                 items = parse_items_from_pre(pre_html)
                 base["items"] = items
                 base["source"] = "dom_extracted"
-                print(f"     {len(items)} artículos")
+                log.info("  %d artículos", len(items))
             else:
-                print(f"      Sin pre, guardando datos básicos")
+                log.warning("  Sin pre, guardando datos básicos")
                 base["source"] = "api_only"
 
             jf.write_text(json.dumps(base, indent=2, ensure_ascii=False))
@@ -317,8 +275,10 @@ async def main():
 
         await browser.close()
 
-    print(f"\n{'='*50}")
-    print(f" {success}/{len(to_process)} tickets procesados")
+    log.info("=" * 50)
+    log.info("%d/%d tickets procesados", success, len(to_process))
+    if _uncategorized:
+        log.info("Productos sin categoría (%d): %s", len(_uncategorized), ", ".join(sorted(_uncategorized)))
     if success == 0: sys.exit(1)
 
 if __name__ == "__main__":

@@ -5,7 +5,6 @@ on:
     # Cada día a las 08:00 hora de España (UTC+2 en verano -> 06:00 UTC)
     - cron: "0 6 * * *"
   workflow_dispatch:
-    # Permite ejecutarlo manualmente desde GitHub > Actions > Run workflow
 
 jobs:
   update-tracker:
@@ -13,50 +12,49 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write   # necesario para hacer commit
+      contents: write
+      issues: write
 
     steps:
-      # 1. Clonar el repositorio
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Configurar Python
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
 
-      # 3. Instalar dependencias
       - name: Instalar dependencias
         run: |
           pip install -r requirements.txt
           playwright install chromium --with-deps
 
-      # 4. Descargar tickets nuevos
       - name: Descargar tickets nuevos
         id: scrape
         env:
           CONSUM_COOKIES: ${{ secrets.CONSUM_COOKIES }}
         run: |
+          set +e
           python scripts/scraper.py
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
-        # exit code 2 = no hay tickets nuevos (no es un error)
-        continue-on-error: true
+          code=$?
+          echo "exit_code=$code" >> $GITHUB_OUTPUT
+          if [ "$code" -eq 2 ]; then
+            echo "No hay tickets nuevos (exit 2) — ok"
+            exit 0
+          fi
+          exit $code
 
-      # 5. Generar summary.json
       - name: Generar datos del dashboard
         run: python scripts/build_data.py
 
-      # 6. Commit y push si hay cambios
       - name: Guardar cambios en el repositorio
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          # Solo hace commit si hay cambios reales
           if git diff --staged --quiet; then
             echo "Sin cambios que guardar hoy."
           else
@@ -65,10 +63,39 @@ jobs:
             git push
           fi
 
-      # 7. Notificar si las cookies han expirado
       - name: Notificar si las cookies expiraron
-        if: failure()
+        if: steps.scrape.outputs.exit_code == '1'
         run: |
           echo "::error::Las cookies de Consum han expirado."
           echo "::error::Ejecuta localmente: python scripts/get_cookie.py"
           echo "::error::Luego actualiza el Secret CONSUM_COOKIES en GitHub."
+
+      - name: Crear issue automático por cookies expiradas
+        if: steps.scrape.outputs.exit_code == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh issue list --label "cookies-expired" --state open --json number --jq 'length')
+          if [ "$existing" -eq 0 ]; then
+            gh issue create \
+              --title "Las cookies de Consum han expirado" \
+              --body "El scraper ha fallado porque la sesión ha caducado.
+
+          **Pasos para renovar:**
+          1. Ejecuta localmente: \`python scripts/get_cookie.py\`
+          2. Actualiza el Secret \`CONSUM_COOKIES\` en GitHub.
+
+          _Este issue se ha creado automáticamente._" \
+              --label "cookies-expired"
+          fi
+
+      - name: Notificar por Telegram (opcional)
+        if: steps.scrape.outputs.exit_code == '1' && env.TELEGRAM_BOT_TOKEN != ''
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d parse_mode="Markdown" \
+            -d text="*Consum Tracker*: Las cookies han expirado. Ejecuta \`python scripts/get_cookie.py\` y actualiza el Secret."
