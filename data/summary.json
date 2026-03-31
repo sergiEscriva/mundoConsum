@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-30T07:23:52.183091",
-  "total_tickets": 45,
-  "total_spent": 368.12,
-  "avg_ticket": 8.18,
-  "avg_monthly_spent": 122.71,
+  "generated_at": "2026-03-31T07:09:39.243899",
+  "total_tickets": 46,
+  "total_spent": 376.92,
+  "avg_ticket": 8.19,
+  "avg_monthly_spent": 125.64,
   "monthly_data": [
     {
       "month": "2026-01",
@@ -24,17 +24,17 @@
     {
       "month": "2026-03",
       "label": "Mar 2026",
-      "total": 99.75,
-      "visits": 15,
-      "change_pct": -14.4,
-      "moving_avg": 122.71
+      "total": 108.55,
+      "visits": 16,
+      "change_pct": -6.8,
+      "moving_avg": 125.64
     }
   ],
   "categories": [
     {
       "name": "Carne y Pescado",
-      "total": 138.86,
-      "count": 41
+      "total": 147.66,
+      "count": 44
     },
     {
       "name": "Higiene y Limpieza",
@@ -139,6 +139,11 @@
       "total_spent": 7.76
     },
     {
+      "name": "ALAS PARTIDAS POLLO",
+      "times": 3,
+      "total_spent": 8.46
+    },
+    {
       "name": "GALL.TOSTA RICA760",
       "times": 2,
       "total_spent": 7.98
@@ -187,14 +192,16 @@
       "name": "TOR. TRIGO CONS 10U",
       "times": 2,
       "total_spent": 2.3
-    },
-    {
-      "name": "JAMÓN G.R.CONSU120G",
-      "times": 2,
-      "total_spent": 4.9
     }
   ],
   "recent_tickets": [
+    {
+      "date": "2026-03-30",
+      "store": "55 - V.Arquitecto Alfaro",
+      "total": 8.8,
+      "items_count": 3,
+      "payment": "Tarjeta"
+    },
     {
       "date": "2026-03-26",
       "store": "55 - V.Arquitecto Alfaro",
@@ -257,13 +264,6 @@
       "total": 9.84,
       "items_count": 3,
       "payment": "Tarjeta"
-    },
-    {
-      "date": "2026-03-09",
-      "store": "55 - V.Arquitecto Alfaro",
-      "total": 2.88,
-      "items_count": 1,
-      "payment": "Tarjeta"
     }
   ],
   "health_tips": [
@@ -271,7 +271,7 @@
       "icon": "",
       "type": "warning",
       "title": "Poca fruta y verdura",
-      "text": "Solo el 8.9% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
+      "text": "Solo el 8.7% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
     }
   ],
   "saving_tips": [
@@ -279,7 +279,7 @@
       "icon": "",
       "type": "info",
       "title": "Muchas visitas al súper",
-      "text": "Fuiste 15 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
+      "text": "Fuiste 16 veces el último mes. Comprar menos veces y con lista suele reducir el gasto impulsivo."
     },
     {
       "icon": "",
