@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ticket details reuse the initialized app tab and preserve the iframe parameters
+  (including dni). Navigation retries wait for pending error-page redirects before
+  reinitializing the app. Diagnostics show the failing stage and HTTP/browser
+  error without exposing tokens; repeated failures stop the remaining download.
 - Manual login keeps Playwright events running while waiting for terminal input.
   SSO redirects and logins in another tab are verified without navigating away
   from the user's page; unsuccessful checks can retry without losing cookies.

@@ -7,7 +7,7 @@
 
 ## Componentes y limites
 - `scripts/get_cookie.py`: login interactivo + captura de 2FA; escribe `cookies.json` para automatizacion posterior.
-- `scripts/scraper.py`: fetcher con Playwright que obtiene listas paginadas de tickets via API, y luego extrae lineas de articulo desde `ticketdetail.html` (`#ticketpre`) usando una URL directa por ticket, sin depender de clics en DOM.
+- `scripts/scraper.py`: fetcher con Playwright que obtiene listas paginadas de tickets via API y extrae líneas desde `ticketdetail.html` (`#ticketpre`) en la misma pestaña de la aplicación, conservando sessionStorage y los parámetros del iframe.
 - `scripts/build_data.py`: capa de agregacion que calcula KPIs, categorias, top productos y recomendaciones.
 - `dashboard/index.html`: contrato de UI actual para `data/summary.json`.
 - `docs/index.html`: UI antigua con un contrato JSON distinto (`last_updated`, `stats`, `recommendations`).
@@ -33,6 +33,7 @@
 - Los endpoints web + API de Consum estan hardcodeados en `scripts/scraper.py` (`https://www.consum.es/...` y `https://nomastickets.consum.es/api`).
 - La autenticacion usa primero la variable de entorno `CONSUM_COOKIES`, y luego fallback al `cookies.json` local (`load_cookies` en `scripts/scraper.py`).
 - La extraccion de detalle depende del token `pass` de la URL del iframe y construye `ticketdetail.html?ticketId=...&pass=...&v=...`.
+- Conservar también `dni` y otros parámetros del iframe; no abrir una pestaña nueva por ticket. El reintento reinicializa la app tras asentar las navegaciones pendientes. Los logs de excepción deben ocultar URLs con tokens y omitir el call log de Playwright.
 - La versión del detalle se obtiene del iframe; `20251201` es solo el fallback.
 - Los graficos del frontend usan el CDN de Chart.js en `dashboard/index.html` y `docs/index.html`.
 

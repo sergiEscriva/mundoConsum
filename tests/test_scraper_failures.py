@@ -94,7 +94,7 @@ def test_returns_are_parsed(quantity, total):
 def mocked_main(monkeypatch, tmp_path):
     monkeypatch.setattr(scraper, "TICKETS_DIR", tmp_path)
     monkeypatch.setattr(scraper, "load_cookies", lambda: [{"name": "dummy"}])
-    context = MagicMock(add_cookies=AsyncMock())
+    context = MagicMock(add_cookies=AsyncMock(), new_page=AsyncMock(return_value=MagicMock()))
     browser = MagicMock(new_context=AsyncMock(return_value=context), close=AsyncMock())
     runtime = MagicMock()
     runtime.chromium.launch = AsyncMock(return_value=browser)
@@ -145,6 +145,17 @@ def test_failed_retry_preserves_previous_lines(mocked_main, tmp_path):
     saved = json.loads((tmp_path / "1.json").read_text())
     assert saved["items"] == previous["items"]
     assert saved["extraction_status"] == "incomplete"
+
+
+def test_three_unavailable_details_stop_the_remaining_download(mocked_main, monkeypatch, tmp_path):
+    detail, browser = mocked_main
+    monkeypatch.setattr(scraper, "fetch_tickets_list", AsyncMock(return_value=[api_ticket(i) for i in range(5)]))
+    with pytest.raises(scraper.ScrapeError, match="Tres detalles consecutivos"):
+        asyncio.run(scraper.main())
+    assert detail.await_count == 3
+    assert not (tmp_path / "3.json").exists()
+    assert not (tmp_path / "4.json").exists()
+    browser.close.assert_awaited_once()
 
 
 def test_repeated_full_api_page_is_an_error():

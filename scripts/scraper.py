@@ -1,15 +1,12 @@
 """
-scraper.py — Versión final.
-Descubrimiento clave: ticketdetail.html acepta parámetros directos:
-  ?ticketId=ID&pass=TOKEN&dni=&v=20251201
-No hace falta mytickets.html, scroll ni clics.
-Simplemente navegar a esa URL carga el ticket y el <pre> está en el DOM.
+scraper.py — Lista y detalles de tickets en la misma pestaña de la aplicación.
+Se conservan el sessionStorage y los parámetros del iframe durante la extracción.
 """
 import asyncio, json, logging, os, re, sys, html as html_module
 from pathlib import Path
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from urllib.parse import quote, urlencode, parse_qs, urlsplit
+from urllib.parse import quote, urlencode, parse_qs, parse_qsl, urlsplit, urlunsplit
 
 from ticket_data import extraction_complete, normalize_ticket, number
 
@@ -21,7 +18,7 @@ logging.basicConfig(
 log = logging.getLogger("scraper")
 
 try:
-    from playwright.async_api import async_playwright, BrowserContext
+    from playwright.async_api import async_playwright, BrowserContext, Error as PlaywrightError
 except ImportError:
     logging.error("Playwright no instalado")
     sys.exit(1)
@@ -169,10 +166,12 @@ async def get_iframe_info(context: BrowserContext) -> tuple[str, str, str]:
     log.info("Sesión activa")
     return iframe_url, pass_token, version
 
-async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
+async def fetch_tickets_list(context, iframe_url, pass_token, *, page=None) -> list:
     """Descarga la lista completa de tickets paginando la API."""
     all_tickets, seen_ids = [], set()
-    page = await context.new_page()
+    owns_page = page is None
+    if owns_page:
+        page = await context.new_page()
     try:
         await page.goto(iframe_url, wait_until="domcontentloaded", timeout=30000)
         for page_num in range(101):
@@ -211,41 +210,101 @@ async def fetch_tickets_list(context, iframe_url, pass_token) -> list:
                 return all_tickets
         raise ScrapeError("Se alcanzó el límite de paginación; descarga incompleta")
     finally:
-        await page.close()
+        if owns_page:
+            await page.close()
 
 
-async def fetch_ticket_detail(context, ticket_id: str, pass_token: str, version: str) -> str | None:
-    """
-    Navega directamente a ticketdetail.html con ticketId y pass como params.
-    Extrae el innerHTML del #ticketpre.
-    """
-    pass_q = quote(pass_token, safe="")
-    url = (f"https://nomastickets.consum.es/app/ticketdetail.html"
-           f"?ticketId={ticket_id}&pass={pass_q}&dni=&v={version}")
-    page = await context.new_page()
+def detail_url(ticket_id, pass_token, version, iframe_url=None):
+    """Conservar dni y parámetros adicionales del iframe en la URL de detalle."""
+    parts = urlsplit(iframe_url or "https://nomastickets.consum.es/app/index.html")
+    if parts.scheme != "https" or parts.hostname != "nomastickets.consum.es":
+        raise ScrapeError("El iframe no pertenece al dominio de tickets de Consum")
+    params = dict(parse_qsl(parts.query, keep_blank_values=True))
+    params.update({"ticketId": str(ticket_id), "pass": pass_token, "v": version})
+    params.setdefault("dni", "")
+    return urlunsplit((parts.scheme, parts.netloc, "/app/ticketdetail.html", urlencode(params), ""))
+
+
+def safe_navigation_error(exc, pass_token):
+    """Dar una causa útil sin URLs con tokens, cookies ni el call log de Playwright."""
+    message = str(exc).split("Call log:")[0].splitlines()
+    message = message[0] if message else type(exc).__name__
+    for value in (pass_token, quote(pass_token, safe=""), urlencode({"pass": pass_token})[5:]):
+        if value:
+            message = message.replace(value, "[oculto]")
+    message = re.sub(r"https?://[^\s\"'<>]+", "[URL]", message)
+    message = re.sub(r"(?i)(pass|token|password|dni|sessionDataKey)=[^\s&]+", r"\1=[oculto]", message)
+    return f"{type(exc).__name__}: {message[:240]}"
+
+
+async def read_ticket_pre(page, timeout=15000):
+    """Esperar al contenido sin evaluar funciones en el contexto JS de la aplicación."""
+    pre = page.locator("#ticketpre")
+    await pre.wait_for(state="attached", timeout=timeout)
+    deadline = asyncio.get_running_loop().time() + timeout / 1000
+    while True:
+        content = await pre.inner_html(timeout=timeout)
+        if content and re.sub(r"<[^>]*>", "", html_module.unescape(content)).strip():
+            return content
+        if asyncio.get_running_loop().time() >= deadline:
+            raise ScrapeError("El detalle contiene #ticketpre pero no ha cargado las líneas")
+        await asyncio.sleep(0.25)
+
+
+async def fetch_ticket_detail(context, ticket_id: str, pass_token: str, version: str,
+                              *, page=None, iframe_url=None) -> str | None:
+    """Reutilizar la aplicación autenticada y reintentar tras reinicializarla."""
+    url = detail_url(ticket_id, pass_token, version, iframe_url)
+    owns_page = page is None
+    if owns_page:
+        page = await context.new_page()
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-        if "acceso" in page.url or "login" in page.url.lower():
-            raise SessionError("Sesión expirada al cargar el detalle")
-        await page.wait_for_function("""() => {
-            const pre = document.querySelector('#ticketpre');
-            return pre && pre.textContent.trim().length > 0;
-        }""", timeout=15000)
-        pre_html = await page.evaluate("""
-            () => {
-                const pre = document.querySelector('#ticketpre');
-                return pre ? pre.innerHTML : null;
-            }
-        """)
-        return pre_html
-    except SessionError:
-        raise
-    except Exception:
-        # Las excepciones de navegación pueden contener el token en la URL.
-        log.warning("No se pudo cargar el detalle del ticket %s", ticket_id)
-        return None
+        for attempt in range(2):
+            stage = "navegación"
+            try:
+                if attempt:
+                    # Chromium puede seguir abriendo su página de error tras un fallo
+                    # de red. Consumir esa navegación antes de reiniciar la aplicación.
+                    stage = "reinicio tras fallo de navegación"
+                    try:
+                        await page.goto("about:blank", wait_until="domcontentloaded", timeout=10000)
+                    except PlaywrightError:
+                        try:
+                            await page.wait_for_url("about:blank", wait_until="domcontentloaded", timeout=3000)
+                        except PlaywrightError:
+                            pass
+                if iframe_url and (owns_page or attempt):
+                    stage = "inicialización de la aplicación"
+                    await page.goto(iframe_url, wait_until="domcontentloaded", timeout=30000)
+                stage = "navegación al detalle"
+                response = await page.goto(url, wait_until="domcontentloaded", timeout=30000,
+                                           **({"referer": iframe_url} if iframe_url else {}))
+                if response is not None:
+                    if response.status in (401, 403):
+                        raise SessionError(f"Acceso al detalle rechazado (HTTP {response.status})")
+                    if response.status == 429:
+                        raise ScrapeError("Consum limita las peticiones (HTTP 429). Espera antes de reintentar")
+                    if response.status >= 400:
+                        raise ScrapeError(f"El servidor devolvió HTTP {response.status} al abrir el detalle")
+                location = urlsplit(page.url)
+                if location.hostname == "iam.consum.es" or "acceso" in location.path or "login" in location.path.lower():
+                    raise SessionError("La página de detalle redirigió al inicio de sesión")
+                stage = "lectura de #ticketpre"
+                return await read_ticket_pre(page)
+            except SessionError:
+                raise
+            except (PlaywrightError, ScrapeError) as exc:
+                log.warning("Detalle %s: fallo en %s (intento %d/2): %s",
+                            ticket_id, stage, attempt + 1, safe_navigation_error(exc, pass_token))
+                if isinstance(exc, ScrapeError):
+                    # 404/429 o contenido vacío no se corrigen repitiendo la misma petición.
+                    raise
+                if attempt == 1:
+                    return None
     finally:
-        await page.close()
+        if owns_page:
+            await page.close()
+
 
 async def main():
     TICKETS_DIR.mkdir(parents=True, exist_ok=True)
@@ -267,7 +326,8 @@ async def main():
                 raise SessionError("Cookies de Playwright inválidas") from exc
 
             iframe_url, pass_token, version = await get_iframe_info(context)
-            all_tickets = await fetch_tickets_list(context, iframe_url, pass_token)
+            app_page = await context.new_page()
+            all_tickets = await fetch_tickets_list(context, iframe_url, pass_token, page=app_page)
 
             log.info("Total tickets: %d", len(all_tickets))
             to_process = [t for t in all_tickets if str(t["Id"]) not in existing]
@@ -279,6 +339,7 @@ async def main():
 
             success = 0
             failures = 0
+            consecutive_detail_failures = 0
             for i, api_t in enumerate(to_process):
                 tid   = str(api_t["Id"])
                 store = api_t.get("Store","")
@@ -286,7 +347,15 @@ async def main():
                 total = api_t.get("TotalPrice","?")
                 log.info("[%d/%d] %s — %s — %s€", i+1, len(to_process), store, date, total)
 
-                pre_html = await fetch_ticket_detail(context, tid, pass_token, version)
+                pre_html = await fetch_ticket_detail(
+                    context, tid, pass_token, version, page=app_page, iframe_url=iframe_url
+                )
+                consecutive_detail_failures = 0 if pre_html else consecutive_detail_failures + 1
+                if consecutive_detail_failures >= 3:
+                    raise ScrapeError(
+                        "Tres detalles consecutivos no pudieron abrirse. Se detiene la descarga "
+                        "para evitar repetir el fallo en todos los tickets; revisa la causa indicada arriba"
+                    )
 
                 jf = TICKETS_DIR / f"{tid}.json"
                 base = build_ticket_from_api(api_t)

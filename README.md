@@ -124,6 +124,10 @@ el dashboard permanece abierto.
 
 Los tickets incompletos producen un error y quedan disponibles para reintento;
 no se anuncia una actualización correcta si la extracción ha fallado.
+La descarga reutiliza la pestaña de la aplicación para conservar la sesión al
+abrir los detalles. Si falla, el mensaje `Detalle ...: fallo en ...` indica la
+fase y el error HTTP o del navegador sin mostrar el token. Tras tres detalles
+consecutivos inaccesibles, se detiene en lugar de repetir el fallo en toda la lista.
 
 ### Comandos disponibles
 
