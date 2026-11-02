@@ -1,6 +1,7 @@
 """Gemini con respuestas simuladas: lotes, validación, caché y privacidad."""
 
 from copy import deepcopy
+from datetime import datetime, timezone
 import io
 import json
 from pathlib import Path
@@ -316,3 +317,96 @@ def test_invalid_api_key_reason_is_reported_without_exposing_body(monkeypatch):
     with pytest.raises(gemini.GeminiError, match="clave Gemini") as error:
         gemini.available_models("synthetic-secret")
     assert "synthetic-secret" not in str(error.value)
+
+
+def test_service_503_uses_longer_bounded_backoff(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, {})
+    opener.open.side_effect = [HTTPError("https://example.invalid", 503, "busy", {}, io.BytesIO()) for _ in range(3)]
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    monkeypatch.setattr(gemini.random, "uniform", Mock(return_value=0))
+    with pytest.raises(gemini.ServiceUnavailable, match="HTTP 503"):
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash")
+    assert opener.open.call_count == 3
+    assert [call.args[0] for call in pause.call_args_list] == [5, 10]
+
+
+def test_retry_after_is_respected_before_retrying(monkeypatch):
+    opener, success = mock_transport(monkeypatch, response([{"id": 0, "category": "Bebidas"}]))
+    opener.open.side_effect = [HTTPError("https://example.invalid", 503, "busy", {"Retry-After": "12"}, io.BytesIO()), success]
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    assert gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash") == ["Bebidas"]
+    pause.assert_called_once_with(12)
+
+
+def test_retry_after_http_date_and_invalid_values():
+    now = datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
+    assert gemini.retry_after_seconds("Mon, 02 Nov 2026 12:00:20 GMT", now=now) == 20
+    assert gemini.retry_after_seconds("invalid", now=now) is None
+    assert gemini.retry_after_seconds("inf", now=now) is None
+
+
+def test_long_retry_after_stops_instead_of_retrying_early(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, {})
+    opener.open.side_effect = HTTPError("https://example.invalid", 503, "busy", {"Retry-After": "120"}, io.BytesIO())
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    with pytest.raises(gemini.GeminiError, match="120 segundos") as error:
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash")
+    assert not isinstance(error.value, gemini.ServiceUnavailable)
+    assert opener.open.call_count == 1
+    pause.assert_not_called()
+
+
+def test_auto_tries_next_model_when_first_remains_overloaded(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-8.0-flash", "gemini-7.0-flash"]))
+    request = Mock(side_effect=[gemini.ServiceUnavailable("HTTP 503", retry_after=7), ["Bebidas"]])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    _, report = gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    assert [call.args[3] for call in request.call_args_list] == ["gemini-8.0-flash", "gemini-7.0-flash"]
+    assert report["model"] == "gemini-7.0-flash"
+    pause.assert_called_once_with(7)
+
+
+def test_later_service_failure_preserves_batches_and_does_not_mix_models(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "BATCH_SIZE", 1)
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-8.0-flash", "gemini-7.0-flash"]))
+    request = Mock(side_effect=[["Bebidas"], gemini.ServiceUnavailable("HTTP 503")])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    with pytest.raises(gemini.ServiceUnavailable):
+        gemini.classify_tickets([ticket(["A", "B"])], root=catalog, strict=True)
+    cache = json.loads((catalog / "data/product_categories.json").read_text())
+    assert cache["model"] == "gemini-8.0-flash"
+    assert cache["products"] == {"A": "Bebidas"}
+    assert [call.args[3] for call in request.call_args_list] == ["gemini-8.0-flash"] * 2
+    request = Mock(return_value=["Bebidas"])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    _, report = gemini.classify_tickets([ticket(["A", "B"])], root=catalog, strict=True)
+    assert request.call_args.args[0] == ["B"]
+    assert report["classified_products"] == 2
+
+
+def test_all_models_overloaded_remains_a_service_error(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-8.0-flash", "gemini-7.0-flash"]))
+    request = Mock(side_effect=gemini.ServiceUnavailable("HTTP 503"))
+    monkeypatch.setattr(gemini, "request_batch", request)
+    with pytest.raises(gemini.ServiceUnavailable, match="503"):
+        gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    assert request.call_count == 2
+    assert not (catalog / "data/product_categories.json").exists()
+
+
+def test_explicit_model_is_not_replaced_on_service_error(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setenv("GEMINI_MODEL", "gemini-private-model")
+    request = Mock(side_effect=gemini.ServiceUnavailable("HTTP 503"))
+    monkeypatch.setattr(gemini, "request_batch", request)
+    with pytest.raises(gemini.ServiceUnavailable):
+        gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    assert request.call_count == 1

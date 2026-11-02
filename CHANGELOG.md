@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Persistent Gemini 5xx errors now use longer backoff and Retry-After guidance.
+  Automatic selection can try another listed model before its first valid batch;
+  later service failures preserve progress for resumption. Service outages remain
+  errors when recovery fails, rather than being presented as completed work.
 - Gemini now discovers available text-generation models instead of pinning a
   default model that may be unavailable. Automatic mode can try another listed
   model after an initial 404, records the selected model, and preserves cache

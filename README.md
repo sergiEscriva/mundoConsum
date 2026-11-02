@@ -187,8 +187,19 @@ python run.py categorize --refresh-categories
 La selección predeterminada es `GEMINI_MODEL=auto`: se consulta el catálogo de
 modelos accesibles con tu clave y se prioriza un Flash de texto estable. Se
 excluyen variantes especializadas de imagen/audio. Si el primer modelo devuelve
-404, se prueban hasta otras dos opciones del catálogo antes de fallar. Los errores
-de clave o cuota se notifican sin tratarlos como errores de modelo.
+404 o sigue devolviendo errores temporales 500/502/503/504 tras los reintentos,
+se prueban hasta otras dos opciones del catálogo antes de fallar. Los errores de
+clave o cuota se notifican sin cambiar de modelo para eludirlos.
+
+Un HTTP 503 indica que el servicio no está disponible temporalmente. El cliente
+reintenta hasta tres veces con esperas crecientes, variación aleatoria y respeto
+por `Retry-After`. Si el servidor pide esperar más de 60 segundos, se detiene y
+muestra el tiempo solicitado en lugar de reintentar antes de lo permitido.
+El cambio automático de modelo solo se intenta antes del primer lote válido de
+esa ejecución. Si el servicio falla después, los lotes guardados se conservan;
+repite `python run.py categorize` para retomar. Al continuar con el mismo modelo
+solo se envían los productos pendientes. Si todas las opciones fallan, habrá que
+esperar a que se recupere Gemini; no se anuncian clasificaciones completadas.
 
 Puedes fijar un modelo mediante `GEMINI_MODEL` en `.env` o en el entorno. Un modelo
 fijado se respeta; usa `auto` si ese nombre ha dejado de estar disponible. La caché

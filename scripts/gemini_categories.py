@@ -1,13 +1,17 @@
 """Clasificación por Gemini con caché, lotes y respuestas JSON validadas."""
 
 import argparse
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 import getpass
 import hashlib
 import json
 import logging
+import math
 import os
 from pathlib import Path
 import re
+import random
 import sys
 import tempfile
 import time
@@ -19,6 +23,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL = "auto"
 BATCH_SIZE = 40
+MAX_RETRY_WAIT = 60
 log = logging.getLogger("gemini")
 
 
@@ -28,6 +33,30 @@ class GeminiError(RuntimeError):
 
 class ModelUnavailable(GeminiError):
     """El endpoint generateContent no puede utilizar el modelo solicitado."""
+
+
+class ServiceUnavailable(GeminiError):
+    """La API sigue fallando temporalmente tras los reintentos permitidos."""
+
+    def __init__(self, message, retry_after=None):
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+def retry_after_seconds(value, now=None):
+    if not value:
+        return None
+    try:
+        seconds = float(value)
+    except (ValueError, TypeError):
+        try:
+            deadline = parsedate_to_datetime(value)
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
+            seconds = (deadline - (now or datetime.now(timezone.utc))).total_seconds()
+        except (ValueError, TypeError, OverflowError):
+            return None
+    return max(0, seconds) if math.isfinite(seconds) else None
 
 
 def product_key(name):
@@ -121,6 +150,7 @@ def api_json(request, *, operation="generate"):
                 return json.loads(response.read(2_000_000))
         except HTTPError as exc:
             code = exc.code
+            server_wait = retry_after_seconds((exc.headers or {}).get("Retry-After"))
             invalid_key = False
             if code == 400:
                 try:
@@ -130,15 +160,24 @@ def api_json(request, *, operation="generate"):
                 except (ValueError, AttributeError, TypeError):
                     pass
             exc.close()
+            if code in {429, 500, 502, 503, 504} and server_wait is not None and server_wait > MAX_RETRY_WAIT:
+                raise GeminiError(f"Gemini pide esperar {math.ceil(server_wait)} segundos antes de reintentar "
+                                  f"(HTTP {code}). Los lotes guardados se conservan; vuelve a ejecutar categorize después") from None
             if code in {429, 500, 502, 503, 504} and attempt < 2:
-                log.warning("Gemini HTTP %d; reintentando la petición (%d/3)", code, attempt + 2)
-                time.sleep(2 ** (attempt + 1))
+                delay = (2 ** (attempt + 1) if code == 429 else 5 * 2 ** attempt + random.uniform(0, 1))
+                delay = max(delay, server_wait or 0)
+                log.warning("Gemini HTTP %d; esperando %.1f s antes del reintento (%d/3)", code, delay, attempt + 2)
+                time.sleep(delay)
                 continue
             if invalid_key:
                 raise GeminiError("La clave Gemini no es válida o ha caducado. Revisa GEMINI_API_KEY en .env") from None
             if code == 404 and operation == "generate":
                 raise ModelUnavailable("Modelo Gemini no disponible para generateContent. "
                                        "Usa GEMINI_MODEL=auto para detectar uno accesible") from None
+            if code in {500, 502, 503, 504}:
+                raise ServiceUnavailable(f"Servicio Gemini temporalmente no disponible (HTTP {code}). "
+                                         "Los lotes guardados se conservan; vuelve a intentarlo más tarde",
+                                         retry_after=server_wait) from None
             messages = {
                 400: "Gemini rechazó la solicitud; revisa la clave y la compatibilidad JSON del modelo",
                 401: "Gemini rechazó la clave. Revisa GEMINI_API_KEY en .env",
@@ -294,10 +333,12 @@ def classify_tickets(tickets, *, root=ROOT, strict=False, refresh=False):
         try:
             candidates = (model_candidates(available_models(key), preferred=model)
                           if requested_model == "auto" else [requested_model])
-            # Solo se prueban alternativas antes del primer lote válido. Cada caché
-            # conserva un único modelo; no se mezclan resultados tras un 404 intermedio.
+            # Solo se prueban alternativas antes del primer lote válido de esta ejecución.
+            # Cada caché conserva un único modelo; no se mezclan resultados.
             selected = False
-            for candidate_model in candidates[:3]:
+            last_error = None
+            options = candidates[:3]
+            for candidate_index, candidate_model in enumerate(options):
                 candidate_pending = sorted(name for name in names
                                            if refresh or candidate_model != cache["model"] or name not in cache["products"])
                 batch = candidate_pending[:BATCH_SIZE]
@@ -305,10 +346,16 @@ def classify_tickets(tickets, *, root=ROOT, strict=False, refresh=False):
                          candidate_model, len(batch), len(candidate_pending))
                 try:
                     result = request_batch([names[name] for name in batch], categories, key, candidate_model)
-                except ModelUnavailable:
+                except (ModelUnavailable, ServiceUnavailable) as exc:
                     if requested_model != "auto":
                         raise
-                    log.warning("Gemini: %s no está accesible; probando otra opción del catálogo", candidate_model)
+                    last_error = exc
+                    log.warning("Gemini: %s; el modelo %s no respondió correctamente", exc, candidate_model)
+                    if candidate_index + 1 < len(options):
+                        if isinstance(exc, ServiceUnavailable) and exc.retry_after:
+                            log.info("Respetando Retry-After: esperando %.1f s antes de probar otro modelo", exc.retry_after)
+                            time.sleep(exc.retry_after)
+                        log.info("Modo auto: probando la siguiente opción del catálogo")
                     continue
                 if candidate_model != cache["model"]:
                     cache["products"] = {}
@@ -326,8 +373,9 @@ def classify_tickets(tickets, *, root=ROOT, strict=False, refresh=False):
                     atomic_json(cache_file, cache)
                 break
             if not selected:
-                raise GeminiError("Los modelos detectados no están accesibles para generar contenido. "
-                                  "Revisa los permisos/modelos de tu proyecto en Google AI Studio")
+                if last_error is not None:
+                    raise last_error
+                raise GeminiError("No se encontró un modelo utilizable en el catálogo Gemini")
         except GeminiError as exc:
             if strict:
                 raise
