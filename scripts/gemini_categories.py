@@ -23,6 +23,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL = "auto"
 BATCH_SIZE = 40
+MIN_REQUEST_INTERVAL = 15
 MAX_RETRY_WAIT = 60
 log = logging.getLogger("gemini")
 
@@ -41,6 +42,65 @@ class ServiceUnavailable(GeminiError):
     def __init__(self, message, retry_after=None):
         super().__init__(message)
         self.retry_after = retry_after
+
+
+class DailyQuotaExceeded(GeminiError):
+    """Una cuota diaria no se resuelve reintentando el mismo lote unos segundos después."""
+
+
+class RequestPacer:
+    """Separar intentos por modelo, incluidos los que terminan en error."""
+
+    def __init__(self, interval=MIN_REQUEST_INTERVAL, *, clock=None, sleep=None):
+        self.interval = interval
+        self.clock = clock or time.monotonic
+        self.sleep = sleep or time.sleep
+        self.next_request = {}
+
+    def wait(self, model):
+        delay = self.next_request.get(model, self.clock()) - self.clock()
+        if delay > 0:
+            log.info("Ritmo del nivel gratuito: esperando %.1f s antes de consultar %s", delay, model)
+            self.sleep(delay)
+        self.next_request[model] = self.clock() + self.interval
+
+
+REQUEST_PACER = RequestPacer()
+
+
+def wait_for_request_slot(request):
+    # ListModels no es una generación; la cuota por modelo se aplica a generateContent.
+    match = re.search(r"/models/([A-Za-z0-9._-]+):generateContent$", request.full_url)
+    if match:
+        REQUEST_PACER.wait(match[1])
+
+
+def error_metadata(exc):
+    """Leer solo campos estructurados de Google; no registrar cuerpos ni mensajes crudos."""
+    try:
+        error = json.loads(exc.read(64_000)).get("error", {})
+        details = error.get("details", [])
+        reasons, waits, daily = set(), [], False
+        for detail in details:
+            if not isinstance(detail, dict):
+                continue
+            reason = detail.get("reason")
+            if isinstance(reason, str):
+                reasons.add(reason)
+            if str(detail.get("@type", "")).endswith("google.rpc.RetryInfo"):
+                duration = detail.get("retryDelay", "")
+                if isinstance(duration, str) and duration.endswith("s"):
+                    seconds = retry_after_seconds(duration[:-1])
+                    if seconds is not None:
+                        waits.append(seconds)
+            if str(detail.get("@type", "")).endswith("google.rpc.QuotaFailure"):
+                for violation in detail.get("violations", []):
+                    if isinstance(violation, dict):
+                        metric = str(violation.get("quotaId", "")) + str(violation.get("quotaMetric", ""))
+                        daily = daily or "perday" in re.sub(r"[^a-z]", "", metric.lower())
+        return reasons, max(waits, default=0), daily
+    except (ValueError, AttributeError, TypeError):
+        return set(), 0, False
 
 
 def retry_after_seconds(value, now=None):
@@ -146,25 +206,27 @@ def api_json(request, *, operation="generate"):
     opener = build_opener(NoRedirects())
     for attempt in range(3):
         try:
+            wait_for_request_slot(request)
             with opener.open(request, timeout=45) as response:
                 return json.loads(response.read(2_000_000))
         except HTTPError as exc:
             code = exc.code
             server_wait = retry_after_seconds((exc.headers or {}).get("Retry-After"))
             invalid_key = False
-            if code == 400:
-                try:
-                    error = json.loads(exc.read(64_000)).get("error", {})
-                    reasons = {detail.get("reason") for detail in error.get("details", []) if isinstance(detail, dict)}
-                    invalid_key = bool(reasons & {"API_KEY_INVALID", "API_KEY_EXPIRED", "API_KEY_NOT_FOUND"})
-                except (ValueError, AttributeError, TypeError):
-                    pass
+            daily_quota = False
+            if code in {400, 429, 500, 502, 503, 504}:
+                reasons, retry_info, daily_quota = error_metadata(exc)
+                server_wait = max(server_wait or 0, retry_info)
+                invalid_key = bool(reasons & {"API_KEY_INVALID", "API_KEY_EXPIRED", "API_KEY_NOT_FOUND"})
             exc.close()
+            if code == 429 and daily_quota:
+                raise DailyQuotaExceeded("Límite diario de Gemini alcanzado (HTTP 429). Espera a la renovación "
+                                         "de la cuota o revisa los límites del proyecto. Los lotes guardados se conservan") from None
             if code in {429, 500, 502, 503, 504} and server_wait is not None and server_wait > MAX_RETRY_WAIT:
                 raise GeminiError(f"Gemini pide esperar {math.ceil(server_wait)} segundos antes de reintentar "
                                   f"(HTTP {code}). Los lotes guardados se conservan; vuelve a ejecutar categorize después") from None
             if code in {429, 500, 502, 503, 504} and attempt < 2:
-                delay = (2 ** (attempt + 1) if code == 429 else 5 * 2 ** attempt + random.uniform(0, 1))
+                delay = (60 if code == 429 else 5 * 2 ** attempt + random.uniform(0, 1))
                 delay = max(delay, server_wait or 0)
                 log.warning("Gemini HTTP %d; esperando %.1f s antes del reintento (%d/3)", code, delay, attempt + 2)
                 time.sleep(delay)
@@ -183,7 +245,8 @@ def api_json(request, *, operation="generate"):
                 401: "Gemini rechazó la clave. Revisa GEMINI_API_KEY en .env",
                 403: "Gemini no permite esta solicitud. Revisa la clave y los permisos del proyecto",
                 404: "No se pudo consultar el catálogo de modelos Gemini (HTTP 404). Revisa el acceso a la API",
-                429: "Cuota o límite de Gemini agotado. Espera o revisa la cuota de tu proyecto",
+                429: "Cuota o frecuencia de Gemini aún limitada (HTTP 429). "
+                     "Espera y comprueba el uso compartido de tu proyecto; los lotes guardados se conservan",
             }
             raise GeminiError(messages.get(code, f"Gemini devolvió HTTP {code}; vuelve a intentarlo")) from None
         except (URLError, TimeoutError, OSError):
@@ -231,7 +294,7 @@ def model_candidates(names, preferred=None):
         version = re.search(r"gemini-(\d+)(?:\.(\d+))?", name)
         major, minor = (int(version[1]), int(version[2] or 0)) if version else (0, 0)
         return ("flash" not in name, any(tag in name for tag in ("preview", "experimental", "-exp")),
-                -major, -minor, "lite" not in name, name)
+                "lite" not in name, -major, -minor, name)
 
     ordered = sorted(set(text_models), key=priority)
     if preferred in ordered:

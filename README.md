@@ -185,11 +185,26 @@ python run.py categorize --refresh-categories
 ```
 
 La selección predeterminada es `GEMINI_MODEL=auto`: se consulta el catálogo de
-modelos accesibles con tu clave y se prioriza un Flash de texto estable. Se
+modelos accesibles con tu clave y se prioriza un Flash Lite de texto estable,
+seguido de otros Flash. El modelo ya usado por la caché tiene prioridad mientras
+siga disponible, para no repetir clasificaciones. Se
 excluyen variantes especializadas de imagen/audio. Si el primer modelo devuelve
 404 o sigue devolviendo errores temporales 500/502/503/504 tras los reintentos,
 se prueban hasta otras dos opciones del catálogo antes de fallar. Los errores de
 clave o cuota se notifican sin cambiar de modelo para eludirlos.
+
+El cliente separa al menos **15 segundos** los intentos de generación del mismo
+modelo, incluidos los reintentos fallidos. Es una cadencia conservadora para el
+nivel gratuito (aproximadamente cuatro solicitudes por minuto en este proceso).
+Los lotes mantienen hasta 40 nombres; 179 productos necesitan cinco solicitudes
+de generación iniciales, más posibles reintentos.
+
+Ante HTTP 429 se espera al menos un minuto y se respeta también el campo
+`google.rpc.RetryInfo`, además de `Retry-After`. Si la respuesta identifica una
+cuota diaria agotada, el cliente se detiene sin repetir inútilmente el lote.
+No cambia de modelo por errores de cuota. Las otras aplicaciones, pestañas o
+procesos que usen el mismo proyecto comparten sus límites: esta cadencia local
+no garantiza cuota disponible ni sincroniza procesos distintos.
 
 Un HTTP 503 indica que el servicio no está disponible temporalmente. El cliente
 reintenta hasta tres veces con esperas crecientes, variación aleatoria y respeto

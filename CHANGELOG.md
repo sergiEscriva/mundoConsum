@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Gemini generation attempts are paced for the free tier, including retries.
+  Automatic selection prefers stable Flash Lite models. HTTP 429 responses honor
+  Google RetryInfo and use a minute-long backoff; identified daily quotas stop
+  immediately while preserving cached progress. Other project clients remain
+  outside this process's rate control.
 - Persistent Gemini 5xx errors now use longer backoff and Retry-After guidance.
   Automatic selection can try another listed model before its first valid batch;
   later service failures preserve progress for resumption. Service outages remain

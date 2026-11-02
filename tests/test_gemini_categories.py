@@ -14,6 +14,14 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import gemini_categories as gemini
 
+REAL_WAIT_FOR_REQUEST_SLOT = gemini.wait_for_request_slot
+
+
+@pytest.fixture(autouse=True)
+def no_real_request_pacing(monkeypatch):
+    # Los tests HTTP usan respuestas simuladas; la cadencia se verifica con reloj falso.
+    monkeypatch.setattr(gemini, "wait_for_request_slot", Mock())
+
 
 @pytest.fixture
 def catalog(tmp_path, monkeypatch):
@@ -202,7 +210,7 @@ def test_quota_retry_is_bounded_and_does_not_expose_response_body(monkeypatch, c
     with pytest.raises(gemini.GeminiError, match="Cuota") as error:
         gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-2.5-flash")
     assert opener.open.call_count == 3
-    assert [call.args[0] for call in pause.call_args_list] == [2, 4]
+    assert [call.args[0] for call in pause.call_args_list] == [60, 60]
     assert "synthetic-secret" not in str(error.value) + caplog.text
 
 
@@ -408,5 +416,89 @@ def test_explicit_model_is_not_replaced_on_service_error(catalog, monkeypatch):
     request = Mock(side_effect=gemini.ServiceUnavailable("HTTP 503"))
     monkeypatch.setattr(gemini, "request_batch", request)
     with pytest.raises(gemini.ServiceUnavailable):
+        gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    assert request.call_count == 1
+
+
+def test_auto_prefers_stable_flash_lite_for_classification():
+    models = ["gemini-3.8-flash", "gemini-3.1-flash-lite", "gemini-4.0-flash-lite-preview"]
+    assert gemini.model_candidates(models)[0] == "gemini-3.1-flash-lite"
+    assert gemini.model_candidates(models, preferred="gemini-3.8-flash")[0] == "gemini-3.8-flash"
+
+
+def test_generation_attempts_including_failures_are_spaced_by_fifteen_seconds(monkeypatch):
+    clock = {"now": 0.0}
+
+    def sleep(seconds):
+        clock["now"] += seconds
+
+    pacer = gemini.RequestPacer(clock=lambda: clock["now"], sleep=sleep)
+    monkeypatch.setattr(gemini, "REQUEST_PACER", pacer)
+    monkeypatch.setattr(gemini, "wait_for_request_slot", REAL_WAIT_FOR_REQUEST_SLOT)
+    monkeypatch.setattr(gemini.time, "sleep", sleep)
+    monkeypatch.setattr(gemini.random, "uniform", Mock(return_value=0))
+    opener, success = mock_transport(monkeypatch, response([{"id": 0, "category": "Bebidas"}]))
+    starts = []
+
+    def open_request(request, timeout):
+        starts.append(clock["now"])
+        if len(starts) == 1:
+            raise HTTPError("https://example.invalid", 503, "busy", {}, io.BytesIO())
+        return success
+
+    opener.open.side_effect = open_request
+    gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash")
+    gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash")
+    assert starts == [0, 15, 30]
+
+
+def test_google_retry_info_delay_is_not_ignored(monkeypatch):
+    opener, success = mock_transport(monkeypatch, response([{"id": 0, "category": "Bebidas"}]))
+    body = json.dumps({"error": {"details": [
+        {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": "55s"}
+    ]}}).encode()
+    opener.open.side_effect = [HTTPError("https://example.invalid", 429, "rate", {}, io.BytesIO(body)), success]
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    assert gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash") == ["Bebidas"]
+    pause.assert_called_once_with(60)
+
+
+def test_google_retry_info_over_one_minute_stops_without_retrying_early(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, {})
+    body = json.dumps({"error": {"message": "synthetic-secret", "details": [
+        {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": "95s"}
+    ]}}).encode()
+    opener.open.side_effect = HTTPError("https://example.invalid", 429, "rate", {}, io.BytesIO(body))
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    with pytest.raises(gemini.GeminiError, match="95 segundos") as error:
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash")
+    assert "synthetic-secret" not in str(error.value)
+    assert opener.open.call_count == 1
+    pause.assert_not_called()
+
+
+def test_daily_quota_is_not_retried_as_a_minute_rate_limit(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, {})
+    body = json.dumps({"error": {"details": [{
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}],
+    }]}}).encode()
+    opener.open.side_effect = HTTPError("https://example.invalid", 429, "quota", {}, io.BytesIO(body))
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    with pytest.raises(gemini.DailyQuotaExceeded, match="Límite diario"):
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-test-flash")
+    assert opener.open.call_count == 1
+    pause.assert_not_called()
+
+
+def test_quota_error_does_not_trigger_model_switch(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-8.0-flash", "gemini-7.0-flash"]))
+    request = Mock(side_effect=gemini.DailyQuotaExceeded("Límite diario"))
+    monkeypatch.setattr(gemini, "request_batch", request)
+    with pytest.raises(gemini.DailyQuotaExceeded):
         gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
     assert request.call_count == 1
