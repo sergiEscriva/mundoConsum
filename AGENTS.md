@@ -19,6 +19,7 @@
 - El lanzador fija el directorio del proyecto, escucha en loopback y sirve solo el dashboard y sus JSON. Los scripts directos siguientes siguen siendo válidos.
 - `python run.py categorize` pide la clave mediante getpass si falta y la guarda en `.env` ignorado. Variables: `GEMINI_API_KEY`, `GEMINI_MODEL`. No imprimir ni versionar claves. `--refresh-categories` fuerza nuevas llamadas de todo el catálogo.
 - El resumen aplica la caché `data/product_categories.json` sin reescribir los tickets originales. Los builds normales toleran fallos de API con avisos de cobertura; categorize exige completar los lotes. No aceptar respuestas parciales, categorías fuera de la taxonomía, ids duplicados ni salida truncada.
+- `GEMINI_MODEL` usa `auto` por defecto: consultar ListModels con la misma clave, filtrar generateContent/texto y preferir Flash estable. Reutilizar el modelo real de la caché cuando siga disponible. No adivinar nombres nuevos, mezclar modelos dentro de una caché ni sustituir silenciosamente un modelo fijado explícitamente. Los fallos de catálogo/clave/cuota son distintos de un 404 del modelo.
 - Instalar dependencias: `pip install -r requirements.txt` y despues `playwright install chromium`.
 - Capturar/refrescar cookies de sesion: `python scripts/get_cookie.py`.
 - Descargar tickets nuevos de Consum: `python scripts/scraper.py`.

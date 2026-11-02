@@ -184,10 +184,18 @@ Para volver a clasificar todo deliberadamente (consume nuevas llamadas):
 python run.py categorize --refresh-categories
 ```
 
-El modelo predeterminado es `gemini-2.5-flash`. Puedes cambiarlo mediante
-`GEMINI_MODEL` en `.env` o en el entorno si tu cuenta utiliza otro modelo con
-salida JSON estructurada. Cambiar el modelo o los nombres de las categorías
-invalida la caché y requiere nuevas llamadas. Las categorías permitidas se leen
+La selección predeterminada es `GEMINI_MODEL=auto`: se consulta el catálogo de
+modelos accesibles con tu clave y se prioriza un Flash de texto estable. Se
+excluyen variantes especializadas de imagen/audio. Si el primer modelo devuelve
+404, se prueban hasta otras dos opciones del catálogo antes de fallar. Los errores
+de clave o cuota se notifican sin tratarlos como errores de modelo.
+
+Puedes fijar un modelo mediante `GEMINI_MODEL` en `.env` o en el entorno. Un modelo
+fijado se respeta; usa `auto` si ese nombre ha dejado de estar disponible. La caché
+guarda el modelo realmente utilizado y se reutiliza sin consultar la API si todos
+los productos ya están clasificados. Al necesitar nuevas llamadas, se conserva el
+modelo de la caché mientras esté disponible. Cambiar el modelo o los nombres de
+las categorías invalida la caché y requiere nuevas llamadas. Las categorías permitidas se leen
 de `data/categories.json`, incluyendo Hogar y Menaje, Mascotas y Otros para
 productos que no se puedan identificar razonablemente.
 

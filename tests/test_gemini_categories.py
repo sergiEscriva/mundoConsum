@@ -18,6 +18,7 @@ import gemini_categories as gemini
 def catalog(tmp_path, monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-2.5-flash"]))
     (tmp_path / "data").mkdir()
     (tmp_path / "data/categories.json").write_text(json.dumps({"Bebidas": ["AGUA"], "Hogar y Menaje": ["JARRA"]}))
     return tmp_path
@@ -209,3 +210,109 @@ def test_unavailable_model_returns_actionable_error(monkeypatch):
     opener.open.side_effect = HTTPError("https://example.invalid", 404, "missing", {}, io.BytesIO(b"synthetic-secret"))
     with pytest.raises(gemini.GeminiError, match="GEMINI_MODEL"):
         gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "not-a-model")
+
+
+def test_default_model_is_detected_instead_of_pinned(catalog):
+    assert gemini.settings(catalog) == ("", "auto")
+
+
+def test_model_listing_follows_pages_and_excludes_non_generation_models(monkeypatch):
+    payloads = [
+        {"models": [{"name": "models/gemini-future-flash", "supportedGenerationMethods": ["generateContent"]},
+                    {"name": "models/gemini-embedding-001", "supportedGenerationMethods": ["embedContent"]}],
+         "nextPageToken": "next page"},
+        {"models": [{"name": "models/gemini-future-pro", "supportedGenerationMethods": ["generateContent"]}]},
+    ]
+    requests = []
+
+    def api(request, operation):
+        requests.append(request)
+        assert operation == "list"
+        assert request.get_header("X-goog-api-key") == "synthetic-secret"
+        assert "synthetic-secret" not in request.full_url
+        return payloads.pop(0)
+
+    monkeypatch.setattr(gemini, "api_json", api)
+    assert gemini.available_models("synthetic-secret") == ["gemini-future-flash", "gemini-future-pro"]
+    assert "pageToken=next+page" in requests[1].full_url
+
+
+def test_model_selection_prefers_stable_text_flash_and_reuses_cache_model():
+    models = ["gemini-9.0-pro", "gemini-8.0-flash-preview", "gemini-7.0-flash",
+              "gemini-8.0-flash-image", "gemini-6.0-flash"]
+    assert gemini.model_candidates(models)[0] == "gemini-7.0-flash"
+    assert "gemini-8.0-flash-image" not in gemini.model_candidates(models)
+    assert gemini.model_candidates(models, preferred="gemini-6.0-flash")[0] == "gemini-6.0-flash"
+
+
+def test_missing_fixed_default_is_replaced_by_model_available_to_account(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-future-flash"]))
+    request = Mock(return_value=["Bebidas"])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    _, report = gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    assert request.call_args.args[3] == "gemini-future-flash"
+    assert report["model"] == "gemini-future-flash"
+    assert json.loads((catalog / "data/product_categories.json").read_text())["model"] == "gemini-future-flash"
+
+
+def test_auto_selection_tries_alternative_after_generation_returns_404(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-8.0-flash", "gemini-7.0-flash"]))
+    request = Mock(side_effect=[gemini.ModelUnavailable("unavailable"), ["Bebidas"]])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    _, report = gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    assert [call.args[3] for call in request.call_args_list] == ["gemini-8.0-flash", "gemini-7.0-flash"]
+    assert report["model"] == "gemini-7.0-flash"
+
+
+def test_explicit_model_is_not_silently_replaced(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setenv("GEMINI_MODEL", "gemini-private-model")
+    request = Mock(side_effect=gemini.ModelUnavailable("Use GEMINI_MODEL=auto"))
+    monkeypatch.setattr(gemini, "request_batch", request)
+    with pytest.raises(gemini.ModelUnavailable):
+        gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    gemini.available_models.assert_not_called()
+    assert request.call_count == 1
+
+
+def test_auto_cache_is_reused_offline_without_listing_models(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "request_batch", Mock(return_value=["Bebidas"]))
+    gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    gemini.available_models.reset_mock()
+    monkeypatch.delenv("GEMINI_API_KEY")
+    _, report = gemini.classify_tickets([ticket(["AGUA"])], root=catalog)
+    assert report["classified_products"] == 1
+    assert report["model"] == "gemini-2.5-flash"
+    gemini.available_models.assert_not_called()
+
+
+def test_changing_auto_model_does_not_relabel_old_cache_entries(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "request_batch", Mock(return_value=["Bebidas"]))
+    gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    monkeypatch.setattr(gemini, "available_models", Mock(return_value=["gemini-future-flash"]))
+    request = Mock(return_value=["Bebidas", "Hogar y Menaje"])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    _, report = gemini.classify_tickets([ticket(["AGUA", "JARRA"])], root=catalog, strict=True)
+    assert request.call_args.args[0] == ["AGUA", "JARRA"]
+    assert report["model"] == "gemini-future-flash"
+
+
+def test_catalog_errors_are_not_reported_as_unknown_model(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, {})
+    opener.open.side_effect = HTTPError("https://example.invalid", 404, "missing", {}, io.BytesIO(b"synthetic-secret"))
+    with pytest.raises(gemini.GeminiError, match="catálogo") as error:
+        gemini.available_models("synthetic-secret")
+    assert not isinstance(error.value, gemini.ModelUnavailable)
+
+
+def test_invalid_api_key_reason_is_reported_without_exposing_body(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, {})
+    body = json.dumps({"error": {"message": "synthetic-secret", "details": [{"reason": "API_KEY_INVALID"}]}}).encode()
+    opener.open.side_effect = HTTPError("https://example.invalid", 400, "bad key", {}, io.BytesIO(body))
+    with pytest.raises(gemini.GeminiError, match="clave Gemini") as error:
+        gemini.available_models("synthetic-secret")
+    assert "synthetic-secret" not in str(error.value)

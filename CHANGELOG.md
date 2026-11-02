@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Gemini now discovers available text-generation models instead of pinning a
+  default model that may be unavailable. Automatic mode can try another listed
+  model after an initial 404, records the selected model, and preserves cache
+  provenance. Explicit model settings, key failures and quota failures remain distinct.
 - Downloaded tickets with unreconciled line totals now produce an explicit review
   outcome (exit 4), allowing the launcher and CI to rebuild the dashboard with
   visible warnings. Real download failures remain errors. Reconciliation reports

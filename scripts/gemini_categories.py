@@ -13,17 +13,21 @@ import tempfile
 import time
 import unicodedata
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "auto"
 BATCH_SIZE = 40
 log = logging.getLogger("gemini")
 
 
 class GeminiError(RuntimeError):
     """Error público que nunca incluye credenciales ni cuerpos HTTP sin filtrar."""
+
+
+class ModelUnavailable(GeminiError):
+    """El endpoint generateContent no puede utilizar el modelo solicitado."""
 
 
 def product_key(name):
@@ -53,8 +57,9 @@ def settings(root=ROOT):
             values[name.strip()] = value
     key = os.environ.get("GEMINI_API_KEY") or values.get("GEMINI_API_KEY", "")
     model = os.environ.get("GEMINI_MODEL") or values.get("GEMINI_MODEL") or DEFAULT_MODEL
+    model = model.removeprefix("models/")
     if not re.fullmatch(r"[A-Za-z0-9._-]+", model):
-        raise GeminiError("GEMINI_MODEL debe contener el nombre del modelo, sin URL ni prefijo models/")
+        raise GeminiError("GEMINI_MODEL debe contener auto o el nombre del modelo, sin URL")
     return key.strip(), model
 
 
@@ -107,6 +112,98 @@ class NoRedirects(HTTPRedirectHandler):
         return None
 
 
+def api_json(request, *, operation="generate"):
+    """Usar TLS/proxy existentes y mensajes seguros para cualquier endpoint Gemini."""
+    opener = build_opener(NoRedirects())
+    for attempt in range(3):
+        try:
+            with opener.open(request, timeout=45) as response:
+                return json.loads(response.read(2_000_000))
+        except HTTPError as exc:
+            code = exc.code
+            invalid_key = False
+            if code == 400:
+                try:
+                    error = json.loads(exc.read(64_000)).get("error", {})
+                    reasons = {detail.get("reason") for detail in error.get("details", []) if isinstance(detail, dict)}
+                    invalid_key = bool(reasons & {"API_KEY_INVALID", "API_KEY_EXPIRED", "API_KEY_NOT_FOUND"})
+                except (ValueError, AttributeError, TypeError):
+                    pass
+            exc.close()
+            if code in {429, 500, 502, 503, 504} and attempt < 2:
+                log.warning("Gemini HTTP %d; reintentando la petición (%d/3)", code, attempt + 2)
+                time.sleep(2 ** (attempt + 1))
+                continue
+            if invalid_key:
+                raise GeminiError("La clave Gemini no es válida o ha caducado. Revisa GEMINI_API_KEY en .env") from None
+            if code == 404 and operation == "generate":
+                raise ModelUnavailable("Modelo Gemini no disponible para generateContent. "
+                                       "Usa GEMINI_MODEL=auto para detectar uno accesible") from None
+            messages = {
+                400: "Gemini rechazó la solicitud; revisa la clave y la compatibilidad JSON del modelo",
+                401: "Gemini rechazó la clave. Revisa GEMINI_API_KEY en .env",
+                403: "Gemini no permite esta solicitud. Revisa la clave y los permisos del proyecto",
+                404: "No se pudo consultar el catálogo de modelos Gemini (HTTP 404). Revisa el acceso a la API",
+                429: "Cuota o límite de Gemini agotado. Espera o revisa la cuota de tu proyecto",
+            }
+            raise GeminiError(messages.get(code, f"Gemini devolvió HTTP {code}; vuelve a intentarlo")) from None
+        except (URLError, TimeoutError, OSError):
+            raise GeminiError("No se pudo conectar con Gemini. Comprueba la conexión y vuelve a intentarlo") from None
+        except (ValueError, UnicodeError):
+            raise GeminiError("Gemini devolvió una respuesta JSON no válida") from None
+
+
+def available_models(key):
+    """Consultar ListModels con la misma clave; no adivinar nombres de modelos."""
+    names, seen_tokens = set(), set()
+    token = None
+    for _ in range(20):
+        query = {"pageSize": 100}
+        if token:
+            query["pageToken"] = token
+        request = Request("https://generativelanguage.googleapis.com/v1beta/models?" + urlencode(query),
+                          headers={"x-goog-api-key": key})
+        data = api_json(request, operation="list")
+        if not isinstance(data, dict) or not isinstance(data.get("models", []), list):
+            raise GeminiError("El catálogo de modelos Gemini tiene un formato inesperado")
+        for model in data.get("models", []):
+            if not isinstance(model, dict):
+                raise GeminiError("El catálogo de modelos Gemini tiene un formato inesperado")
+            name = model.get("name", "")
+            if isinstance(name, str) and re.fullmatch(r"models/gemini-[A-Za-z0-9._-]+", name):
+                if "generateContent" in (model.get("supportedGenerationMethods") or []):
+                    names.add(name.removeprefix("models/"))
+        token = data.get("nextPageToken")
+        if not token:
+            return sorted(names)
+        if not isinstance(token, str) or token in seen_tokens:
+            raise GeminiError("El catálogo Gemini repite una página; no se pudo completar la detección")
+        seen_tokens.add(token)
+    raise GeminiError("El catálogo Gemini supera el límite de paginación; no se ha seleccionado un modelo")
+
+
+def model_candidates(names, preferred=None):
+    """Priorizar Flash de texto estable; excluir modelos especializados de imagen/audio."""
+    text_models = [name for name in names if not any(
+        tag in name.lower() for tag in ("image", "audio", "tts", "live", "robotics", "computer-use", "deep-research")
+    )]
+
+    def priority(name):
+        version = re.search(r"gemini-(\d+)(?:\.(\d+))?", name)
+        major, minor = (int(version[1]), int(version[2] or 0)) if version else (0, 0)
+        return ("flash" not in name, any(tag in name for tag in ("preview", "experimental", "-exp")),
+                -major, -minor, "lite" not in name, name)
+
+    ordered = sorted(set(text_models), key=priority)
+    if preferred in ordered:
+        ordered.remove(preferred)
+        ordered.insert(0, preferred)
+    if not ordered:
+        raise GeminiError("Tu clave no ofrece modelos Gemini de texto compatibles con generateContent. "
+                          "Revisa el proyecto, la región y los modelos habilitados en Google AI Studio")
+    return ordered
+
+
 def request_batch(names, categories, key, model):
     schema = {
         "type": "OBJECT", "required": ["classifications"],
@@ -136,31 +233,7 @@ def request_batch(names, categories, key, model):
         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), method="POST",
         headers={"Content-Type": "application/json", "x-goog-api-key": key},
     )
-    opener = build_opener(NoRedirects())
-    for attempt in range(3):
-        try:
-            with opener.open(request, timeout=45) as response:
-                data = json.loads(response.read(2_000_000))
-            break
-        except HTTPError as exc:
-            code = exc.code
-            exc.close()
-            if code in {429, 500, 502, 503, 504} and attempt < 2:
-                log.warning("Gemini HTTP %d; reintentando el lote (%d/3)", code, attempt + 2)
-                time.sleep(2 ** (attempt + 1))
-                continue
-            messages = {
-                400: "Gemini rechazó la solicitud; revisa que el modelo admita respuestas JSON estructuradas",
-                401: "Gemini rechazó la clave. Revisa GEMINI_API_KEY en .env",
-                403: "Gemini no permite esta solicitud. Revisa la clave y los permisos del proyecto",
-                404: "Modelo Gemini no disponible. Configura GEMINI_MODEL con un modelo habilitado para tu cuenta",
-                429: "Cuota o límite de Gemini agotado. Espera o revisa la cuota de tu proyecto",
-            }
-            raise GeminiError(messages.get(code, f"Gemini devolvió HTTP {code}; vuelve a intentarlo")) from None
-        except (URLError, TimeoutError, OSError):
-            raise GeminiError("No se pudo conectar con Gemini. Comprueba la conexión y vuelve a intentarlo") from None
-        except (ValueError, UnicodeError):
-            raise GeminiError("Gemini devolvió una respuesta JSON no válida") from None
+    data = api_json(request)
     try:
         candidate = data["candidates"][0]
         if candidate.get("finishReason") != "STOP":
@@ -184,7 +257,8 @@ def request_batch(names, categories, key, model):
 
 def classify_tickets(tickets, *, root=ROOT, strict=False, refresh=False):
     """Aplicar Gemini a todo el catálogo; conservar tickets originales y cachear cada lote válido."""
-    key, model = settings(root)
+    key, requested_model = settings(root)
+    model = requested_model
     taxonomy = json.loads((root / "data/categories.json").read_text(encoding="utf-8"))
     if not isinstance(taxonomy, dict) or not taxonomy or not all(isinstance(name, str) and name for name in taxonomy):
         raise GeminiError("data/categories.json debe definir un objeto con nombres de categorías")
@@ -195,7 +269,13 @@ def classify_tickets(tickets, *, root=ROOT, strict=False, refresh=False):
     if cache_file.exists():
         try:
             saved = json.loads(cache_file.read_text(encoding="utf-8"))
-            if saved.get("version") == 1 and saved.get("taxonomy") == fingerprint and saved.get("model") == model:
+            if (saved.get("version") == 1 and saved.get("taxonomy") == fingerprint
+                    and (requested_model == "auto" or saved.get("model") == requested_model)):
+                saved_model = saved.get("model")
+                if not isinstance(saved_model, str) or not re.fullmatch(r"[A-Za-z0-9._-]+", saved_model):
+                    raise ValueError
+                model = saved_model
+                cache["model"] = model
                 if not isinstance(saved.get("products"), dict):
                     raise ValueError
                 cache["products"] = {name: cat for name, cat in saved["products"].items() if cat in categories}
@@ -212,12 +292,42 @@ def classify_tickets(tickets, *, root=ROOT, strict=False, refresh=False):
         raise GeminiError("Falta GEMINI_API_KEY. Configúrala con python run.py categorize")
     if pending and key:
         try:
-            for start in range(0, len(pending), BATCH_SIZE):
-                batch = pending[start:start + BATCH_SIZE]
-                log.info("Gemini: clasificando productos %d–%d de %d", start + 1, start + len(batch), len(pending))
-                result = request_batch([names[name] for name in batch], categories, key, model)
+            candidates = (model_candidates(available_models(key), preferred=model)
+                          if requested_model == "auto" else [requested_model])
+            # Solo se prueban alternativas antes del primer lote válido. Cada caché
+            # conserva un único modelo; no se mezclan resultados tras un 404 intermedio.
+            selected = False
+            for candidate_model in candidates[:3]:
+                candidate_pending = sorted(name for name in names
+                                           if refresh or candidate_model != cache["model"] or name not in cache["products"])
+                batch = candidate_pending[:BATCH_SIZE]
+                log.info("Gemini: modelo %s; clasificando productos 1–%d de %d",
+                         candidate_model, len(batch), len(candidate_pending))
+                try:
+                    result = request_batch([names[name] for name in batch], categories, key, candidate_model)
+                except ModelUnavailable:
+                    if requested_model != "auto":
+                        raise
+                    log.warning("Gemini: %s no está accesible; probando otra opción del catálogo", candidate_model)
+                    continue
+                if candidate_model != cache["model"]:
+                    cache["products"] = {}
+                model = candidate_model
+                cache["model"] = model
                 cache["products"].update(zip(batch, result))
                 atomic_json(cache_file, cache)
+                selected = True
+                for start in range(len(batch), len(candidate_pending), BATCH_SIZE):
+                    batch = candidate_pending[start:start + BATCH_SIZE]
+                    log.info("Gemini: clasificando productos %d–%d de %d con %s",
+                             start + 1, start + len(batch), len(candidate_pending), model)
+                    result = request_batch([names[name] for name in batch], categories, key, model)
+                    cache["products"].update(zip(batch, result))
+                    atomic_json(cache_file, cache)
+                break
+            if not selected:
+                raise GeminiError("Los modelos detectados no están accesibles para generar contenido. "
+                                  "Revisa los permisos/modelos de tu proyecto en Google AI Studio")
         except GeminiError as exc:
             if strict:
                 raise

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-02T15:25:25.641403",
+  "generated_at": "2026-11-02T15:34:27.093883",
   "total_tickets": 46,
   "total_spent": 376.92,
   "avg_ticket": 8.19,
@@ -1160,7 +1160,7 @@
   "classification": {
     "enabled": false,
     "provider": "rules",
-    "model": "gemini-2.5-flash",
+    "model": "auto",
     "total_products": 113,
     "classified_products": 0,
     "pending_products": 113,
