@@ -68,11 +68,18 @@ def update_setup(monkeypatch, tmp_path):
     return tmp_path
 
 
-@pytest.mark.parametrize("code", [0, 2])
+@pytest.mark.parametrize("code", [0, 2, 4])
 def test_update_rebuilds_after_success_or_noop(update_setup, monkeypatch, code):
     monkeypatch.setattr(runner, "execute", Mock(return_value=code))
     runner.update("python")
     runner.build.assert_called_once_with("python")
+
+
+def test_update_with_review_notice_is_not_reported_as_complete(update_setup, monkeypatch, capsys):
+    monkeypatch.setattr(runner, "execute", Mock(return_value=4))
+    runner.update("python")
+    assert "pendientes de revisión" in capsys.readouterr().out
+    runner.build.assert_called_once()
 
 
 @pytest.mark.parametrize("code", [1, 3])

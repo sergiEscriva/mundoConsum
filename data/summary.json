@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-02T14:24:13.909482",
+  "generated_at": "2026-11-02T15:07:56.554603",
   "total_tickets": 46,
   "total_spent": 376.92,
   "avg_ticket": 8.19,
@@ -1020,72 +1020,121 @@
       "store": "55 - V.Arquitecto Alfaro",
       "total": 8.8,
       "items_count": 3,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-26",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 10.0,
       "items_count": 4,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-24",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 10.97,
       "items_count": 3,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-23",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 3.18,
       "items_count": 1,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-21",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 8.24,
       "items_count": 3,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-21",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 0.27,
       "items_count": 2,
-      "payment": " "
+      "payment": " ",
+      "needs_review": true
     },
     {
       "date": "2026-03-21",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 38.91,
       "items_count": 14,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-13",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 2.19,
       "items_count": 2,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-11",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 1.15,
       "items_count": 1,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     },
     {
       "date": "2026-03-10",
       "store": "55 - V.Arquitecto Alfaro",
       "total": 9.84,
       "items_count": 3,
-      "payment": "Tarjeta"
+      "payment": "Tarjeta",
+      "needs_review": false
     }
   ],
+  "data_quality": {
+    "complete_tickets": 42,
+    "review_tickets": 4,
+    "missing_detail_tickets": 0,
+    "issues": [
+      {
+        "id": "768261043",
+        "date": "2026-01-17",
+        "status": "needs_review",
+        "ticket_total": 2.94,
+        "items_total": 6.09,
+        "difference": -3.15
+      },
+      {
+        "id": "770687594",
+        "date": "2026-01-23",
+        "status": "needs_review",
+        "ticket_total": 0.73,
+        "items_total": 10.68,
+        "difference": -9.95
+      },
+      {
+        "id": "774838807",
+        "date": "2026-02-02",
+        "status": "needs_review",
+        "ticket_total": 37.52,
+        "items_total": 37.82,
+        "difference": -0.3
+      },
+      {
+        "id": "794252830",
+        "date": "2026-03-21",
+        "status": "needs_review",
+        "ticket_total": 0.27,
+        "items_total": 3.07,
+        "difference": -2.8
+      }
+    ]
+  },
   "health_tips": [
     {
       "icon": "",

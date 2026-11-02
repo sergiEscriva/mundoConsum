@@ -39,7 +39,8 @@
 
 ## Depuracion y gotchas
 - `scripts/scraper.py` sale con codigo `2` cuando todos los tickets ya tienen items; tratalo como no-op, no como error fatal.
-- `scripts/scraper.py` sale con código `1` para cookies ausentes/invalidas o sesión rechazada y `3` para errores de red/API, bootstrap o extracción incompleta.
+- `scripts/scraper.py` sale con código `1` para cookies ausentes/invalidas o sesión rechazada y `3` para errores de red/API, bootstrap o detalles inaccesibles. El código `4` indica que se descargaron los detalles pero hay diferencias de conciliación o formatos sin líneas reconocidas: el lanzador y CI regeneran el resumen con avisos, conservando los totales originales.
+- `data_quality.issues` en el resumen muestra los tickets sin conciliar, su total original, suma de líneas y diferencia. No inventar artículos/descuentos ni aumentar la tolerancia para ocultar un descuadre.
 - La lista se descarga por API paginada y los detalles por URL directa; no hay helpers de scroll ni fallback por clic.
 - `scripts/probe_api.py` es una utilidad de ingenieria inversa; escribe `debug_api_response.json` y `debug_apirest.js`.
 - `dashboard/index.html` carga `../data/summary.json` mediante HTTP. El resumen incluye `products` (catálogo completo) y `monthly_categories` (totales por mes).

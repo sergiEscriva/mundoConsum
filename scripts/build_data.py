@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
-from ticket_data import normalize_ticket
+from ticket_data import normalize_ticket, reconcile_ticket
 
 logging.basicConfig(
     level=logging.INFO,
@@ -119,6 +119,18 @@ def build_summary(tickets: list[dict]) -> dict:
     )
     top_products = products[:20]
 
+    issues = []
+    for ticket in tickets:
+        report = reconcile_ticket(ticket)
+        if report["status"] != "complete":
+            issues.append({"id": ticket["id"], "date": ticket["date"], **report})
+    data_quality = {
+        "complete_tickets": len(tickets) - len(issues),
+        "review_tickets": sum(i["status"] == "needs_review" for i in issues),
+        "missing_detail_tickets": sum(i["status"] == "incomplete" for i in issues),
+        "issues": issues,
+    }
+
     # ── Comparativas mes a mes ──────────────────────────────────
     for i, m in enumerate(monthly_data):
         if i == 0:
@@ -147,6 +159,7 @@ def build_summary(tickets: list[dict]) -> dict:
             "total":       t.get("total"),
             "items_count": len(t.get("items", [])),
             "payment":     t.get("payment_method", ""),
+            "needs_review": reconcile_ticket(t)["status"] != "complete",
         }
         for t in reversed(tickets[-10:])
     ]
@@ -167,6 +180,7 @@ def build_summary(tickets: list[dict]) -> dict:
             for month, cats in sorted(monthly_categories.items())
         },
         "recent_tickets":   recent_tickets,
+        "data_quality":     data_quality,
         "health_tips":      health_tips,
         "saving_tips":      saving_tips,
     }

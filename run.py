@@ -91,10 +91,14 @@ def update(python):
         # Las cookies recién capturadas deben prevalecer frente a una variable antigua.
         environment.pop("CONSUM_COOKIES", None)
         result = execute([python, ROOT / "scripts/scraper.py"], env=environment.copy())
-    if result not in (0, 2):
+    if result not in (0, 2, 4):
         raise LocalError(f"La descarga no se completó (código {result}). Revisa los mensajes anteriores y reintenta.")
     build(python)
-    print("Datos actualizados. Recarga el dashboard si ya lo tienes abierto.", flush=True)
+    if result == 4:
+        print("Dashboard actualizado con avisos: hay tickets pendientes de revisión. "
+              "Consulta sus diferencias en el dashboard; las categorías pueden estar incompletas.", flush=True)
+    else:
+        print("Datos actualizados. Recarga el dashboard si ya lo tienes abierto.", flush=True)
 
 
 class DashboardHandler(SimpleHTTPRequestHandler):

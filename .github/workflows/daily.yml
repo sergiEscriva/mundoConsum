@@ -55,6 +55,10 @@ jobs:
             echo "No hay tickets nuevos (exit 2) — ok"
             exit 0
           fi
+          if [ "$code" -eq 4 ]; then
+            echo "::warning::Tickets descargados con diferencias pendientes de revisión; el dashboard mostrará los avisos."
+            exit 0
+          fi
           exit $code
 
       - name: Generar datos del dashboard

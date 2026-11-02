@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from urllib.parse import quote, urlencode, parse_qs, parse_qsl, urlsplit, urlunsplit
 
-from ticket_data import extraction_complete, normalize_ticket, number
+from ticket_data import extraction_complete, normalize_ticket, number, reconcile_ticket
 
 logging.basicConfig(
     level=logging.INFO,
@@ -339,6 +339,7 @@ async def main():
 
             success = 0
             failures = 0
+            needs_review = 0
             consecutive_detail_failures = 0
             for i, api_t in enumerate(to_process):
                 tid   = str(api_t["Id"])
@@ -360,9 +361,10 @@ async def main():
                 jf = TICKETS_DIR / f"{tid}.json"
                 base = build_ticket_from_api(api_t)
                 base["items"] = parse_items_from_pre(pre_html) if pre_html else []
-                complete = extraction_complete(base)
                 base["source"] = "dom_extracted" if pre_html else "api_only"
-                base["extraction_status"] = "complete" if complete else "incomplete"
+                fresh_detail = bool(pre_html)
+                fresh_items = bool(base["items"])
+                complete = extraction_complete(base)
                 # Conservar líneas anteriores si un reintento devuelve menos detalle.
                 if jf.exists():
                     try:
@@ -372,24 +374,41 @@ async def main():
                     if not complete and previous and len(previous["items"]) > len(base["items"]):
                         base["items"] = previous["items"]
                         base["source"] = previous["source"]
+                report = reconcile_ticket(base)
+                base["reconciliation"] = report
+                base["extraction_status"] = report["status"] if fresh_items else "incomplete"
                 temporary = jf.with_suffix(".tmp")
                 temporary.write_text(json.dumps(base, indent=2, ensure_ascii=False, allow_nan=False), encoding="utf-8")
                 temporary.replace(jf)
                 if complete:
                     success += 1
+                elif fresh_detail:
+                    needs_review += 1
+                    if fresh_items:
+                        log.warning("Ticket %s requiere revisión: total %.2f€, líneas %.2f€, diferencia %+.2f€. "
+                                    "Puede haber descuentos o líneas pendientes de extraer",
+                                    tid, report["ticket_total"], report["items_total"], report["difference"])
+                    else:
+                        log.warning("Ticket %s: detalle descargado, pero su formato no produjo líneas reconocidas. "
+                                    "Total original %.2f€; requiere revisión del parser", tid, report["ticket_total"])
                 else:
                     failures += 1
-                    log.warning("Ticket %s incompleto o sin conciliar; se reintentará", tid)
+                    log.warning("Ticket %s sin líneas extraídas; se reintentará", tid)
 
         finally:
             await browser.close()
 
     log.info("=" * 50)
-    log.info("%d/%d tickets procesados", success, len(to_process))
+    log.info("%d/%d detalles descargados: %d conciliados y %d pendientes de revisión",
+             success + needs_review, len(to_process), success, needs_review)
     if _uncategorized:
         log.info("Productos sin categoría (%d): %s", len(_uncategorized), ", ".join(sorted(_uncategorized)))
     if failures:
-        raise ScrapeError(f"{failures} tickets incompletos; no se considera una descarga correcta")
+        raise ScrapeError(f"{failures} tickets incompletos sin líneas extraídas")
+    if needs_review:
+        log.warning("Descarga terminada con %d tickets pendientes de revisión. "
+                    "Los totales originales se conservan; las categorías pueden estar incompletas", needs_review)
+        raise SystemExit(4)
 
 if __name__ == "__main__":
     try:

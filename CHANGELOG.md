@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Downloaded tickets with unreconciled line totals now produce an explicit review
+  outcome (exit 4), allowing the launcher and CI to rebuild the dashboard with
+  visible warnings. Real download failures remain errors. Reconciliation reports
+  retain original totals and expose line totals and differences for review.
 - Ticket details reuse the initialized app tab and preserve the iframe parameters
   (including dni). Navigation retries wait for pending error-page redirects before
   reinitializing the app. Diagnostics show the failing stage and HTTP/browser

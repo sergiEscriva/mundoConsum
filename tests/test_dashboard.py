@@ -131,3 +131,21 @@ def test_no_current_month_activity_shows_zero(dashboard):
     assert "0.00" in dashboard.locator("#kpi-grid .kpi").nth(3).inner_text()
     assert "0.00" in dashboard.locator("#budget-bars").inner_text()
     assert not dashboard.locator("#spending-alert").is_visible()
+
+
+def test_review_banner_lists_discrepancies_without_breaking_dashboard(dashboard):
+    load(dashboard)
+    assert not dashboard.locator("#data-quality").is_visible()
+    dashboard.evaluate('''() => {
+        DATA.data_quality = {issues: [{id: "synthetic-id", date: "2026-11-01",
+            ticket_total: 8, items_total: 10, difference: -2, status: "needs_review"}]};
+        renderDataQuality(DATA);
+    }''')
+    assert dashboard.locator("#data-quality").is_visible()
+    assert "importe original" in dashboard.locator("#data-quality").inner_text()
+    dashboard.locator("#data-quality summary").click()
+    row = dashboard.locator("#data-quality .quality-ticket")
+    assert "synthetic-id" in row.inner_text()
+    assert "-2.00" in row.inner_text()
+    assert "Revisar líneas/descuentos" in row.inner_text()
+    assert dashboard.locator("#tickets-body tr").count() == 2

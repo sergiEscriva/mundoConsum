@@ -111,6 +111,22 @@ class TestBuildSummary:
         summary = build_summary([_make_ticket(total=10), _make_ticket(total=0)])
         assert summary["avg_ticket"] == 5
 
+    def test_differences_are_visible_without_changing_original_total(self):
+        tickets = [
+            _make_ticket(total=8, items=[_make_item(total=10)]),
+            _make_ticket(total=4, items=[]),
+            _make_ticket(total=3, items=[_make_item(total=3)]),
+        ]
+        summary = build_summary(tickets)
+        assert summary["total_spent"] == 15
+        quality = summary["data_quality"]
+        assert quality["complete_tickets"] == 1
+        assert quality["review_tickets"] == 1
+        assert quality["missing_detail_tickets"] == 1
+        assert quality["issues"][0]["difference"] == -2
+        assert quality["issues"][0]["ticket_total"] == 8
+        assert summary["categories"][0]["total"] == 13
+
     def test_numeric_strings_are_normalized_without_mutating_input(self):
         ticket = _make_ticket(total="12,50", items=[_make_item(total="12.50", qty="2")])
         summary = build_summary([ticket])

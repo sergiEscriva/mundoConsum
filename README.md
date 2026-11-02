@@ -122,8 +122,12 @@ ha caducado, te guía para renovarla y reintenta una vez. Recarga el dashboard
 para ver los cambios. Puedes ejecutar este comando en otra terminal mientras
 el dashboard permanece abierto.
 
-Los tickets incompletos producen un error y quedan disponibles para reintento;
-no se anuncia una actualización correcta si la extracción ha fallado.
+Si un detalle no puede descargarse, la actualización falla y queda disponible
+para reintento. Si los detalles se descargaron pero algunas líneas no cuadran con
+el total o el parser no reconoce su formato, se actualiza el dashboard **con avisos**:
+el gasto usa los totales originales y las diferencias quedan visibles en
+«Tickets pendientes de revisión». No se inventan descuentos ni artículos para
+hacer cuadrar los números. Esos tickets se revisarán de nuevo al actualizar.
 La descarga reutiliza la pestaña de la aplicación para conservar la sesión al
 abrir los detalles. Si falla, el mensaje `Detalle ...: fallo en ...` indica la
 fase y el error HTTP o del navegador sin mostrar el token. Tras tres detalles
@@ -248,7 +252,8 @@ Para lanzar el workflow manualmente, ve a **Actions > Consum Daily Tracker > Run
 | `0` | Tickets nuevos procesados correctamente |
 | `1` | Cookies ausentes, inválidas o sesión rechazada |
 | `2` | Sin tickets nuevos por procesar (no-op) |
-| `3` | Error de red/API o extracción incompleta; revisar los logs y reintentar |
+| `3` | Error de red/API o detalles inaccesibles; revisar los logs y reintentar |
+| `4` | Detalles descargados con descuadres o líneas sin reconocer; el lanzador genera el dashboard con avisos |
 
 ---
 

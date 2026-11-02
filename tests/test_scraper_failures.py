@@ -109,10 +109,9 @@ def mocked_main(monkeypatch, tmp_path):
     return detail, browser
 
 
-@pytest.mark.parametrize("pre", [None, "<pre>unrecognized format</pre>"])
-def test_missing_detail_is_not_success(mocked_main, tmp_path, pre):
+def test_missing_detail_is_not_success(mocked_main, tmp_path):
     detail, browser = mocked_main
-    detail.return_value = pre
+    detail.return_value = None
     with pytest.raises(scraper.ScrapeError, match="incompletos"):
         asyncio.run(scraper.main())
     saved = json.loads((tmp_path / "1.json").read_text())
@@ -120,6 +119,19 @@ def test_missing_detail_is_not_success(mocked_main, tmp_path, pre):
     assert scraper.already_with_items() == set()
     assert not list(tmp_path.glob("*.tmp"))
     browser.close.assert_awaited_once()
+
+
+def test_downloaded_unrecognized_detail_is_a_visible_review_outcome(mocked_main, tmp_path, caplog):
+    detail, _ = mocked_main
+    detail.return_value = "<pre>unrecognized format</pre>"
+    with pytest.raises(SystemExit) as result:
+        asyncio.run(scraper.main())
+    assert result.value.code == 4
+    saved = json.loads((tmp_path / "1.json").read_text())
+    assert saved["items"] == []
+    assert saved["extraction_status"] == "incomplete"
+    assert "formato no produjo líneas reconocidas" in caplog.text
+    assert scraper.already_with_items() == set()
 
 
 def test_successful_retry_replaces_incomplete_ticket(mocked_main, tmp_path):
@@ -155,6 +167,26 @@ def test_three_unavailable_details_stop_the_remaining_download(mocked_main, monk
     assert detail.await_count == 3
     assert not (tmp_path / "3.json").exists()
     assert not (tmp_path / "4.json").exists()
+    browser.close.assert_awaited_once()
+
+
+def test_23_downloaded_tickets_with_four_differences_return_review_status(mocked_main, monkeypatch, tmp_path, caplog):
+    detail, browser = mocked_main
+    monkeypatch.setattr(scraper, "fetch_tickets_list", AsyncMock(return_value=[api_ticket(i) for i in range(23)]))
+    complete = "<normal-pequenya>1</normal-pequenya>POLLO FRESCO <normal-pequenya>8,39</normal-pequenya> 8,39"
+    review = "<normal-pequenya>1</normal-pequenya>LECHE ENTERA <normal-pequenya>1,20</normal-pequenya> 1,20"
+    detail.side_effect = [review if i in {2, 4, 5, 21} else complete for i in range(23)]
+    with pytest.raises(SystemExit) as result:
+        asyncio.run(scraper.main())
+    assert result.value.code == 4
+    saved = [json.loads(p.read_text()) for p in tmp_path.glob("*.json")]
+    assert len(saved) == 23
+    assert sum(t["extraction_status"] == "complete" for t in saved) == 19
+    pending = [t for t in saved if t["extraction_status"] == "needs_review"]
+    assert len(pending) == 4
+    assert all(t["total"] == 8.39 and t["reconciliation"]["difference"] == 7.19 for t in pending)
+    assert "total 8.39€, líneas 1.20€, diferencia +7.19€" in caplog.text
+    assert len(scraper.already_with_items()) == 19
     browser.close.assert_awaited_once()
 
 

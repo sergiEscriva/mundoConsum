@@ -66,14 +66,23 @@ def normalize_ticket(data: dict) -> dict:
     return ticket
 
 
+def reconcile_ticket(ticket: dict) -> dict:
+    """Informar del descuadre sin inventar descuentos ni modificar el total original."""
+    ticket = normalize_ticket(ticket)
+    total = Decimal(str(ticket["total"]))
+    item_total = sum((Decimal(str(i["total"])) for i in ticket["items"]), Decimal(0))
+    difference = total - item_total
+    status = "complete" if abs(difference) <= Decimal("0.02") else "needs_review"
+    if not ticket["items"]:
+        status = "incomplete"
+    return {"status": status, "ticket_total": float(total),
+            "items_total": float(item_total.quantize(Decimal("0.01"))),
+            "difference": float(difference.quantize(Decimal("0.01")))}
+
+
 def extraction_complete(ticket: dict) -> bool:
     """Un detalle solo se considera completo si sus líneas concilian a céntimos."""
     try:
-        ticket = normalize_ticket(ticket)
+        return reconcile_ticket(ticket)["status"] == "complete"
     except ValueError:
         return False
-    if not ticket["items"]:
-        return False
-    total = Decimal(str(ticket["total"]))
-    item_total = sum((Decimal(str(i["total"])) for i in ticket["items"]), Decimal(0))
-    return abs(total - item_total) <= Decimal("0.02")

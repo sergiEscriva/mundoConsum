@@ -159,6 +159,7 @@
 
     <!-- Alertas de gasto -->
     <div id="spending-alert" style="display:none"></div>
+    <div id="data-quality" style="display:none"></div>
 
     <!-- Toolbar -->
     <div class="toolbar">
@@ -425,7 +426,7 @@ function renderTickets(data) {
       <tr>
         <td>${fmt_date(t.date)}</td>
         <td>${escapeHTML(t.store || "Consum")}</td>
-        <td><span class="badge">${t.items_count} art.</span></td>
+        <td><span class="badge">${t.items_count} art.</span>${t.needs_review ? ' <span class="badge">Revisar</span>' : ''}</td>
         <td>${escapeHTML(t.payment || "\u2014")}</td>
         <td><strong>${eur(t.total)}</strong></td>
       </tr>
@@ -509,6 +510,28 @@ function doSearch() {
       <div class="product-price">${eur(p.total_spent)}</div>
     </div>
   `).join("");
+}
+
+function renderDataQuality(data) {
+  const el = document.getElementById("data-quality");
+  const issues = data.data_quality?.issues || [];
+  el.style.display = issues.length ? "" : "none";
+  if (!issues.length) { el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="alert-banner warn">
+    <strong>${issues.length} ticket(s) pendientes de revisión.</strong>
+    El gasto total usa el importe original de cada ticket. Los importes por categoría
+    y producto pueden estar incompletos o incluir diferencias pendientes de explicar.
+    <details><summary>Ver tickets y diferencias</summary>
+      <div style="overflow-x:auto"><table class="tickets-table">
+        <thead><tr><th>Ticket</th><th>Fecha</th><th>Total original</th><th>Líneas extraídas</th><th>Diferencia</th><th>Estado</th></tr></thead>
+        <tbody>${issues.map(i => `<tr class="quality-ticket">
+          <td>${escapeHTML(i.id)}</td><td>${fmt_date(i.date)}</td>
+          <td>${eur(i.ticket_total)}</td><td>${eur(i.items_total)}</td><td>${eur(i.difference)}</td>
+          <td>${i.status === "incomplete" ? "Sin líneas extraídas" : "Revisar líneas/descuentos"}</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+    </details>
+  </div>`;
 }
 
 function renderSpendingAlert(data, budgets) {
@@ -607,6 +630,7 @@ function renderCharts(data) {
     document.getElementById("last-update").textContent = "Actualizado: " + upd;
 
     renderSpendingAlert(data, budgets);
+    renderDataQuality(data);
     renderKPIs(data);
     renderTopProducts(data);
     renderBudgets(data, budgets);
