@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Gemini categorization for all unique historical and newly downloaded products,
+  with structured JSON validation, batched requests, resumable cache, coverage
+  warnings and the `python run.py categorize` command. API keys stay in ignored
+  local configuration or environment variables; requests only include names and
+  batch identifiers. Household and pet categories extend the existing taxonomy.
 - Cross-platform local launcher: `python run.py` prepares its virtual environment,
   builds data, starts the dashboard and opens the browser. Commands for login,
   updating tickets, setup, rebuilding and tests share the same environment.

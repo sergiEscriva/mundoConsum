@@ -9,6 +9,7 @@
 - `scripts/get_cookie.py`: login interactivo + captura de 2FA; escribe `cookies.json` para automatizacion posterior.
 - `scripts/scraper.py`: fetcher con Playwright que obtiene listas paginadas de tickets via API y extrae líneas desde `ticketdetail.html` (`#ticketpre`) en la misma pestaña de la aplicación, conservando sessionStorage y los parámetros del iframe.
 - `scripts/build_data.py`: capa de agregacion que calcula KPIs, categorias, top productos y recomendaciones.
+- `scripts/gemini_categories.py`: cliente REST de Gemini con lotes y caché. Clasifica todo el catálogo único, incluidos productos con categoría local. Solo envía nombres e ids de lote, nunca cookies ni datos completos de tickets.
 - `dashboard/index.html`: contrato de UI actual para `data/summary.json`.
 - `docs/index.html`: UI antigua con un contrato JSON distinto (`last_updated`, `stats`, `recommendations`).
 
@@ -16,6 +17,8 @@
 - Flujo local recomendado: `python run.py` crea/reutiliza `.venv`, instala dependencias si cambian, regenera datos y abre el dashboard. No requiere activar el entorno ni instalar Chromium para ver datos existentes.
 - `python run.py update` prepara Chromium, guía el login si falta o caduca la sesión y descarga/regenera. `login`, `setup`, `build` y `test` están disponibles como comandos independientes.
 - El lanzador fija el directorio del proyecto, escucha en loopback y sirve solo el dashboard y sus JSON. Los scripts directos siguientes siguen siendo válidos.
+- `python run.py categorize` pide la clave mediante getpass si falta y la guarda en `.env` ignorado. Variables: `GEMINI_API_KEY`, `GEMINI_MODEL`. No imprimir ni versionar claves. `--refresh-categories` fuerza nuevas llamadas de todo el catálogo.
+- El resumen aplica la caché `data/product_categories.json` sin reescribir los tickets originales. Los builds normales toleran fallos de API con avisos de cobertura; categorize exige completar los lotes. No aceptar respuestas parciales, categorías fuera de la taxonomía, ids duplicados ni salida truncada.
 - Instalar dependencias: `pip install -r requirements.txt` y despues `playwright install chromium`.
 - Capturar/refrescar cookies de sesion: `python scripts/get_cookie.py`.
 - Descargar tickets nuevos de Consum: `python scripts/scraper.py`.

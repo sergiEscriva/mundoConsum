@@ -149,3 +149,20 @@ def test_review_banner_lists_discrepancies_without_breaking_dashboard(dashboard)
     assert "-2.00" in row.inner_text()
     assert "Revisar líneas/descuentos" in row.inner_text()
     assert dashboard.locator("#tickets-body tr").count() == 2
+
+
+def test_gemini_coverage_and_pending_products_are_visible(dashboard):
+    load(dashboard)
+    dashboard.evaluate('''() => renderClassification({classification: {
+        enabled: true, total_products: 25, classified_products: 20,
+        pending_products: 5, error: "Cuota de Gemini agotada"
+    }})''')
+    message = dashboard.locator("#classification-status")
+    assert "20 de 25" in message.inner_text()
+    assert "5 pendientes" in message.inner_text()
+    assert "Cuota" in message.inner_text()
+    dashboard.evaluate('''() => renderClassification({classification: {
+        enabled: true, total_products: 25, classified_products: 25, pending_products: 0, error: null
+    }})''')
+    assert dashboard.locator("#classification-status .success").count() == 1
+    assert "25 de 25" in message.inner_text()

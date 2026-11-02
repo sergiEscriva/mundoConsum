@@ -1,0 +1,211 @@
+"""Gemini con respuestas simuladas: lotes, validación, caché y privacidad."""
+
+from copy import deepcopy
+import io
+import json
+from pathlib import Path
+import sys
+from unittest.mock import MagicMock, Mock
+from urllib.error import HTTPError
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import gemini_categories as gemini
+
+
+@pytest.fixture
+def catalog(tmp_path, monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data/categories.json").write_text(json.dumps({"Bebidas": ["AGUA"], "Hogar y Menaje": ["JARRA"]}))
+    return tmp_path
+
+
+def ticket(names):
+    return {"id": "private-ticket", "date": "2026-10-01", "store": "private-store", "total": 10,
+            "source": "dom_extracted", "items": [
+                {"name": name, "quantity": 1, "total": 1, "category": "Otros"} for name in names
+            ]}
+
+
+def test_all_unique_products_are_submitted_even_if_already_categorized(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    original = [ticket(["AGUA", "  agua ", "JARRA"])]
+    original[0]["items"][0]["category"] = "Hogar y Menaje"
+    before = deepcopy(original)
+
+    def classify(names, categories, key, model):
+        assert names == ["AGUA", "JARRA"]
+        assert key == "synthetic-key"
+        return ["Bebidas", "Hogar y Menaje"]
+
+    request = Mock(side_effect=classify)
+    monkeypatch.setattr(gemini, "request_batch", request)
+    enriched, report = gemini.classify_tickets(original, root=catalog, strict=True)
+    assert [i["category"] for i in enriched[0]["items"]] == ["Bebidas", "Bebidas", "Hogar y Menaje"]
+    assert original == before
+    assert report["classified_products"] == 2 and report["pending_products"] == 0
+    assert "synthetic-key" not in (catalog / "data/product_categories.json").read_text()
+    gemini.classify_tickets(original, root=catalog, strict=True)
+    assert request.call_count == 1
+    monkeypatch.delenv("GEMINI_API_KEY")
+    cached, report = gemini.classify_tickets(original, root=catalog)
+    assert cached[0]["items"][0]["category"] == "Bebidas"
+    assert report["pending_products"] == 0
+    assert request.call_count == 1
+
+
+def test_cache_progress_survives_quota_error_and_next_run_resumes(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "BATCH_SIZE", 2)
+    request = Mock(side_effect=[["Bebidas", "Bebidas"], gemini.GeminiError("Cuota agotada")])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    enriched, report = gemini.classify_tickets([ticket(["A", "B", "C"])], root=catalog)
+    assert report["classified_products"] == 2 and report["pending_products"] == 1
+    assert report["error"] == "Cuota agotada"
+    assert enriched[0]["items"][2]["category"] == "Otros"
+    request = Mock(return_value=["Hogar y Menaje"])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    _, report = gemini.classify_tickets([ticket(["A", "B", "C"])], root=catalog, strict=True)
+    assert request.call_args.args[0] == ["C"]
+    assert report["pending_products"] == 0
+
+
+def test_strict_mode_reports_failure_instead_of_claiming_complete_classification(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    monkeypatch.setattr(gemini, "request_batch", Mock(side_effect=gemini.GeminiError("Cuota agotada")))
+    with pytest.raises(gemini.GeminiError, match="Cuota"):
+        gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+    assert not (catalog / "data/product_categories.json").exists()
+
+
+def test_missing_key_keeps_local_categories_without_network(catalog, monkeypatch):
+    request = Mock()
+    monkeypatch.setattr(gemini, "request_batch", request)
+    result, report = gemini.classify_tickets([ticket(["AGUA"])], root=catalog)
+    assert result[0]["items"][0]["category"] == "Otros"
+    assert not report["enabled"]
+    assert report["provider"] == "rules"
+    request.assert_not_called()
+    with pytest.raises(gemini.GeminiError, match="GEMINI_API_KEY"):
+        gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
+
+
+def test_explicit_refresh_requeries_previously_classified_products(catalog, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    request = Mock(return_value=["Bebidas"])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    gemini.classify_tickets([ticket(["AGUA"])], root=catalog)
+    gemini.classify_tickets([ticket(["AGUA"])], root=catalog, refresh=True, strict=True)
+    assert request.call_count == 2
+
+
+def test_summary_uses_gemini_categories_without_rewriting_ticket_files(catalog, monkeypatch):
+    import build_data
+    monkeypatch.chdir(catalog)
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    (catalog / "data/tickets").mkdir()
+    path = catalog / "data/tickets/synthetic.json"
+    path.write_text(json.dumps(ticket(["AGUA", "JARRA"])))
+    original = path.read_bytes()
+    request = Mock(return_value=["Bebidas", "Hogar y Menaje"])
+    monkeypatch.setattr(gemini, "request_batch", request)
+    assert build_data.main(["--require-gemini"]) == 0
+    summary = json.loads((catalog / "data/summary.json").read_text())
+    assert {p["category"] for p in summary["products"]} == {"Bebidas", "Hogar y Menaje"}
+    assert summary["classification"]["classified_products"] == 2
+    assert path.read_bytes() == original
+    monkeypatch.delenv("GEMINI_API_KEY")
+    assert build_data.main([]) == 0
+    assert request.call_count == 1
+
+
+def test_failed_explicit_classification_preserves_existing_summary(catalog, monkeypatch):
+    import build_data
+    monkeypatch.chdir(catalog)
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-key")
+    (catalog / "data/tickets").mkdir()
+    (catalog / "data/tickets/synthetic.json").write_text(json.dumps(ticket(["AGUA"])))
+    summary = catalog / "data/summary.json"
+    summary.write_text('{"previous": true}')
+    monkeypatch.setattr(gemini, "request_batch", Mock(side_effect=gemini.GeminiError("Cuota agotada")))
+    assert build_data.main(["--require-gemini"]) == 1
+    assert summary.read_text() == '{"previous": true}'
+
+
+def test_configuration_preserves_other_settings_and_never_prints_key(catalog, monkeypatch, capsys):
+    (catalog / ".env").write_text('GEMINI_MODEL="gemini-2.5-flash"\nOTHER_SETTING=keep\n')
+    monkeypatch.setattr(gemini.sys.stdin, "isatty", Mock(return_value=True))
+    monkeypatch.setattr(gemini.getpass, "getpass", Mock(return_value="synthetic-secret"))
+    gemini.configure(catalog)
+    assert gemini.settings(catalog) == ("synthetic-secret", "gemini-2.5-flash")
+    assert "OTHER_SETTING=keep" in (catalog / ".env").read_text()
+    assert "synthetic-secret" not in capsys.readouterr().out
+    assert not list(catalog.glob(".env.gemini-*.tmp"))
+
+
+def response(results, finish="STOP"):
+    return {"candidates": [{"finishReason": finish, "content": {"parts": [
+        {"text": json.dumps({"classifications": results})}
+    ]}}]}
+
+
+def mock_transport(monkeypatch, data):
+    result = MagicMock()
+    result.__enter__.return_value.read.return_value = json.dumps(data).encode()
+    opener = Mock()
+    opener.open.return_value = result
+    monkeypatch.setattr(gemini, "build_opener", Mock(return_value=opener))
+    return opener, result
+
+
+def test_api_request_sends_only_product_names_and_key_in_header(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, response([{"id": 0, "category": "Bebidas"}]))
+    assert gemini.request_batch(["AGUA"], ["Bebidas", "Otros"], "synthetic-secret", "gemini-2.5-flash") == ["Bebidas"]
+    request = opener.open.call_args.args[0]
+    assert request.get_header("X-goog-api-key") == "synthetic-secret"
+    assert "synthetic-secret" not in request.full_url
+    payload = json.loads(request.data)
+    assert json.loads(payload["contents"][0]["parts"][0]["text"]) == {"products": [{"id": 0, "name": "AGUA"}]}
+    assert "synthetic-secret" not in request.data.decode()
+    assert payload["generationConfig"]["responseSchema"]["properties"]["classifications"]["items"]["properties"]["category"]["enum"] == ["Bebidas", "Otros"]
+
+
+@pytest.mark.parametrize("results", [
+    [], [{"id": 0, "category": "invented"}],
+    [{"id": 0, "category": "Bebidas"}, {"id": 0, "category": "Bebidas"}],
+    [{"id": True, "category": "Bebidas"}], [{"id": 99, "category": "Bebidas"}],
+    [{"name": "AGUA", "category": "Bebidas"}],
+])
+def test_incomplete_duplicate_or_unknown_classifications_are_rejected(monkeypatch, results):
+    mock_transport(monkeypatch, response(results))
+    with pytest.raises(gemini.GeminiError, match="no válidas"):
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-2.5-flash")
+
+
+def test_truncated_model_output_is_rejected(monkeypatch):
+    mock_transport(monkeypatch, response([{"id": 0, "category": "Bebidas"}], finish="MAX_TOKENS"))
+    with pytest.raises(gemini.GeminiError):
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-2.5-flash")
+
+
+def test_quota_retry_is_bounded_and_does_not_expose_response_body(monkeypatch, caplog):
+    opener, success = mock_transport(monkeypatch, response([{"id": 0, "category": "Bebidas"}]))
+    failures = [HTTPError("https://example.invalid", 429, "quota", {}, io.BytesIO(b"synthetic-secret")) for _ in range(3)]
+    opener.open.side_effect = failures
+    pause = Mock()
+    monkeypatch.setattr(gemini.time, "sleep", pause)
+    with pytest.raises(gemini.GeminiError, match="Cuota") as error:
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "gemini-2.5-flash")
+    assert opener.open.call_count == 3
+    assert [call.args[0] for call in pause.call_args_list] == [2, 4]
+    assert "synthetic-secret" not in str(error.value) + caplog.text
+
+
+def test_unavailable_model_returns_actionable_error(monkeypatch):
+    opener, _ = mock_transport(monkeypatch, {})
+    opener.open.side_effect = HTTPError("https://example.invalid", 404, "missing", {}, io.BytesIO(b"synthetic-secret"))
+    with pytest.raises(gemini.GeminiError, match="GEMINI_MODEL"):
+        gemini.request_batch(["AGUA"], ["Bebidas"], "synthetic-secret", "not-a-model")

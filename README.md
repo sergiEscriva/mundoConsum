@@ -141,12 +141,60 @@ consecutivos inaccesibles, se detiene en lugar de repetir el fallo en toda la li
 | `python run.py update` | Descargar tickets y regenerar los datos |
 | `python run.py login` | Iniciar sesión o renovar las cookies |
 | `python run.py build` | Regenerar el resumen sin descargar tickets |
+| `python run.py categorize` | Configurar Gemini y clasificar todos los productos históricos |
 | `python run.py setup` | Preparar dependencias y Chromium por adelantado |
 | `python run.py test` | Ejecutar las pruebas con el entorno del proyecto |
 | `python run.py --port 8080 --no-browser` | Arrancar sin abrir una ventana y preferir otro puerto |
 
 Los accesos `iniciar.bat` e `iniciar.command` también aceptan estos argumentos
 desde una terminal, por ejemplo `iniciar.bat update`.
+
+### Clasificar todos los productos con Gemini
+
+```bash
+python run.py categorize
+```
+
+La primera vez pide tu clave de [Google AI Studio](https://aistudio.google.com/apikey)
+sin mostrarla y la guarda en `.env`, excluido de Git. No pegues claves en el código,
+en el chat ni en archivos que vayas a compartir. Si una clave se ha compartido,
+revócala y utiliza una nueva. También puedes definir `GEMINI_API_KEY` en tu entorno;
+esa variable tiene prioridad sobre `.env`.
+
+Gemini recibe únicamente nombres de productos e identificadores de lote, junto
+con las categorías permitidas. No recibe cookies, tickets completos, precios,
+fechas ni datos de tu cuenta Consum. Las llamadas pueden consumir la cuota o
+generar cargos según tu proyecto de Google.
+
+La clasificación incluye **todos los nombres únicos**, aunque ya tuvieran una
+categoría asignada por palabras clave. Se procesa por lotes de hasta 40 productos.
+Las respuestas se validan y guardan en `data/product_categories.json`; los tickets
+originales permanecen intactos y el dashboard utiliza las categorías de Gemini.
+La caché no contiene la clave y puede versionarse junto con los datos.
+
+Después de configurarlo, `update`, `build` y el arranque normal consultan Gemini
+solo para productos nuevos. Si la API falla, mantienen las categorías disponibles
+y muestran la cobertura y los pendientes en el dashboard. El comando `categorize`
+exige terminar la clasificación y muestra un error si falta cuota o hay un fallo;
+los lotes ya completados quedan guardados para continuar al repetirlo.
+
+Para volver a clasificar todo deliberadamente (consume nuevas llamadas):
+
+```bash
+python run.py categorize --refresh-categories
+```
+
+El modelo predeterminado es `gemini-2.5-flash`. Puedes cambiarlo mediante
+`GEMINI_MODEL` en `.env` o en el entorno si tu cuenta utiliza otro modelo con
+salida JSON estructurada. Cambiar el modelo o los nombres de las categorías
+invalida la caché y requiere nuevas llamadas. Las categorías permitidas se leen
+de `data/categories.json`, incluyendo Hogar y Menaje, Mascotas y Otros para
+productos que no se puedan identificar razonablemente.
+
+Si usas la ejecución diaria de GitHub Actions, configura opcionalmente el secreto
+`GEMINI_API_KEY` y la variable `GEMINI_MODEL` en GitHub. Sin clave, se reutiliza
+la caché disponible y los productos nuevos conservan temporalmente su categoría
+local, con un aviso visible.
 
 En Debian/Ubuntu, si Python indica que falta soporte para entornos virtuales,
 instala `python3-venv`. Si Chromium requiere bibliotecas del sistema, ejecuta

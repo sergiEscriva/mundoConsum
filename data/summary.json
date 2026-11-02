@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-02T15:07:56.554603",
+  "generated_at": "2026-11-02T15:25:25.641403",
   "total_tickets": 46,
   "total_spent": 376.92,
   "avg_ticket": 8.19,
@@ -1156,5 +1156,14 @@
       "title": "Ahorra en agua embotellada",
       "text": "Un filtro de grifo cuesta ~15€ y se amortiza en pocas semanas si compras agua regularmente."
     }
-  ]
+  ],
+  "classification": {
+    "enabled": false,
+    "provider": "rules",
+    "model": "gemini-2.5-flash",
+    "total_products": 113,
+    "classified_products": 0,
+    "pending_products": 113,
+    "error": null
+  }
 }

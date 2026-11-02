@@ -138,6 +138,7 @@
   }
   .alert-banner.danger { background: #fdecea; color: var(--red); border: 1px solid #f5c6cb; }
   .alert-banner.warn { background: #fff8f0; color: var(--orange); border: 1px solid #ffd8b2; }
+  .alert-banner.success { background: #edf8f0; color: var(--green); border: 1px solid #b3e4c3; }
 
   footer { text-align:center; font-size:.78rem; color:var(--gray-3); padding:1rem; border-top:1px solid var(--gray-2); margin-top:2rem; }
 </style>
@@ -160,6 +161,7 @@
     <!-- Alertas de gasto -->
     <div id="spending-alert" style="display:none"></div>
     <div id="data-quality" style="display:none"></div>
+    <div id="classification-status" style="display:none"></div>
 
     <!-- Toolbar -->
     <div class="toolbar">
@@ -512,6 +514,19 @@ function doSearch() {
   `).join("");
 }
 
+function renderClassification(data) {
+  const el = document.getElementById("classification-status");
+  const state = data.classification;
+  if (!state?.enabled) { el.style.display = "none"; el.innerHTML = ""; return; }
+  el.style.display = "";
+  const warning = state.pending_products > 0 || state.error;
+  el.innerHTML = `<div class="alert-banner ${warning ? "warn" : "success"}">
+    <strong>Gemini: ${state.classified_products} de ${state.total_products} productos clasificados.</strong>
+    ${state.pending_products ? `${state.pending_products} pendientes; conservan su categoría local hasta poder consultar a Gemini.` : ""}
+    ${state.error ? `<div>${escapeHTML(state.error)}</div>` : ""}
+  </div>`;
+}
+
 function renderDataQuality(data) {
   const el = document.getElementById("data-quality");
   const issues = data.data_quality?.issues || [];
@@ -631,6 +646,7 @@ function renderCharts(data) {
 
     renderSpendingAlert(data, budgets);
     renderDataQuality(data);
+    renderClassification(data);
     renderKPIs(data);
     renderTopProducts(data);
     renderBudgets(data, budgets);

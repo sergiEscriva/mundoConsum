@@ -4,13 +4,16 @@ que leerá el dashboard.
 """
 
 import json
+import argparse
 import logging
+import sys
 from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
 from ticket_data import normalize_ticket, reconcile_ticket
+from gemini_categories import classify_tickets, GeminiError
 
 logging.basicConfig(
     level=logging.INFO,
@@ -255,19 +258,40 @@ def generate_saving_tips(category_totals, monthly_data, avg_ticket, top_products
     return tips
 
 
-if __name__ == "__main__":
-    log.info("Cargando tickets...")
-    tickets = load_all_tickets()
-    log.info("%d tickets cargados", len(tickets))
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Generar el resumen del dashboard")
+    parser.add_argument("--require-gemini", action="store_true")
+    parser.add_argument("--refresh-categories", action="store_true")
+    args = parser.parse_args(argv)
+    try:
+        log.info("Cargando tickets...")
+        tickets = load_all_tickets()
+        log.info("%d tickets cargados", len(tickets))
+        classification = None
+        if Path("data/categories.json").exists():
+            tickets, classification = classify_tickets(
+                tickets, root=Path.cwd(), strict=args.require_gemini, refresh=args.refresh_categories
+            )
+            if classification["enabled"]:
+                log.info("Gemini: %d/%d productos clasificados; %d pendientes",
+                         classification["classified_products"], classification["total_products"], classification["pending_products"])
+        elif args.require_gemini:
+            raise GeminiError("Falta data/categories.json para definir las categorías permitidas")
+        if not tickets:
+            log.warning("No hay tickets. Se generará un resumen vacío.")
+        summary = build_summary(tickets)
+        if classification is not None:
+            summary["classification"] = classification
+        OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+        temporary = OUTPUT_FILE.with_suffix(".tmp")
+        temporary.write_text(json.dumps(summary, indent=2, ensure_ascii=False, allow_nan=False), encoding="utf-8")
+        temporary.replace(OUTPUT_FILE)
+        log.info("summary.json generado: %d tickets", summary["total_tickets"])
+        return 0
+    except (GeminiError, ValueError, OSError) as exc:
+        log.error("%s", exc)
+        return 1
 
-    if not tickets:
-        log.warning("No hay tickets. Se generará un resumen vacío.")
-    log.info("Generando summary.json...")
-    summary = build_summary(tickets)
-    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    temporary = OUTPUT_FILE.with_suffix(".tmp")
-    temporary.write_text(
-        json.dumps(summary, indent=2, ensure_ascii=False, allow_nan=False), encoding="utf-8"
-    )
-    temporary.replace(OUTPUT_FILE)
-    log.info("summary.json generado: %d tickets", summary["total_tickets"])
+
+if __name__ == "__main__":
+    sys.exit(main())

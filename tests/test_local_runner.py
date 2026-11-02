@@ -50,6 +50,27 @@ def test_setup_failure_does_not_start_service(commands):
     runner.serve.assert_not_called()
 
 
+def test_categorize_configures_gemini_and_requires_complete_classification(commands, monkeypatch):
+    execute = Mock(return_value=0)
+    monkeypatch.setattr(runner, "execute", execute)
+    assert runner.main(["categorize"]) == 0
+    assert execute.call_args.args[0] == [commands, ROOT / "scripts/gemini_categories.py", "--configure"]
+    runner.build.assert_called_once_with(commands, require_gemini=True, refresh=False)
+    runner.prepare_browser.assert_not_called()
+
+
+def test_categorize_does_not_claim_success_if_configuration_fails(commands, monkeypatch):
+    monkeypatch.setattr(runner, "execute", Mock(return_value=1))
+    assert runner.main(["categorize"]) == 1
+    runner.build.assert_not_called()
+
+
+def test_refresh_categories_is_explicit(commands, monkeypatch):
+    monkeypatch.setattr(runner, "execute", Mock(return_value=0))
+    assert runner.main(["categorize", "--refresh-categories"]) == 0
+    runner.build.assert_called_once_with(commands, require_gemini=True, refresh=True)
+
+
 def test_subprocess_always_runs_from_project_root(monkeypatch):
     execute = Mock(return_value=subprocess.CompletedProcess([], 0))
     monkeypatch.setattr(runner.subprocess, "run", execute)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lanzador local: python run.py [start|update|login|setup|build|test]."""
+"""Lanzador local: python run.py [start|update|login|setup|build|test|categorize]."""
 
 import argparse
 import hashlib
@@ -65,8 +65,13 @@ def prepare_browser(python, with_deps=False):
         )
 
 
-def build(python):
-    if execute([python, ROOT / "scripts/build_data.py"]):
+def build(python, *, require_gemini=False, refresh=False):
+    args = [python, ROOT / "scripts/build_data.py"]
+    if require_gemini:
+        args.append("--require-gemini")
+    if refresh:
+        args.append("--refresh-categories")
+    if execute(args):
         raise LocalError("No se pudieron generar los datos. Revisa los archivos indicados en los mensajes anteriores.")
 
 
@@ -154,14 +159,17 @@ def serve(port, open_browser=True):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Consum Tracker local: un comando para abrir el dashboard.")
     parser.add_argument("command", nargs="?", default="start",
-                        choices=["start", "update", "login", "setup", "build", "test"],
-                        help="start: abrir; update: descargar; login: renovar sesión; setup: preparar; build: regenerar; test: probar")
+                        choices=["start", "update", "login", "setup", "build", "test", "categorize"],
+                        help="start: abrir; update: descargar; login: renovar sesión; setup: preparar; build: regenerar; test: probar; categorize: clasificar con Gemini")
     parser.add_argument("--port", type=int, default=8000, help="puerto preferido del dashboard (8000)")
     parser.add_argument("--no-browser", action="store_true", help="no abrir automáticamente el navegador")
     parser.add_argument("--with-deps", action="store_true", help="instalar también bibliotecas de Chromium (Linux)")
+    parser.add_argument("--refresh-categories", action="store_true", help="volver a consultar a Gemini incluso para productos en caché")
     args = parser.parse_args(argv)
     if not 0 <= args.port <= 65535:
         parser.error("el puerto debe estar entre 0 y 65535")
+    if args.refresh_categories and args.command not in {"categorize", "build"}:
+        parser.error("--refresh-categories se usa con categorize o build")
     if sys.version_info < (3, 10):
         parser.error("se necesita Python 3.10 o superior; se recomienda 3.12")
     try:
@@ -176,7 +184,15 @@ def main(argv=None):
         elif args.command == "update":
             update(python)
         elif args.command == "build":
-            build(python)
+            if args.refresh_categories:
+                build(python, refresh=True)
+            else:
+                build(python)
+        elif args.command == "categorize":
+            if execute([python, ROOT / "scripts/gemini_categories.py", "--configure"]):
+                raise LocalError("No se pudo configurar Gemini. Revisa los mensajes anteriores.")
+            build(python, require_gemini=True, refresh=args.refresh_categories)
+            print("Catálogo clasificado con Gemini. Recarga el dashboard o ábrelo con python run.py.", flush=True)
         elif args.command == "test":
             return execute([python, "-m", "pytest", ROOT / "tests", "-v"])
         else:
