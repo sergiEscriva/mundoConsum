@@ -15,7 +15,7 @@
 - [Características](#características)
 - [Arquitectura](#arquitectura)
 - [Requisitos previos](#requisitos-previos)
-- [Instalación](#instalación)
+- [Ejecutar en local](#ejecutar-en-local)
 - [Configuración de secretos](#configuración-de-secretos)
 - [Despliegue del dashboard](#despliegue-del-dashboard)
 - [Uso](#uso)
@@ -81,22 +81,86 @@
 
 ---
 
-## Instalación
+## Ejecutar en local
+
+Necesitas **Python 3.10 o superior** (recomendado: 3.12). En Windows, activa la
+opción «Add Python to PATH» durante su instalación.
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/TU_USUARIO/consum-tracker.git
-cd consum-tracker
-
-# 2. Crear y activar un entorno virtual
-python -m venv venv
-source venv/bin/activate        # macOS / Linux
-venv\Scripts\activate           # Windows
-
-# 3. Instalar dependencias
-pip install -r requirements.txt
-playwright install chromium
+git clone https://github.com/sergiEscriva/mundoConsum.git
+cd mundoConsum
+python run.py
 ```
+
+En macOS/Linux, usa `python3` si no tienes el comando `python`. En Windows puedes
+usar `py -3 run.py`.
+
+El lanzador crea `.venv`, instala las dependencias, regenera los datos y abre el
+dashboard en tu navegador. **No necesitas activar un entorno virtual, instalar
+Chromium ni iniciar sesión para ver los datos existentes.** La primera ejecución
+necesita Internet para instalar paquetes; las siguientes reutilizan el entorno.
+
+También puedes hacer doble clic en **`iniciar.bat` en Windows** o
+**`iniciar.command` en macOS**. El acceso de macOS también funciona desde una
+terminal de Linux: `./iniciar.command`.
+
+Mantén abierta la terminal mientras uses el dashboard y pulsa **Ctrl+C** para
+cerrarlo. Si el puerto 8000 está ocupado, el lanzador elige otro y muestra la
+dirección correcta. Funciona aunque lo invoques desde otra carpeta, usando la
+ruta completa a `run.py`.
+
+### Descargar tus compras
+
+```bash
+python run.py update
+```
+
+El lanzador prepara Chromium y, si no tienes sesión, abre el navegador para que
+inicies sesión y completes el 2FA. Vuelve a la terminal y pulsa Enter cuando
+termine el login. Después descarga los tickets y genera el resumen. Si la sesión
+ha caducado, te guía para renovarla y reintenta una vez. Recarga el dashboard
+para ver los cambios. Puedes ejecutar este comando en otra terminal mientras
+el dashboard permanece abierto.
+
+Los tickets incompletos producen un error y quedan disponibles para reintento;
+no se anuncia una actualización correcta si la extracción ha fallado.
+
+### Comandos disponibles
+
+| Comando | Para qué sirve |
+|---------|----------------|
+| `python run.py` | Preparar y abrir el dashboard |
+| `python run.py update` | Descargar tickets y regenerar los datos |
+| `python run.py login` | Iniciar sesión o renovar las cookies |
+| `python run.py build` | Regenerar el resumen sin descargar tickets |
+| `python run.py setup` | Preparar dependencias y Chromium por adelantado |
+| `python run.py test` | Ejecutar las pruebas con el entorno del proyecto |
+| `python run.py --port 8080 --no-browser` | Arrancar sin abrir una ventana y preferir otro puerto |
+
+Los accesos `iniciar.bat` e `iniciar.command` también aceptan estos argumentos
+desde una terminal, por ejemplo `iniciar.bat update`.
+
+En Debian/Ubuntu, si Python indica que falta soporte para entornos virtuales,
+instala `python3-venv`. Si Chromium requiere bibliotecas del sistema, ejecuta
+`python run.py setup --with-deps` (puede solicitar permisos de administrador).
+Las pruebas de navegador requieren Chromium; prepáralo con `setup` si quieres
+ejecutar la suite completa. Windows instala automáticamente `tzdata` para
+`Europe/Madrid`.
+
+La sesión se guarda en `cookies.json`, ignorado por Git. No necesitas GitHub
+Secrets para usarlo en tu equipo. Si defines `CONSUM_COOKIES`, se usa primero;
+cuando `update` renueva una sesión rechazada, usa las cookies locales nuevas
+para ese reintento. En ejecuciones sin terminal interactiva, prepara antes las
+cookies con `python run.py login`.
+
+El servidor solo escucha en tu equipo y sirve el dashboard y sus JSON; no expone
+`cookies.json`, los tickets individuales ni el repositorio. Chart.js se carga
+desde un CDN: si no hay conexión, los gráficos muestran un aviso y el resto de
+la aplicación sigue funcionando.
+
+Los scripts de `scripts/` siguen disponibles para automatizaciones. El lanzador
+muestra los errores y devuelve un código distinto de cero cuando falla una fase.
+Los datos inválidos detienen la generación sin sustituir el resumen anterior.
 
 ---
 
@@ -172,8 +236,9 @@ Para lanzar el workflow manualmente, ve a **Actions > Consum Daily Tracker > Run
 | Código | Significado |
 |--------|-------------|
 | `0` | Tickets nuevos procesados correctamente |
-| `1` | Error de autenticación (cookies expiradas o inválidas) |
+| `1` | Cookies ausentes, inválidas o sesión rechazada |
 | `2` | Sin tickets nuevos por procesar (no-op) |
+| `3` | Error de red/API o extracción incompleta; revisar los logs y reintentar |
 
 ---
 

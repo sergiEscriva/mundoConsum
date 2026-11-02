@@ -259,6 +259,17 @@ const PALETTE = [
 let DATA = null;
 let BUDGETS = null;
 
+function currentMonth(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Europe/Madrid", year: "numeric", month: "2-digit"
+  }).formatToParts(date);
+  return `${parts.find(p => p.type === "year").value}-${parts.find(p => p.type === "month").value}`;
+}
+
+const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => (
+  {"&":"&amp;", "<":"&lt;", ">":"&gt;", '\"':"&quot;", "'":"&#39;"}[c]
+));
+
 async function loadData() {
   const base = "../data/summary.json";
   const resp = await fetch(base + "?t=" + Date.now());
@@ -283,15 +294,19 @@ const fmt_date = iso => {
 
 function renderKPIs(data) {
   const md = data.monthly_data;
-  const last = md.at(-1) || {};
-  const prev = md.at(-2) || {};
-  const changePct = last.change_pct;
+  const month = currentMonth();
+  const last = md.find(m => m.month === month) || {total: 0, visits: 0};
+  const previousDate = new Date(month + "-01T12:00:00Z");
+  previousDate.setUTCMonth(previousDate.getUTCMonth() - 1);
+  const previousMonth = previousDate.toISOString().slice(0, 7);
+  const prev = md.find(m => m.month === previousMonth);
+  const changePct = prev?.total ? ((last.total - prev.total) / prev.total) * 100 : null;
 
   let changeHtml = "";
   if (changePct != null) {
     const cls = changePct > 0 ? "up" : "down";
     const arrow = changePct > 0 ? "\u25B2" : "\u25BC";
-    changeHtml = `<div class="change ${cls}">${arrow} ${Math.abs(changePct)}% vs mes anterior</div>`;
+    changeHtml = `<div class="change ${cls}">${arrow} ${Math.abs(changePct).toFixed(1)}% vs mes anterior</div>`;
   }
 
   document.getElementById("kpi-grid").innerHTML = [
@@ -384,7 +399,7 @@ function renderTopProducts(data) {
     list.map((p, i) => `
       <div class="product-row">
         <div class="product-rank">${i+1}</div>
-        <div class="product-name">${p.name}</div>
+        <div class="product-name">${escapeHTML(p.name)}</div>
         <div class="product-times">${p.times}x</div>
         <div class="product-price">${eur(p.total_spent)}</div>
       </div>
@@ -395,10 +410,10 @@ function renderTips(tips, containerId) {
   document.getElementById(containerId).innerHTML =
     tips.map(t => `
       <div class="tip ${t.type}">
-        <div class="icon">${t.icon}</div>
+        <div class="icon">${escapeHTML(t.icon)}</div>
         <div>
-          <div class="tip-title">${t.title}</div>
-          <div class="tip-text">${t.text}</div>
+          <div class="tip-title">${escapeHTML(t.title)}</div>
+          <div class="tip-text">${escapeHTML(t.text)}</div>
         </div>
       </div>
     `).join("") || "";
@@ -409,9 +424,9 @@ function renderTickets(data) {
     data.recent_tickets.map(t => `
       <tr>
         <td>${fmt_date(t.date)}</td>
-        <td>${t.store || "Consum"}</td>
+        <td>${escapeHTML(t.store || "Consum")}</td>
         <td><span class="badge">${t.items_count} art.</span></td>
-        <td>${t.payment || "\u2014"}</td>
+        <td>${escapeHTML(t.payment || "\u2014")}</td>
         <td><strong>${eur(t.total)}</strong></td>
       </tr>
     `).join("") ||
@@ -427,20 +442,24 @@ function renderBudgets(data, budgets) {
     return;
   }
 
-  const lastMonth = (data.monthly_data.at(-1) || {}).month;
-  if (!lastMonth) { container.innerHTML = ""; return; }
+  if (!data.monthly_categories) {
+    container.textContent = "Regenera los datos para ver el presupuesto mensual.";
+    return;
+  }
+  const catSpentThisMonth = Object.fromEntries(
+    (data.monthly_categories[currentMonth()] || []).map(c => [c.name, c.total])
+  );
 
-  const catSpentThisMonth = {};
-  data.categories.forEach(c => { catSpentThisMonth[c.name] = c.total; });
-
-  const html = Object.entries(budgets.monthly).map(([cat, limit]) => {
+  const html = Object.entries(budgets.monthly).filter(([, limit]) =>
+    typeof limit === "number" && Number.isFinite(limit) && limit > 0
+  ).map(([cat, limit]) => {
     const spent = catSpentThisMonth[cat] || 0;
-    const pct = Math.min((spent / limit) * 100, 100);
+    const pct = Math.max(0, Math.min((spent / limit) * 100, 100));
     const cls = pct >= 100 ? "over" : pct >= 80 ? "warn" : "ok";
     return `
       <div class="budget-row">
         <div class="budget-header">
-          <span class="cat-name">${cat}</span>
+          <span class="cat-name">${escapeHTML(cat)}</span>
           <span class="amounts">${eur(spent)} / ${eur(limit)}</span>
         </div>
         <div class="budget-bar-bg">
@@ -453,10 +472,7 @@ function renderBudgets(data, budgets) {
 
 function renderSearchCategories(data) {
   const sel = document.getElementById("search-cat");
-  const cats = [...new Set(data.top_products.map(p => {
-    const found = data.categories.find(c => c.name);
-    return found ? found.name : null;
-  }).filter(Boolean))];
+  sel.replaceChildren(new Option("Todas las categorías", ""));
   data.categories.forEach(c => {
     const opt = document.createElement("option");
     opt.value = c.name;
@@ -471,10 +487,14 @@ function doSearch() {
   const container = document.getElementById("search-results");
   if (!q && !cat) { container.innerHTML = ""; return; }
 
-  const allProducts = DATA.top_products;
+  if (!DATA?.products) {
+    container.textContent = "Regenera los datos para buscar en todos los productos.";
+    return;
+  }
+  const allProducts = DATA.products;
   let results = allProducts.filter(p => {
     const nameMatch = !q || p.name.toUpperCase().includes(q);
-    return nameMatch;
+    return nameMatch && (!cat || p.category === cat);
   });
 
   if (results.length === 0) {
@@ -484,7 +504,7 @@ function doSearch() {
 
   container.innerHTML = results.slice(0, 15).map((p, i) => `
     <div class="product-row">
-      <div class="product-name">${p.name}</div>
+      <div class="product-name">${escapeHTML(p.name)}</div>
       <div class="product-times">${p.times}x comprado</div>
       <div class="product-price">${eur(p.total_spent)}</div>
     </div>
@@ -494,7 +514,8 @@ function doSearch() {
 function renderSpendingAlert(data, budgets) {
   const el = document.getElementById("spending-alert");
   if (!budgets || !budgets.alert_monthly_total) { el.style.display = "none"; return; }
-  const lastMonth = data.monthly_data.at(-1);
+  el.style.display = "none";
+  const lastMonth = data.monthly_data.find(m => m.month === currentMonth());
   if (!lastMonth) return;
   const limit = budgets.alert_monthly_total;
   if (lastMonth.total > limit) {
@@ -550,6 +571,26 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
+function renderCharts(data) {
+  for (const [id, render] of [["chart-monthly", renderMonthly], ["chart-categories", renderCategories]]) {
+    const canvas = document.getElementById(id);
+    const prior = document.getElementById(id + "-error");
+    if (prior) prior.remove();
+    canvas.style.display = "";
+    try {
+      if (typeof Chart === "undefined") throw new Error("Chart.js no disponible");
+      render(data);
+    } catch (err) {
+      canvas.style.display = "none";
+      const message = document.createElement("p");
+      message.id = id + "-error";
+      message.textContent = "No se pudo cargar el gráfico. Comprueba la conexión y recarga la página.";
+      canvas.parentElement.appendChild(message);
+      console.warn("Gráfico no disponible:", id);
+    }
+  }
+}
+
 (async () => {
   try {
     const [data, budgets] = await Promise.all([loadData(), loadBudgets()]);
@@ -567,14 +608,13 @@ function exportCSV() {
 
     renderSpendingAlert(data, budgets);
     renderKPIs(data);
-    renderMonthly(data);
-    renderCategories(data);
     renderTopProducts(data);
     renderBudgets(data, budgets);
     renderSearchCategories(data);
     renderTips(data.health_tips,  "health-tips");
     renderTips(data.saving_tips,  "saving-tips");
     renderTickets(data);
+    renderCharts(data);
 
   } catch (err) {
     document.getElementById("loading").style.display = "none";

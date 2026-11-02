@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- Cross-platform local launcher: `python run.py` prepares its virtual environment,
+  builds data, starts the dashboard and opens the browser. Commands for login,
+  updating tickets, setup, rebuilding and tests share the same environment.
+- Double-click launchers for Windows/macOS, automatic port fallback, and a local
+  HTTP server that serves dashboard files without exposing cookies or raw tickets.
+
+### Fixed
+
+- Monthly budgets and current-month indicators now use the Europe/Madrid calendar
+  and monthly category totals instead of lifetime spending.
+- Product search includes the full catalog and applies the category filter.
+- Chart loading failures no longer prevent tables, search and tips from rendering.
+- Tickets are normalized and validated before aggregation; zero-value tickets
+  count towards averages and invalid input cannot overwrite the existing summary.
+- Scraping distinguishes authentication failures (exit 1), no-op (exit 2) and
+  API/network/incomplete extraction failures (exit 3). Partial tickets are retried,
+  negative amounts are parsed, and JSON updates use atomic replacement.
+- Failure notifications run after failed scraping; Telegram configuration is
+  checked without exposing secrets. Windows installs include timezone data.
+
 ## [1.0.0] - 2026-03-26
 
 ### Added

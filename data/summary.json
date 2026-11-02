@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-31T07:09:39.243899",
+  "generated_at": "2026-11-02T14:24:13.909482",
   "total_tickets": 46,
   "total_spent": 376.92,
   "avg_ticket": 8.19,
@@ -95,105 +95,925 @@
   "top_products": [
     {
       "name": "AGUA CONSUM 1,5L",
+      "category": "Bebidas",
       "times": 9,
       "total_spent": 14.22
     },
     {
       "name": "MOZZAR.RALL.CONSUM",
+      "category": "Lácteos y Huevos",
       "times": 8,
       "total_spent": 18.15
     },
     {
       "name": "BOLSA COMPRA RECICL",
+      "category": "Higiene y Limpieza",
       "times": 6,
       "total_spent": 1.49
     },
     {
       "name": "BARRA ESPIGA TRADIC",
+      "category": "Pan y Bollería",
       "times": 5,
       "total_spent": 3.45
     },
     {
       "name": "CHAP.CRISTAL ACEITE",
+      "category": "Conservas y Salsas",
       "times": 4,
       "total_spent": 6.3
     },
     {
-      "name": "B.BASURA30LCONSUM20",
-      "times": 3,
-      "total_spent": 4.35
-    },
-    {
-      "name": "SAZ. FAJITA 24X30G",
-      "times": 3,
-      "total_spent": 3.0
-    },
-    {
-      "name": "POLLO LIMPIO",
-      "times": 3,
-      "total_spent": 19.63
-    },
-    {
-      "name": "BONIATO ROJO",
-      "times": 3,
-      "total_spent": 7.76
-    },
-    {
       "name": "ALAS PARTIDAS POLLO",
+      "category": "Carne y Pescado",
       "times": 3,
       "total_spent": 8.46
     },
     {
-      "name": "GALL.TOSTA RICA760",
-      "times": 2,
-      "total_spent": 7.98
+      "name": "B.BASURA30LCONSUM20",
+      "category": "Higiene y Limpieza",
+      "times": 3,
+      "total_spent": 4.35
     },
     {
-      "name": "PESTO CONSUM 185 G",
-      "times": 2,
-      "total_spent": 3.9
+      "name": "BONIATO ROJO",
+      "category": "Frutas y Verduras",
+      "times": 3,
+      "total_spent": 7.76
     },
     {
-      "name": "PATATA FREIR 2 KG",
-      "times": 2,
-      "total_spent": 7.7
+      "name": "POLLO LIMPIO",
+      "category": "Carne y Pescado",
+      "times": 3,
+      "total_spent": 19.63
+    },
+    {
+      "name": "SAZ. FAJITA 24X30G",
+      "category": "Conservas y Salsas",
+      "times": 3,
+      "total_spent": 3.0
     },
     {
       "name": "ALBONDIGA MIXTA",
+      "category": "Carne y Pescado",
       "times": 2,
       "total_spent": 6.5
     },
     {
+      "name": "BARRA DE PAN 2 UDS",
+      "category": "Pan y Bollería",
+      "times": 2,
+      "total_spent": 3.84
+    },
+    {
+      "name": "BURGER POLLO PAVO",
+      "category": "Carne y Pescado",
+      "times": 2,
+      "total_spent": 5.06
+    },
+    {
       "name": "BURGER POLLO VERDUR",
+      "category": "Carne y Pescado",
       "times": 2,
       "total_spent": 5.09
     },
     {
-      "name": "PIMIENTO TRICOLOR",
+      "name": "GALL.TOSTA RICA760",
+      "category": "Pan y Bollería",
       "times": 2,
-      "total_spent": 3.98
+      "total_spent": 7.98
     },
     {
-      "name": "WRAP TRIGO CONSUM",
+      "name": "JAMÓN G.R.CONSU120G",
+      "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 3.0
+      "total_spent": 4.9
     },
     {
       "name": "KIWI VERDE BANDEJA",
+      "category": "Frutas y Verduras",
       "times": 2,
       "total_spent": 5.38
     },
     {
       "name": "LONGANIZA POLLO",
+      "category": "Carne y Pescado",
       "times": 2,
       "total_spent": 5.79
     },
     {
-      "name": "TOR. TRIGO CONS 10U",
+      "name": "PATATA FREIR 2 KG",
+      "category": "Frutas y Verduras",
       "times": 2,
-      "total_spent": 2.3
+      "total_spent": 7.7
+    },
+    {
+      "name": "PESTO CONSUM 185 G",
+      "category": "Conservas y Salsas",
+      "times": 2,
+      "total_spent": 3.9
     }
   ],
+  "products": [
+    {
+      "name": "AGUA CONSUM 1,5L",
+      "category": "Bebidas",
+      "times": 9,
+      "total_spent": 14.22
+    },
+    {
+      "name": "MOZZAR.RALL.CONSUM",
+      "category": "Lácteos y Huevos",
+      "times": 8,
+      "total_spent": 18.15
+    },
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "category": "Higiene y Limpieza",
+      "times": 6,
+      "total_spent": 1.49
+    },
+    {
+      "name": "BARRA ESPIGA TRADIC",
+      "category": "Pan y Bollería",
+      "times": 5,
+      "total_spent": 3.45
+    },
+    {
+      "name": "CHAP.CRISTAL ACEITE",
+      "category": "Conservas y Salsas",
+      "times": 4,
+      "total_spent": 6.3
+    },
+    {
+      "name": "ALAS PARTIDAS POLLO",
+      "category": "Carne y Pescado",
+      "times": 3,
+      "total_spent": 8.46
+    },
+    {
+      "name": "B.BASURA30LCONSUM20",
+      "category": "Higiene y Limpieza",
+      "times": 3,
+      "total_spent": 4.35
+    },
+    {
+      "name": "BONIATO ROJO",
+      "category": "Frutas y Verduras",
+      "times": 3,
+      "total_spent": 7.76
+    },
+    {
+      "name": "POLLO LIMPIO",
+      "category": "Carne y Pescado",
+      "times": 3,
+      "total_spent": 19.63
+    },
+    {
+      "name": "SAZ. FAJITA 24X30G",
+      "category": "Conservas y Salsas",
+      "times": 3,
+      "total_spent": 3.0
+    },
+    {
+      "name": "ALBONDIGA MIXTA",
+      "category": "Carne y Pescado",
+      "times": 2,
+      "total_spent": 6.5
+    },
+    {
+      "name": "BARRA DE PAN 2 UDS",
+      "category": "Pan y Bollería",
+      "times": 2,
+      "total_spent": 3.84
+    },
+    {
+      "name": "BURGER POLLO PAVO",
+      "category": "Carne y Pescado",
+      "times": 2,
+      "total_spent": 5.06
+    },
+    {
+      "name": "BURGER POLLO VERDUR",
+      "category": "Carne y Pescado",
+      "times": 2,
+      "total_spent": 5.09
+    },
+    {
+      "name": "GALL.TOSTA RICA760",
+      "category": "Pan y Bollería",
+      "times": 2,
+      "total_spent": 7.98
+    },
+    {
+      "name": "JAMÓN G.R.CONSU120G",
+      "category": "Carne y Pescado",
+      "times": 2,
+      "total_spent": 4.9
+    },
+    {
+      "name": "KIWI VERDE BANDEJA",
+      "category": "Frutas y Verduras",
+      "times": 2,
+      "total_spent": 5.38
+    },
+    {
+      "name": "LONGANIZA POLLO",
+      "category": "Carne y Pescado",
+      "times": 2,
+      "total_spent": 5.79
+    },
+    {
+      "name": "PATATA FREIR 2 KG",
+      "category": "Frutas y Verduras",
+      "times": 2,
+      "total_spent": 7.7
+    },
+    {
+      "name": "PESTO CONSUM 185 G",
+      "category": "Conservas y Salsas",
+      "times": 2,
+      "total_spent": 3.9
+    },
+    {
+      "name": "PIMIENTO TRICOLOR",
+      "category": "Frutas y Verduras",
+      "times": 2,
+      "total_spent": 3.98
+    },
+    {
+      "name": "TOR. TRIGO CONS 10U",
+      "category": "Pan y Bollería",
+      "times": 2,
+      "total_spent": 2.3
+    },
+    {
+      "name": "WRAP TRIGO CONSUM",
+      "category": "Otros",
+      "times": 2,
+      "total_spent": 3.0
+    },
+    {
+      "name": "A.FONTVELLA 1,5 P-6",
+      "category": "Bebidas",
+      "times": 1,
+      "total_spent": 4.32
+    },
+    {
+      "name": "AC.OL.1L VIRG.CARBO",
+      "category": "Conservas y Salsas",
+      "times": 1,
+      "total_spent": 4.99
+    },
+    {
+      "name": "AGUA CONSUM 1L",
+      "category": "Bebidas",
+      "times": 1,
+      "total_spent": 2.4
+    },
+    {
+      "name": "AJO MOLIDO CONS 85G",
+      "category": "Frutas y Verduras",
+      "times": 1,
+      "total_spent": 0.89
+    },
+    {
+      "name": "ALAS CRUNCHY CHICKE",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 4.02
+    },
+    {
+      "name": "ALAS DE POLLO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 4.15
+    },
+    {
+      "name": "ALLIOLI CHOVI 200ML",
+      "category": "Conservas y Salsas",
+      "times": 1,
+      "total_spent": 1.59
+    },
+    {
+      "name": "ANACARDO TOS CONSUM",
+      "category": "Snacks y Dulces",
+      "times": 1,
+      "total_spent": 2.8
+    },
+    {
+      "name": "BANANA",
+      "category": "Frutas y Verduras",
+      "times": 1,
+      "total_spent": 1.88
+    },
+    {
+      "name": "BARRA ALDEANA 240G",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 0.89
+    },
+    {
+      "name": "BARRA DE PAN 250G",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 0.5
+    },
+    {
+      "name": "BARRA RÚSTICA 245 G",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 0.85
+    },
+    {
+      "name": "BERLIBLANCA RAYADA",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 1.0
+    },
+    {
+      "name": "BROCHETA DE POLLO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 2.89
+    },
+    {
+      "name": "BROWNIE CHOCO MILKA",
+      "category": "Snacks y Dulces",
+      "times": 1,
+      "total_spent": 3.8
+    },
+    {
+      "name": "BURGER CRISTAL 2UN",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 0.99
+    },
+    {
+      "name": "CACAO POLV.VALOR500",
+      "category": "Snacks y Dulces",
+      "times": 1,
+      "total_spent": 4.1
+    },
+    {
+      "name": "CAFE SOL.NAT.CON100",
+      "category": "Bebidas",
+      "times": 1,
+      "total_spent": 2.95
+    },
+    {
+      "name": "CAFÉ ESPRESO 250 CO",
+      "category": "Bebidas",
+      "times": 1,
+      "total_spent": 0.85
+    },
+    {
+      "name": "CAFÉ REFRIG. LIGHT",
+      "category": "Bebidas",
+      "times": 1,
+      "total_spent": 0.85
+    },
+    {
+      "name": "CARNE PICADA MIXTA",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.45
+    },
+    {
+      "name": "CEBOLLA DULCE 500 G",
+      "category": "Frutas y Verduras",
+      "times": 1,
+      "total_spent": 1.79
+    },
+    {
+      "name": "CEPILLO BETUNE.",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 1.25
+    },
+    {
+      "name": "CHOCO POSTRE NES200",
+      "category": "Snacks y Dulces",
+      "times": 1,
+      "total_spent": 3.79
+    },
+    {
+      "name": "CHOPIR REB HUEV PES",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.15
+    },
+    {
+      "name": "CHORIZO TIPO PUEBLO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.66
+    },
+    {
+      "name": "CHULETA DE AGUJA",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.48
+    },
+    {
+      "name": "COCA-COLA 0,33L.",
+      "category": "Bebidas",
+      "times": 1,
+      "total_spent": 0.95
+    },
+    {
+      "name": "COCIDO MADR.LTOR425",
+      "category": "Congelados y Preparados",
+      "times": 1,
+      "total_spent": 2.55
+    },
+    {
+      "name": "COMPRESA ULTRA SUPE",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 1.19
+    },
+    {
+      "name": "CONTR. DESHUESADOS",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.95
+    },
+    {
+      "name": "COOKIE CHOCO LECHE",
+      "category": "Lácteos y Huevos",
+      "times": 1,
+      "total_spent": 1.19
+    },
+    {
+      "name": "CROQUETAS IBÉRICO",
+      "category": "Congelados y Preparados",
+      "times": 1,
+      "total_spent": 1.8
+    },
+    {
+      "name": "D.C.LIMP.MENT.ORALB",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 2.49
+    },
+    {
+      "name": "D.LÍQ.FRES.CONSUM52",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 3.7
+    },
+    {
+      "name": "F.CABEZA LOMO CERDO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.77
+    },
+    {
+      "name": "FIAMBRE SAN.250 CON",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 1.54
+    },
+    {
+      "name": "FIDEO Nº0 GALLO 400",
+      "category": "Pasta, Arroz y Legumbres",
+      "times": 1,
+      "total_spent": 1.0
+    },
+    {
+      "name": "FIGATELL BANDEJA",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 4.22
+    },
+    {
+      "name": "FLTE MLZA ARGENTINA",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 4.17
+    },
+    {
+      "name": "GOMA LIMP.ANTE-PIEL",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 4.49
+    },
+    {
+      "name": "HAMBUR. BRIOCHE300G",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 1.89
+    },
+    {
+      "name": "HIG.COMPACT.CONSUM6",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 2.3
+    },
+    {
+      "name": "HILO DENTAL C/FLUOR",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 1.15
+    },
+    {
+      "name": "HORCHATA CHUFI 1L",
+      "category": "Bebidas",
+      "times": 1,
+      "total_spent": 1.89
+    },
+    {
+      "name": "HUEVO L DOCENA",
+      "category": "Lácteos y Huevos",
+      "times": 1,
+      "total_spent": 3.3
+    },
+    {
+      "name": "HUEVO M DOCENA",
+      "category": "Lácteos y Huevos",
+      "times": 1,
+      "total_spent": 3.1
+    },
+    {
+      "name": "J.COCIDO 2X200 POZO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.49
+    },
+    {
+      "name": "J.CURADO NAVIDUL 45",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.0
+    },
+    {
+      "name": "J.CURADO RED.SAL",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 1.0
+    },
+    {
+      "name": "JAMÓN G.RES.CON.150",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 2.99
+    },
+    {
+      "name": "JAMÓN G.RES.CONS250",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 4.25
+    },
+    {
+      "name": "L.CALC.ENT.CONSUM1L",
+      "category": "Otros",
+      "times": 1,
+      "total_spent": 1.17
+    },
+    {
+      "name": "LIMP.CALZ.DEP.CONSU",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 1.45
+    },
+    {
+      "name": "LONGANIZA EXTRA BAN",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.78
+    },
+    {
+      "name": "LONGANIZA SIN TRIPA",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 2.47
+    },
+    {
+      "name": "M.DES.GILLE BL.SL.P",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 2.99
+    },
+    {
+      "name": "M.R BROWNIE C/ CHOC",
+      "category": "Snacks y Dulces",
+      "times": 1,
+      "total_spent": 2.45
+    },
+    {
+      "name": "MANTEQUI.250 CONSUM",
+      "category": "Repostería",
+      "times": 1,
+      "total_spent": 2.1
+    },
+    {
+      "name": "MIK.SÁNDALO PRE.100",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 4.95
+    },
+    {
+      "name": "MOLDE PAPEL AIR FRY",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 2.5
+    },
+    {
+      "name": "MUSLO DESHUESADO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.02
+    },
+    {
+      "name": "P.HAMBURGUESA RÚSTI",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 1.59
+    },
+    {
+      "name": "PALETA LONCHAS CONS",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 2.1
+    },
+    {
+      "name": "PAN RALLADO CONSUM",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 0.99
+    },
+    {
+      "name": "PAN RUSTIC BURGER4U",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 1.29
+    },
+    {
+      "name": "PANCETA DE CERDO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.76
+    },
+    {
+      "name": "PAT.CAMPESINAS CONS",
+      "category": "Frutas y Verduras",
+      "times": 1,
+      "total_spent": 1.2
+    },
+    {
+      "name": "PATÉ FI. HIER. TARR",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 1.39
+    },
+    {
+      "name": "PATÉ PIM. TARRADELL",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 1.39
+    },
+    {
+      "name": "PECHUGA DE POLLO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.2
+    },
+    {
+      "name": "PELUCHE BOLI CORAZO",
+      "category": "Otros",
+      "times": 1,
+      "total_spent": 7.99
+    },
+    {
+      "name": "PIZZA RIS.ATÚN D.OE",
+      "category": "Congelados y Preparados",
+      "times": 1,
+      "total_spent": 3.35
+    },
+    {
+      "name": "PIZZA RIST.BABACOA",
+      "category": "Congelados y Preparados",
+      "times": 1,
+      "total_spent": 3.35
+    },
+    {
+      "name": "PLÁTANO CANARIO IGP",
+      "category": "Frutas y Verduras",
+      "times": 1,
+      "total_spent": 2.12
+    },
+    {
+      "name": "PORRA PREF.320 MAHE",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 2.65
+    },
+    {
+      "name": "PULEVA CALC.ENTE.1L",
+      "category": "Lácteos y Huevos",
+      "times": 1,
+      "total_spent": 9.54
+    },
+    {
+      "name": "R.COCINA S.CONSUM 2",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 4.19
+    },
+    {
+      "name": "REC.SENS.LEA,4UN.5H",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 4.8
+    },
+    {
+      "name": "SALSA ALLIOLI CHOVI",
+      "category": "Conservas y Salsas",
+      "times": 1,
+      "total_spent": 1.95
+    },
+    {
+      "name": "SERV.NEGRA 40X40CON",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 1.65
+    },
+    {
+      "name": "SOLOMILLO DE POLLO",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 5.02
+    },
+    {
+      "name": "SOLUCIÓN ÚNICA SENT",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 4.0
+    },
+    {
+      "name": "SPAGHETT BARILLA500",
+      "category": "Pasta, Arroz y Legumbres",
+      "times": 1,
+      "total_spent": 1.69
+    },
+    {
+      "name": "SUAV.FR.CONSUM80LV",
+      "category": "Higiene y Limpieza",
+      "times": 1,
+      "total_spent": 1.9
+    },
+    {
+      "name": "T.FRITO CONS.P3X210",
+      "category": "Conservas y Salsas",
+      "times": 1,
+      "total_spent": 0.95
+    },
+    {
+      "name": "TAQUITO CERDO ANDAL",
+      "category": "Carne y Pescado",
+      "times": 1,
+      "total_spent": 3.97
+    },
+    {
+      "name": "TOM.FRITO CONSU.P-3",
+      "category": "Conservas y Salsas",
+      "times": 1,
+      "total_spent": 1.35
+    },
+    {
+      "name": "VALENC.DULCESOL350",
+      "category": "Pan y Bollería",
+      "times": 1,
+      "total_spent": 1.99
+    },
+    {
+      "name": "YOG.PRO.STRAC 00%X4",
+      "category": "Lácteos y Huevos",
+      "times": 1,
+      "total_spent": 1.99
+    }
+  ],
+  "monthly_categories": {
+    "2026-01": [
+      {
+        "name": "Bebidas",
+        "total": 10.05
+      },
+      {
+        "name": "Carne y Pescado",
+        "total": 59.35
+      },
+      {
+        "name": "Conservas y Salsas",
+        "total": 13.44
+      },
+      {
+        "name": "Frutas y Verduras",
+        "total": 9.68
+      },
+      {
+        "name": "Higiene y Limpieza",
+        "total": 13.16
+      },
+      {
+        "name": "Lácteos y Huevos",
+        "total": 17.79
+      },
+      {
+        "name": "Otros",
+        "total": 10.99
+      },
+      {
+        "name": "Pan y Bollería",
+        "total": 16.0
+      },
+      {
+        "name": "Snacks y Dulces",
+        "total": 14.49
+      }
+    ],
+    "2026-02": [
+      {
+        "name": "Bebidas",
+        "total": 5.69
+      },
+      {
+        "name": "Carne y Pescado",
+        "total": 41.66
+      },
+      {
+        "name": "Conservas y Salsas",
+        "total": 9.0
+      },
+      {
+        "name": "Frutas y Verduras",
+        "total": 17.24
+      },
+      {
+        "name": "Higiene y Limpieza",
+        "total": 17.5
+      },
+      {
+        "name": "Lácteos y Huevos",
+        "total": 14.99
+      },
+      {
+        "name": "Otros",
+        "total": 1.17
+      },
+      {
+        "name": "Pan y Bollería",
+        "total": 4.78
+      },
+      {
+        "name": "Pasta, Arroz y Legumbres",
+        "total": 2.69
+      },
+      {
+        "name": "Repostería",
+        "total": 2.1
+      }
+    ],
+    "2026-03": [
+      {
+        "name": "Bebidas",
+        "total": 12.69
+      },
+      {
+        "name": "Carne y Pescado",
+        "total": 46.65
+      },
+      {
+        "name": "Congelados y Preparados",
+        "total": 11.05
+      },
+      {
+        "name": "Conservas y Salsas",
+        "total": 1.59
+      },
+      {
+        "name": "Frutas y Verduras",
+        "total": 5.78
+      },
+      {
+        "name": "Higiene y Limpieza",
+        "total": 15.23
+      },
+      {
+        "name": "Lácteos y Huevos",
+        "total": 4.49
+      },
+      {
+        "name": "Pan y Bollería",
+        "total": 11.42
+      },
+      {
+        "name": "Snacks y Dulces",
+        "total": 2.45
+      }
+    ]
+  },
   "recent_tickets": [
     {
       "date": "2026-03-30",
@@ -205,7 +1025,7 @@
     {
       "date": "2026-03-26",
       "store": "55 - V.Arquitecto Alfaro",
-      "total": 10,
+      "total": 10.0,
       "items_count": 4,
       "payment": "Tarjeta"
     },

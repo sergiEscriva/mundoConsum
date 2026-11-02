@@ -2,7 +2,7 @@ name: Consum Daily Tracker
 
 on:
   schedule:
-    # Cada día a las 08:00 hora de España (UTC+2 en verano -> 06:00 UTC)
+    # 06:00 UTC: 08:00 en verano y 07:00 en invierno (Europe/Madrid).
     - cron: "0 6 * * *"
   workflow_dispatch:
 
@@ -31,6 +31,16 @@ jobs:
         run: |
           pip install -r requirements.txt
           playwright install chromium --with-deps
+
+      - name: Configurar notificaciones opcionales
+        id: notifications
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            echo "telegram=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Descargar tickets nuevos
         id: scrape
@@ -64,17 +74,18 @@ jobs:
           fi
 
       - name: Notificar si las cookies expiraron
-        if: steps.scrape.outputs.exit_code == '1'
+        if: ${{ failure() && steps.scrape.outputs.exit_code == '1' }}
         run: |
           echo "::error::Las cookies de Consum han expirado."
           echo "::error::Ejecuta localmente: python scripts/get_cookie.py"
           echo "::error::Luego actualiza el Secret CONSUM_COOKIES en GitHub."
 
       - name: Crear issue automático por cookies expiradas
-        if: steps.scrape.outputs.exit_code == '1'
+        if: ${{ failure() && steps.scrape.outputs.exit_code == '1' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh label create cookies-expired --color D93F0B --description "Renovar sesión de Consum" --force
           existing=$(gh issue list --label "cookies-expired" --state open --json number --jq 'length')
           if [ "$existing" -eq 0 ]; then
             gh issue create \
@@ -90,12 +101,16 @@ jobs:
           fi
 
       - name: Notificar por Telegram (opcional)
-        if: steps.scrape.outputs.exit_code == '1' && env.TELEGRAM_BOT_TOKEN != ''
+        if: ${{ failure() && steps.scrape.outputs.exit_code == '1' && steps.notifications.outputs.telegram == 'true' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          curl --fail --silent --show-error -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -d chat_id="${TELEGRAM_CHAT_ID}" \
             -d parse_mode="Markdown" \
             -d text="*Consum Tracker*: Las cookies han expirado. Ejecuta \`python scripts/get_cookie.py\` y actualiza el Secret."
+
+      - name: Informar de fallo de descarga o extracción
+        if: ${{ failure() && steps.scrape.outputs.exit_code == '3' }}
+        run: echo "::error::Fallo de red, API o extracción incompleta. Revisa los logs; no implica cookies caducadas."

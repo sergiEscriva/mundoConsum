@@ -3,10 +3,10 @@ name: Tests
 on:
   push:
     branches: [main]
-    paths: ["scripts/**", "tests/**", "data/categories.json"]
+    paths: ["scripts/**", "tests/**", "dashboard/**", "run.py", "iniciar.*", "requirements.txt", "data/categories.json", ".github/workflows/**"]
   pull_request:
     branches: [main]
-    paths: ["scripts/**", "tests/**", "data/categories.json"]
+    paths: ["scripts/**", "tests/**", "dashboard/**", "run.py", "iniciar.*", "requirements.txt", "data/categories.json", ".github/workflows/**"]
 
 jobs:
   test:
@@ -26,5 +26,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Install browser for dashboard tests
+        run: python -m playwright install --with-deps chromium
+
       - name: Run tests
+        env:
+          REQUIRE_BROWSER_TESTS: "1"
         run: pytest tests/ -v

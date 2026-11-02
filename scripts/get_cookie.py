@@ -67,7 +67,7 @@ async def main():
             if resp != "s":
                 log.info("Cancelado. Vuelve a ejecutar el script cuando estés listo.")
                 await browser.close()
-                return
+                return 1
 
         log.info("Verificando sesión navegando a mi-ahorro...")
         await page.goto(VERIFY_URL, wait_until="domcontentloaded", timeout=15000)
@@ -75,30 +75,27 @@ async def main():
         if "acceso" in page.url or "login" in page.url.lower():
             log.error("La sesión no parece válida — redirigido al login.")
             await browser.close()
-            return
+            return 1
 
         cookies = await context.cookies()
 
         if not cookies:
             log.error("No se encontraron cookies. Asegúrate de haber iniciado sesión.")
             await browser.close()
-            return
+            return 1
 
-        OUTPUT_FILE.write_text(json.dumps(cookies, indent=2, ensure_ascii=False))
+        OUTPUT_FILE.write_text(json.dumps(cookies, indent=2, ensure_ascii=False), encoding="utf-8")
 
         log.info("%d cookies guardadas en '%s'", len(cookies), OUTPUT_FILE)
         log.info("=" * 55)
-        log.info("SIGUIENTE PASO — GUARDAR EN GITHUB SECRETS")
-        log.info("=" * 55)
-        log.info("1. Ve a tu repositorio en GitHub")
-        log.info("2. Settings → Secrets and variables → Actions")
-        log.info("3. New repository secret → Name: CONSUM_COOKIES")
-        log.info("4. Value: copia y pega TODO el contenido de cookies.json")
-        log.info("IMPORTANTE: cookies.json está en .gitignore, NUNCA lo subas a GitHub")
-        log.info("Las cookies duran ~15-30 días. Repite el proceso cuando caduquen.")
+        log.info("Sesión lista. Ejecuta: python run.py update")
+        log.info("Para la automatización de GitHub, guarda cookies.json en el secreto CONSUM_COOKIES.")
+        log.info("cookies.json es privado y nunca debe subirse al repositorio.")
+        log.info("Repite python run.py login cuando la sesión caduque.")
 
         await browser.close()
+        return 0
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    sys.exit(asyncio.run(main()))
