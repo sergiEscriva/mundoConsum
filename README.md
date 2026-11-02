@@ -153,6 +153,12 @@ cuando `update` renueva una sesión rechazada, usa las cookies locales nuevas
 para ese reintento. En ejecuciones sin terminal interactiva, prepara antes las
 cookies con `python run.py login`.
 
+Durante el login puedes usar las pestañas de la ventana de Chromium abierta por
+el programa. Las redirecciones y el 2FA siguen funcionando mientras la terminal
+espera Enter. La comprobación de acceso a los tickets se hace en otra pestaña;
+si todavía no se confirma, la ventana permanece abierta para terminar el proceso
+y volver a pulsar Enter. Escribe `salir` para cancelar sin cambiar tus cookies.
+
 El servidor solo escucha en tu equipo y sirve el dashboard y sus JSON; no expone
 `cookies.json`, los tickets individuales ni el repositorio. Chart.js se carga
 desde un CDN: si no hay conexión, los gráficos muestran un aviso y el resto de

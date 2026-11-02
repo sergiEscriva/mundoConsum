@@ -24,7 +24,7 @@ logging.basicConfig(
 log = logging.getLogger("get_cookie")
 
 try:
-    from playwright.async_api import async_playwright
+    from playwright.async_api import async_playwright, Error as PlaywrightError
 except ImportError:
     log.error("Playwright no está instalado. Ejecuta: pip install playwright && playwright install chromium")
     sys.exit(1)
@@ -34,68 +34,119 @@ VERIFY_URL = "https://www.consum.es/mundoconsum/mi-ahorro/"
 OUTPUT_FILE = Path("cookies.json")
 
 
-async def main():
-    log.info("=" * 55)
-    log.info("CAPTURADOR DE COOKIES — CONSUM TRACKER")
-    log.info("=" * 55)
+async def prompt(message):
+    # input() en el hilo principal bloquea los eventos de Playwright durante el 2FA.
+    return await asyncio.to_thread(input, message)
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
-        context = await browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            )
-        )
-        page = await context.new_page()
 
-        log.info("Paso 1: Abriendo la página de login de Consum...")
-        await page.goto(LOGIN_URL, wait_until="networkidle")
+async def has_ticket_access(page):
+    """Confirmar acceso al iframe que necesita el scraper, no por el nombre de la URL."""
+    if page.is_closed():
+        return False
+    try:
+        return await page.evaluate("""() => [...document.querySelectorAll('iframe[src]')].some(frame => {
+            try {
+                const url = new URL(frame.getAttribute('src'), location.href);
+                return url.protocol === 'https:' && url.hostname === 'nomastickets.consum.es'
+                    && url.pathname === '/app/index.html' && !!url.searchParams.get('pass');
+            } catch { return false; }
+        })""")
+    except PlaywrightError:
+        # El contexto JS cambia durante las redirecciones de login/SSO.
+        return False
 
-        log.info("Paso 2: Inicia sesión manualmente en el navegador:")
-        log.info("  → Introduce tu email y contraseña")
-        log.info("  → Completa el 2FA (SMS o email)")
-        log.info("  → Espera a que cargue el panel de usuario")
 
-        input("\nPulsa ENTER cuando hayas iniciado sesión completamente: ")
+async def verify_session(context, timeout=60):
+    """Verificar en otra pestaña; conservar intacta la pestaña donde se hizo el login."""
+    verification = await context.new_page()
+    deadline = asyncio.get_running_loop().time() + timeout
+    try:
+        try:
+            await verification.goto(VERIFY_URL, wait_until="commit", timeout=max(1, min(30000, int(timeout * 1000))))
+        except PlaywrightError:
+            # Una navegación interrumpida puede ser una redirección SSO legítima.
+            # Solo se acepta la sesión si después aparece el iframe autenticado.
+            pass
+        while True:
+            # El usuario puede haber terminado el login en un popup u otra pestaña.
+            for page in list(context.pages):
+                remaining = deadline - asyncio.get_running_loop().time()
+                if remaining <= 0:
+                    return False
+                try:
+                    if await asyncio.wait_for(has_ticket_access(page), timeout=min(3, remaining)):
+                        return True
+                except asyncio.TimeoutError:
+                    continue
+            if asyncio.get_running_loop().time() >= deadline:
+                return False
+            await asyncio.sleep(min(0.25, max(0, deadline - asyncio.get_running_loop().time())))
+    finally:
+        if not verification.is_closed():
+            await verification.close()
 
-        current_url = page.url
-        if "acceso" in current_url or "login" in current_url.lower():
-            log.warning("Parece que aún estás en la página de login.")
-            resp = input("¿Seguro que completaste el proceso? (s/n): ").strip().lower()
-            if resp != "s":
-                log.info("Cancelado. Vuelve a ejecutar el script cuando estés listo.")
-                await browser.close()
-                return 1
 
-        log.info("Verificando sesión navegando a mi-ahorro...")
-        await page.goto(VERIFY_URL, wait_until="domcontentloaded", timeout=15000)
-        await page.wait_for_timeout(2000)
-        if "acceso" in page.url or "login" in page.url.lower():
-            log.error("La sesión no parece válida — redirigido al login.")
-            await browser.close()
+async def capture_session(context, output_file=None):
+    output_file = OUTPUT_FILE if output_file is None else output_file
+    page = await context.new_page()
+    log.info("Paso 1: Abriendo la página de login de Consum...")
+    try:
+        await page.goto(LOGIN_URL, wait_until="commit", timeout=30000)
+    except PlaywrightError:
+        log.warning("La página sigue redirigiendo o no terminó de cargar. Completa el acceso en el navegador.")
+
+    log.info("Paso 2: Inicia sesión en la ventana abierta y completa el 2FA.")
+    log.info("Espera a ver tu panel; puedes usar otra pestaña de esta misma ventana.")
+    while True:
+        answer = await prompt("\nPulsa ENTER cuando estés dentro de Consum (o escribe salir para cancelar): ")
+        if answer.strip().lower() in {"salir", "cancelar", "exit"}:
+            log.info("Inicio de sesión cancelado. No se han cambiado las cookies guardadas.")
             return 1
-
+        log.info("Verificando el acceso a tus tickets; puede tardar hasta un minuto...")
+        if not await verify_session(context):
+            log.warning("Aún no se pudo confirmar el acceso a tus tickets.")
+            log.info("La ventana sigue abierta: termina el login/2FA o abre Mi ahorro y pulsa ENTER de nuevo.")
+            continue
         cookies = await context.cookies()
-
         if not cookies:
-            log.error("No se encontraron cookies. Asegúrate de haber iniciado sesión.")
-            await browser.close()
-            return 1
-
-        OUTPUT_FILE.write_text(json.dumps(cookies, indent=2, ensure_ascii=False), encoding="utf-8")
-
-        log.info("%d cookies guardadas en '%s'", len(cookies), OUTPUT_FILE)
-        log.info("=" * 55)
+            log.warning("No hay cookies de sesión. Vuelve a completar el acceso en la ventana abierta.")
+            continue
+        temporary = output_file.with_name(".env.cookies.tmp")
+        try:
+            temporary.write_text(json.dumps(cookies, indent=2, ensure_ascii=False), encoding="utf-8")
+            temporary.replace(output_file)
+        finally:
+            temporary.unlink(missing_ok=True)
+        log.info("%d cookies guardadas en '%s'", len(cookies), output_file.name)
         log.info("Sesión lista. Ejecuta: python run.py update")
-        log.info("Para la automatización de GitHub, guarda cookies.json en el secreto CONSUM_COOKIES.")
         log.info("cookies.json es privado y nunca debe subirse al repositorio.")
-        log.info("Repite python run.py login cuando la sesión caduque.")
-
-        await browser.close()
         return 0
 
 
+async def main():
+    log.info("CAPTURADOR DE COOKIES — CONSUM TRACKER")
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=False)
+        try:
+            context = await browser.new_context(
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                )
+            )
+            return await capture_session(context)
+        finally:
+            await browser.close()
+
+
 if __name__ == "__main__":
-    sys.exit(asyncio.run(main()))
+    try:
+        sys.exit(asyncio.run(main()))
+    except (KeyboardInterrupt, EOFError):
+        log.info("Captura cancelada. Las cookies anteriores se conservan.")
+        sys.exit(1)
+    except (PlaywrightError, OSError):
+        # Las excepciones de navegación pueden incluir tokens SSO en la URL.
+        log.error("No se pudo completar la captura. Comprueba que Chromium siga abierto y vuelve a intentarlo.")
+        sys.exit(1)

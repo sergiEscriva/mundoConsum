@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Manual login keeps Playwright events running while waiting for terminal input.
+  SSO redirects and logins in another tab are verified without navigating away
+  from the user's page; unsuccessful checks can retry without losing cookies.
 - Monthly budgets and current-month indicators now use the Europe/Madrid calendar
   and monthly category totals instead of lifetime spending.
 - Product search includes the full catalog and applies the category filter.
