@@ -15,6 +15,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -56,6 +57,11 @@ def parse_args(argv=None):
         help="Lanzar 'gh workflow run daily.yml' tras guardar las cookies",
     )
     parser.add_argument(
+        "--sync-only",
+        action="store_true",
+        help="Usar el cookies.json ya guardado localmente sin abrir el navegador",
+    )
+    parser.add_argument(
         "--repo",
         type=str,
         default=None,
@@ -66,12 +72,65 @@ def parse_args(argv=None):
 
 def _require_gh() -> str:
     gh = shutil.which("gh")
-    if not gh:
-        raise CookieSyncError(
-            "No se encontró GitHub CLI ('gh'). Instálalo desde https://cli.github.com/ "
-            "y autentícate con 'gh auth login'."
+    if gh:
+        return gh
+    if os.name == "nt":
+        candidates = [
+            Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "GitHub CLI/gh.exe",
+            Path(os.environ.get("LOCALAPPDATA", "")) / "Programs/GitHub CLI/gh.exe",
+        ]
+        for candidate in candidates:
+            if str(candidate) and candidate.is_file():
+                return str(candidate)
+    raise CookieSyncError(
+        "No se encontró GitHub CLI ('gh'). Instálalo desde https://cli.github.com/ "
+        "y autentícate con 'gh auth login'."
+    )
+
+
+def infer_github_repo(root: Path = ROOT) -> str | None:
+    """Detecta OWNER/REPO a partir del remote 'origin' si está disponible."""
+    try:
+        proc = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=root,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=False,
         )
-    return gh
+    except OSError:
+        return None
+    if proc.returncode != 0:
+        return None
+    url = (proc.stdout or "").strip()
+    match = re.search(r"github\.com[:/]([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$", url)
+    return match.group(1) if match else None
+
+
+def _sanitize_gh_stderr(stderr: str | None) -> str:
+    if not stderr:
+        return ""
+    cleaned = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", stderr)
+    cleaned = re.sub(r"\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)\b", "[REDACTED]", cleaned)
+    cleaned = " ".join(cleaned.split())
+    return cleaned[:240]
+
+
+def _format_gh_failure(action_msg: str, stderr: str | None) -> str:
+    detail = _sanitize_gh_stderr(stderr)
+    lower = detail.lower()
+    if any(tok in lower for tok in ("not logged in", "auth login", "401", "authentication", "bad credentials")):
+        hint = "GitHub CLI ('gh') no tiene sesión válida. Ejecuta: gh auth login -h github.com -p https -w"
+    elif any(tok in lower for tok in ("403", "404", "resource not accessible", "must have admin", "scope", "insufficient")):
+        hint = (
+            "Tu token de 'gh' no tiene permisos sobre Secrets/Actions en este repositorio. "
+            "Ejecuta: gh auth refresh -h github.com -s repo,workflow (o usa login web con 'gh auth login -w')."
+        )
+    else:
+        hint = "Verifica 'gh auth status' y el acceso al repositorio (--repo OWNER/REPO)."
+    return f"{action_msg} {hint}" + (f" [Detalle de gh: {detail}]" if detail else "")
 
 
 def push_cookies_secret(cookies_file: Path, *, repo: str | None = None) -> None:
@@ -79,43 +138,49 @@ def push_cookies_secret(cookies_file: Path, *, repo: str | None = None) -> None:
     gh = _require_gh()
     if not cookies_file.is_file():
         raise CookieSyncError(f"No existe el archivo de cookies '{cookies_file}'.")
-    payload = cookies_file.read_text(encoding="utf-8")
+    payload = cookies_file.read_text(encoding="utf-8-sig")
+    effective_repo = repo or infer_github_repo(ROOT)
     cmd = [gh, "secret", "set", "CONSUM_COOKIES"]
-    if repo:
-        cmd.extend(["--repo", repo])
-    result = subprocess.run(cmd, input=payload, text=True, capture_output=True, check=False)
+    if effective_repo:
+        cmd.extend(["--repo", effective_repo])
+    result = subprocess.run(
+        cmd,
+        input=payload,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+    )
     if result.returncode != 0:
-        stderr_lower = (result.stderr or "").lower()
-        if any(tok in stderr_lower for tok in ("auth", "login", "401", "token", "logged in")):
-            raise CookieSyncError(
-                "GitHub CLI ('gh') no está autenticado o no tiene permisos. "
-                "Ejecuta 'gh auth login' y vuelve a intentarlo."
-            )
         raise CookieSyncError(
-            "No se pudo actualizar el secreto CONSUM_COOKIES en GitHub. "
-            "Verifica el repositorio (--repo OWNER/REPO) y 'gh auth status'."
+            _format_gh_failure("No se pudo actualizar el secreto CONSUM_COOKIES en GitHub.", result.stderr)
         )
-    log.info("Secreto CONSUM_COOKIES actualizado en GitHub Actions.")
+    log.info("Secreto CONSUM_COOKIES actualizado en GitHub Actions%s.", f" ({effective_repo})" if effective_repo else "")
 
 
 def trigger_daily_workflow(*, repo: str | None = None, workflow: str = "daily.yml") -> None:
     """Dispara el workflow diario en GitHub Actions mediante gh workflow run."""
     gh = _require_gh()
+    effective_repo = repo or infer_github_repo(ROOT)
     cmd = [gh, "workflow", "run", workflow]
-    if repo:
-        cmd.extend(["--repo", repo])
-    result = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if effective_repo:
+        cmd.extend(["--repo", effective_repo])
+    result = subprocess.run(
+        cmd,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+    )
     if result.returncode != 0:
-        stderr_lower = (result.stderr or "").lower()
-        if any(tok in stderr_lower for tok in ("auth", "login", "401", "token", "logged in")):
-            raise CookieSyncError(
-                "GitHub CLI ('gh') no está autenticado. Ejecuta 'gh auth login' antes de lanzar el workflow."
-            )
         raise CookieSyncError(
-            f"No se pudo lanzar el workflow '{workflow}' en GitHub Actions. "
-            "Verifica el repositorio (--repo OWNER/REPO) y 'gh auth status'."
+            _format_gh_failure(f"No se pudo lanzar el workflow '{workflow}' en GitHub Actions.", result.stderr)
         )
-    log.info("Workflow '%s' iniciado en GitHub Actions.", workflow)
+    log.info("Workflow '%s' iniciado en GitHub Actions%s.", workflow, f" ({effective_repo})" if effective_repo else "")
 
 
 async def prompt(message):
@@ -210,6 +275,19 @@ async def capture_session(context, output_file=None):
 
 async def main(argv=None):
     args = parse_args(argv)
+    if args.sync_only:
+        if not OUTPUT_FILE.is_file():
+            log.error("No existe '%s'. Ejecuta primero 'python run.py login' para capturar la sesión.", OUTPUT_FILE.name)
+            return 1
+        try:
+            push_cookies_secret(OUTPUT_FILE, repo=args.repo)
+            if args.trigger_workflow:
+                trigger_daily_workflow(repo=args.repo)
+        except CookieSyncError as exc:
+            log.error("%s", exc)
+            return 2
+        return 0
+
     log.info("CAPTURADOR DE COOKIES — CONSUM TRACKER")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
@@ -234,7 +312,13 @@ async def main(argv=None):
             trigger_daily_workflow(repo=args.repo)
     except CookieSyncError as exc:
         log.error("%s", exc)
-        return 1
+        log.info(
+            "Tus cookies YA están guardadas en '%s'. Cuando corrijas el acceso de 'gh', "
+            "sube las cookies sin repetir el login con: python run.py sync%s",
+            OUTPUT_FILE.name,
+            " --trigger-workflow" if args.trigger_workflow else "",
+        )
+        return 2
     return 0
 
 

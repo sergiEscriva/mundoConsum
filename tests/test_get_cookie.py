@@ -195,10 +195,12 @@ def test_push_cookies_secret_reports_clear_spanish_errors_when_gh_missing_or_una
     cookies_file.write_text('[{"name": "s", "value": "1"}]', encoding="utf-8")
 
     monkeypatch.setattr(get_cookie.shutil, "which", lambda name: None)
+    monkeypatch.setattr(get_cookie.os, "name", "posix")
     with pytest.raises(get_cookie.CookieSyncError, match="No se encontró GitHub CLI"):
         get_cookie.push_cookies_secret(cookies_file)
 
     monkeypatch.setattr(get_cookie.shutil, "which", lambda name: "/usr/bin/gh")
+    monkeypatch.setattr(get_cookie, "infer_github_repo", lambda root=None: "sergiEscriva/mundoConsum")
     monkeypatch.setattr(
         get_cookie.subprocess,
         "run",
@@ -206,3 +208,52 @@ def test_push_cookies_secret_reports_clear_spanish_errors_when_gh_missing_or_una
     )
     with pytest.raises(get_cookie.CookieSyncError, match="gh auth login"):
         get_cookie.push_cookies_secret(cookies_file)
+
+
+def test_push_cookies_secret_surfaces_403_scope_hint_and_redacts_tokens(monkeypatch, tmp_path):
+    import subprocess
+
+    cookies_file = tmp_path / "cookies.json"
+    cookies_file.write_text('[{"name": "s", "value": "1"}]', encoding="utf-8")
+    monkeypatch.setattr(get_cookie.shutil, "which", lambda name: "/usr/bin/gh")
+    monkeypatch.setattr(get_cookie, "infer_github_repo", lambda root=None: "sergiEscriva/mundoConsum")
+    run_mock = Mock(
+        return_value=subprocess.CompletedProcess(
+            ["gh"],
+            1,
+            "",
+            "HTTP 403: Resource not accessible by personal access token ghp_secret123456789",
+        )
+    )
+    monkeypatch.setattr(get_cookie.subprocess, "run", run_mock)
+    with pytest.raises(get_cookie.CookieSyncError) as exc_info:
+        get_cookie.push_cookies_secret(cookies_file)
+    msg = str(exc_info.value)
+    assert "gh auth refresh" in msg
+    assert "Detalle de gh:" in msg
+    assert "ghp_secret123456789" not in msg
+    assert "[REDACTED]" in msg
+    assert run_mock.call_args.kwargs["encoding"] == "utf-8"
+    assert "--repo" in run_mock.call_args.args[0]
+
+
+def test_sync_only_skips_browser_and_returns_2_on_gh_failure(monkeypatch, tmp_path):
+    cookies_file = tmp_path / "cookies.json"
+    cookies_file.write_text('[{"name": "s", "value": "1"}]', encoding="utf-8")
+    monkeypatch.setattr(get_cookie, "OUTPUT_FILE", cookies_file)
+    pw_mock = Mock()
+    monkeypatch.setattr(get_cookie, "async_playwright", pw_mock)
+
+    push_mock = Mock()
+    trig_mock = Mock()
+    monkeypatch.setattr(get_cookie, "push_cookies_secret", push_mock)
+    monkeypatch.setattr(get_cookie, "trigger_daily_workflow", trig_mock)
+
+    assert asyncio.run(get_cookie.main(["--sync-only", "--trigger-workflow"])) == 0
+    pw_mock.assert_not_called()
+    push_mock.assert_called_once_with(cookies_file, repo=None)
+    trig_mock.assert_called_once_with(repo=None)
+
+    push_mock.side_effect = get_cookie.CookieSyncError("fallo gh")
+    assert asyncio.run(get_cookie.main(["--sync-only"])) == 2
+
