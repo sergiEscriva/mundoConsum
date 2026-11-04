@@ -85,8 +85,27 @@ def login(python, *, push_secret=False, trigger_workflow=False, repo=None):
         args.append("--trigger-workflow")
     if repo:
         args.extend(["--repo", repo])
-    if execute(args):
+    rc = execute(args)
+    if rc == 2:
+        retry_cmd = "python run.py sync" + (" --trigger-workflow" if trigger_workflow else "")
+        raise LocalError(
+            "Las cookies YA se han guardado en 'cookies.json' (no necesitas repetir el login en el navegador), "
+            f"pero falló la sincronización con GitHub. Revisa el error de 'gh' anterior y ejecuta: {retry_cmd}"
+        )
+    if rc:
         raise LocalError("No se completó el inicio de sesión. Vuelve a ejecutar: python run.py login")
+
+
+def sync_github(python, *, trigger_workflow=False, repo=None):
+    args = [python, ROOT / "scripts/get_cookie.py", "--sync-only", "--push-secret"]
+    if trigger_workflow:
+        args.append("--trigger-workflow")
+    if repo:
+        args.extend(["--repo", repo])
+    if execute(args):
+        raise LocalError(
+            "No se pudo sincronizar 'cookies.json' con GitHub. Revisa el mensaje de 'gh' anterior."
+        )
 
 
 def has_chromium(python) -> bool:
@@ -192,14 +211,14 @@ def serve(port, open_browser=True):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Consum Tracker local: un comando para abrir el dashboard.")
     parser.add_argument("command", nargs="?", default="start",
-                        choices=["start", "update", "login", "setup", "build", "test", "categorize"],
-                        help="start: abrir; update: descargar; login: renovar sesión; setup: preparar; build: regenerar; test: probar; categorize: clasificar con Gemini")
+                        choices=["start", "update", "login", "sync", "setup", "build", "test", "categorize"],
+                        help="start: abrir; update: descargar; login: renovar sesión; sync: subir cookies.json existente a GitHub; setup: preparar; build: regenerar; test: probar; categorize: clasificar con Gemini")
     parser.add_argument("--port", type=int, default=8000, help="puerto preferido del dashboard (8000)")
     parser.add_argument("--no-browser", action="store_true", help="no abrir automáticamente el navegador")
     parser.add_argument("--with-deps", action="store_true", help="instalar también bibliotecas de Chromium (Linux)")
     parser.add_argument("--refresh-categories", action="store_true", help="volver a consultar a Gemini incluso para productos en caché")
     parser.add_argument("--push-secret", action="store_true", help="subir cookies.json a CONSUM_COOKIES en GitHub tras login")
-    parser.add_argument("--trigger-workflow", action="store_true", help="lanzar daily.yml en GitHub Actions tras login")
+    parser.add_argument("--trigger-workflow", action="store_true", help="lanzar daily.yml en GitHub Actions tras login/sync")
     parser.add_argument("--repo", default=None, help="repositorio OWNER/REPO opcional para GitHub CLI")
     parser.add_argument("--anonymize", action="store_true", help="omitir tiendas concretas e IDs de ticket al generar summary.json")
     args = parser.parse_args(argv)
@@ -207,8 +226,10 @@ def main(argv=None):
         parser.error("el puerto debe estar entre 0 y 65535")
     if args.refresh_categories and args.command not in {"categorize", "build"}:
         parser.error("--refresh-categories se usa con categorize o build")
-    if (args.push_secret or args.trigger_workflow or args.repo) and args.command != "login":
-        parser.error("--push-secret, --trigger-workflow y --repo solo se usan con login")
+    if args.push_secret and args.command not in {"login", "sync"}:
+        parser.error("--push-secret solo se usa con login o sync")
+    if (args.trigger_workflow or args.repo) and args.command not in {"login", "sync"}:
+        parser.error("--trigger-workflow y --repo solo se usan con login o sync")
     if args.anonymize and args.command != "build":
         parser.error("--anonymize solo se usa con build")
     if sys.version_info < (3, 10):
@@ -230,6 +251,9 @@ def main(argv=None):
             else:
                 login(python)
             print("Sesión guardada. Para descargar tus tickets: python run.py update", flush=True)
+        elif args.command == "sync":
+            sync_github(python, trigger_workflow=args.trigger_workflow, repo=args.repo)
+            print("Secreto CONSUM_COOKIES sincronizado con GitHub.", flush=True)
         elif args.command == "update":
             update(python)
         elif args.command == "build":

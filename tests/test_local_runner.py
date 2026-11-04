@@ -197,3 +197,27 @@ def test_test_command_enforces_require_browser_tests_when_chromium_available(com
     monkeypatch.setattr(runner, "execute", execute)
     assert runner.main(["test"]) == 0
     assert execute.call_args.kwargs["env"]["REQUIRE_BROWSER_TESTS"] == "1"
+
+
+def test_sync_command_skips_browser_and_uploads_existing_cookies(commands, monkeypatch):
+    execute = Mock(return_value=0)
+    monkeypatch.setattr(runner, "execute", execute)
+    assert runner.main(["sync", "--trigger-workflow", "--repo", "sergiEscriva/mundoConsum"]) == 0
+    runner.prepare_browser.assert_not_called()
+    assert execute.call_args.args[0] == [
+        commands,
+        ROOT / "scripts/get_cookie.py",
+        "--sync-only",
+        "--push-secret",
+        "--trigger-workflow",
+        "--repo",
+        "sergiEscriva/mundoConsum",
+    ]
+
+
+def test_login_exit_code_2_tells_user_cookies_are_already_saved(monkeypatch):
+    monkeypatch.setattr(runner, "execute", Mock(return_value=2))
+    with pytest.raises(runner.LocalError, match="YA se han guardado en 'cookies.json'") as exc_info:
+        runner.login("python", push_secret=True, trigger_workflow=True)
+    assert "python run.py sync --trigger-workflow" in str(exc_info.value)
+
