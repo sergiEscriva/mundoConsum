@@ -9,7 +9,7 @@ import logging
 import sys
 from pathlib import Path
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from ticket_data import normalize_ticket, reconcile_ticket
@@ -161,14 +161,14 @@ def build_summary(tickets: list[dict]) -> dict:
             "store":       t.get("store", "Consum"),
             "total":       t.get("total"),
             "items_count": len(t.get("items", [])),
-            "payment":     t.get("payment_method", ""),
+            "payment":     (t.get("payment_method") or "").strip(),
             "needs_review": reconcile_ticket(t)["status"] != "complete",
         }
         for t in reversed(tickets[-10:])
     ]
 
     return {
-        "generated_at":     datetime.now().isoformat(),
+        "generated_at":     datetime.now(timezone.utc).isoformat(),
         "total_tickets":    len(tickets),
         "total_spent":      total_spent,
         "avg_ticket":       avg_ticket,
@@ -191,13 +191,14 @@ def build_summary(tickets: list[dict]) -> dict:
 
 def generate_health_tips(category_totals: dict, total_spent: float) -> list[dict]:
     tips = []
-    if total_spent == 0:
+    denom = max(total_spent, sum(category_totals.values()))
+    if denom == 0:
         return [{"icon":"","type":"success","title":"Sin datos aún","text":"Ejecuta el scraper para ver recomendaciones."}]
 
-    fv_pct        = (category_totals.get("Frutas y Verduras", 0) / total_spent) * 100
-    snack_pct     = (category_totals.get("Snacks y Dulces", 0) / total_spent) * 100
-    processed_pct = (category_totals.get("Congelados y Preparados", 0) / total_spent) * 100
-    beverages_pct = (category_totals.get("Bebidas", 0) / total_spent) * 100
+    fv_pct        = (category_totals.get("Frutas y Verduras", 0) / denom) * 100
+    snack_pct     = (category_totals.get("Snacks y Dulces", 0) / denom) * 100
+    processed_pct = (category_totals.get("Congelados y Preparados", 0) / denom) * 100
+    beverages_pct = (category_totals.get("Bebidas", 0) / denom) * 100
 
     if fv_pct < 10:
         tips.append({"icon":"","type":"warning","title":"Poca fruta y verdura",

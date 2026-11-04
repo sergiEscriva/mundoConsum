@@ -6,10 +6,15 @@ on:
     - cron: "0 6 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: consum-daily
+  cancel-in-progress: false
+
 jobs:
   update-tracker:
     name: Descargar tickets y actualizar dashboard
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     permissions:
       contents: write
@@ -17,12 +22,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v7
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: "pip"
@@ -50,7 +53,7 @@ jobs:
           set +e
           python scripts/scraper.py
           code=$?
-          echo "exit_code=$code" >> $GITHUB_OUTPUT
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           if [ "$code" -eq 2 ]; then
             echo "No hay tickets nuevos (exit 2) — ok"
             exit 0
@@ -62,21 +65,27 @@ jobs:
           exit $code
 
       - name: Generar datos del dashboard
+        if: ${{ steps.scrape.outputs.exit_code != '2' }}
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
         run: python scripts/build_data.py
 
       - name: Guardar cambios en el repositorio
+        if: ${{ steps.scrape.outputs.exit_code != '2' }}
         run: |
           git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/
           if git diff --staged --quiet; then
             echo "Sin cambios que guardar hoy."
+          elif [ -z "$(git diff --staged -I'"generated_at":' -- data/)" ]; then
+            echo "Solo cambió generated_at; se omite el commit vacío."
+            git checkout -- data/summary.json
           else
             FECHA=$(date +'%d/%m/%Y')
             git commit -m "Tickets actualizados — $FECHA"
+            git pull --rebase origin main
             git push
           fi
 
@@ -113,10 +122,11 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          curl --fail --silent --show-error -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TELEGRAM_CHAT_ID}" \
-            -d parse_mode="Markdown" \
-            -d text="*Consum Tracker*: Las cookies han expirado. Ejecuta \`python scripts/get_cookie.py\` y actualiza el Secret."
+          printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$TELEGRAM_BOT_TOKEN" | \
+            curl --fail --silent --show-error --config - -X POST \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              -d parse_mode="Markdown" \
+              --data-urlencode "text=*Consum Tracker*: Las cookies han expirado. Ejecuta \`python scripts/get_cookie.py\` y actualiza el Secret."
 
       - name: Informar de fallo de descarga o extracción
         if: ${{ failure() && steps.scrape.outputs.exit_code == '3' }}

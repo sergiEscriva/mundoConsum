@@ -13,6 +13,7 @@ Instrucciones:
 import asyncio
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -114,6 +115,7 @@ async def capture_session(context, output_file=None):
         temporary = output_file.with_name(".env.cookies.tmp")
         try:
             temporary.write_text(json.dumps(cookies, indent=2, ensure_ascii=False), encoding="utf-8")
+            os.chmod(temporary, 0o600)
             temporary.replace(output_file)
         finally:
             temporary.unlink(missing_ok=True)

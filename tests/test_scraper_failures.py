@@ -200,3 +200,58 @@ def test_repeated_full_api_page_is_an_error():
 def test_spanish_thousands_in_negative_amount():
     pre = "<normal-pequenya>1</normal-pequenya>PRODUCTO TEST <normal-pequenya>1.234,56</normal-pequenya> -1.234,56"
     assert scraper.parse_items_from_pre(pre)[0]["total"] == -1234.56
+
+
+def _iframe_context(url, html_sequence, status=200):
+    page = MagicMock()
+    page.url = url
+    page.is_closed = MagicMock(return_value=False)
+    response = MagicMock()
+    response.status = status
+    page.goto = AsyncMock(return_value=response)
+    page.content = AsyncMock(side_effect=html_sequence)
+    page.close = AsyncMock()
+    context = MagicMock()
+    context.new_page = AsyncMock(return_value=page)
+    return context, page
+
+
+@pytest.mark.parametrize("url,html,status", [
+    ("https://iam.consum.es/oauth2/authorize?sessionDataKey=abc", ["<html>SSO</html>"], 200),
+    ("https://www.consum.es/mundoconsum/acceso/", ["<html>Acceso</html>"], 200),
+    ("https://www.consum.es/", ["<html>Portada</html>"], 200),
+    ("https://www.consum.es/mundoconsum/mi-ahorro/", ['<a href="/mundoconsum/acceso">Iniciar sesión</a>'], 200),
+    ("https://www.consum.es/mundoconsum/mi-ahorro/", ["<html>Forbidden</html>"], 401),
+])
+def test_get_iframe_info_classifies_expired_sessions_as_session_error(url, html, status):
+    context, page = _iframe_context(url, html, status=status)
+    with pytest.raises(scraper.SessionError):
+        asyncio.run(scraper.get_iframe_info(context, timeout=0.0))
+    page.close.assert_awaited_once()
+
+
+@pytest.mark.parametrize("status,html", [
+    (500, ["<html>Server error</html>"]),
+    (200, ["<html><body> mantenimiento técnico </body></html>"]),
+])
+def test_get_iframe_info_keeps_server_or_dom_errors_as_scrape_error(status, html):
+    context, page = _iframe_context("https://www.consum.es/mundoconsum/mi-ahorro/", html, status=status)
+    with pytest.raises(scraper.ScrapeError):
+        asyncio.run(scraper.get_iframe_info(context, timeout=0.0))
+    page.close.assert_awaited_once()
+
+
+def test_get_iframe_info_polls_for_delayed_iframe_and_allows_login_in_query():
+    iframe_html = (
+        '<html><body><iframe src="https://nomastickets.consum.es/app/index.html'
+        '?pass=login-token&amp;v=20260401&amp;dni=123"></iframe></body></html>'
+    )
+    context, page = _iframe_context(
+        "https://www.consum.es/mundoconsum/mi-ahorro/?utm_source=login_banner",
+        ["<html><body>Cargando...</body></html>", iframe_html],
+    )
+    iframe_url, token, version = asyncio.run(scraper.get_iframe_info(context, timeout=1.0))
+    assert token == "login-token"
+    assert version == "20260401"
+    assert "dni=123" in iframe_url
+    page.close.assert_awaited_once()

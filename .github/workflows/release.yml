@@ -15,35 +15,54 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v7
 
       - name: Extract changelog for this version
         id: changelog
         run: |
           TAG="${GITHUB_REF_NAME}"
           VERSION="${TAG#v}"
-          # Extract the section for this version from CHANGELOG.md
-          NOTES=$(awk "/^## \[${VERSION}\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo "$NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          NOTES=$(VERSION="$VERSION" awk '
+            index($0, "## [" ENVIRON["VERSION"] "]") == 1 { found=1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md)
+          DELIM="EOF_$(openssl rand -hex 16)"
+          {
+            echo "notes<<${DELIM}"
+            echo "$NOTES"
+            echo "${DELIM}"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Create release
-        uses: actions/github-script@v7
+      - name: Create or update release
+        uses: actions/github-script@v9
         env:
           RELEASE_NOTES: ${{ steps.changelog.outputs.notes }}
         with:
           script: |
             const tag = context.ref.replace('refs/tags/', '');
-            const notes = process.env.RELEASE_NOTES || '';
-            await github.rest.repos.createRelease({
+            const body = (process.env.RELEASE_NOTES || '').trim();
+            const payload = {
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: tag,
               name: tag,
-              body: notes.trim(),
+              body,
               draft: false,
               prerelease: tag.includes('-'),
-            });
+              generate_release_notes: body.length === 0,
+            };
+            try {
+              const existing = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag,
+              });
+              await github.rest.repos.updateRelease({
+                ...payload,
+                release_id: existing.data.id,
+              });
+            } catch (err) {
+              if (err.status !== 404) throw err;
+              await github.rest.repos.createRelease(payload);
+            }

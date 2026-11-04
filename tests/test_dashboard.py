@@ -166,3 +166,20 @@ def test_gemini_coverage_and_pending_products_are_visible(dashboard):
     }})''')
     assert dashboard.locator("#classification-status .success").count() == 1
     assert "25 de 25" in message.inner_text()
+
+
+def test_xss_escaping_and_csv_formula_neutralization(dashboard):
+    load(dashboard)
+    csv_text = dashboard.evaluate('''async () => {
+        let captured = "";
+        const origBlob = window.Blob;
+        window.Blob = function(parts, opts) { captured = parts.join(""); return new origBlob(parts, opts); };
+        renderTips([{type: 'warning" onclick="window.__xss=1', icon: "!", title: "<b>T</b>", text: "ok"}], "health-tips");
+        DATA.monthly_data.push({month: "2026-11", label: "<img src=x onerror=window.__xss=2>", total: 99, visits: 1});
+        DATA.top_products.unshift({name: "=CMD|' /C calc'!A0\\nEXTRA", times: 1, total_spent: 5});
+        exportCSV();
+        return captured;
+    }''')
+    assert dashboard.evaluate("window.__xss || 0") == 0
+    assert dashboard.locator("#health-tips .tip").first.get_attribute("class") == "tip info"
+    assert "'=CMD|' /C calc'!A0\nEXTRA" in csv_text

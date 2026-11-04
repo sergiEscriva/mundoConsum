@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consum Tracker — Mi Cesta</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -291,8 +291,8 @@ async function loadBudgets() {
 const eur = v => v != null ? v.toFixed(2) + " \u20AC" : "\u2014";
 const fmt_date = iso => {
   if (!iso) return "\u2014";
-  const [y,m,d] = iso.split("-");
-  return `${d}/${m}/${y}`;
+  const [y,m,d] = String(iso).split("-");
+  return escapeHTML(`${d}/${m}/${y}`);
 };
 
 function renderKPIs(data) {
@@ -410,9 +410,10 @@ function renderTopProducts(data) {
 }
 
 function renderTips(tips, containerId) {
+  const validTypes = new Set(["success", "warning", "info"]);
   document.getElementById(containerId).innerHTML =
     tips.map(t => `
-      <div class="tip ${t.type}">
+      <div class="tip ${validTypes.has(t.type) ? t.type : "info"}">
         <div class="icon">${escapeHTML(t.icon)}</div>
         <div>
           <div class="tip-title">${escapeHTML(t.title)}</div>
@@ -559,12 +560,12 @@ function renderSpendingAlert(data, budgets) {
   if (lastMonth.total > limit) {
     el.style.display = "";
     el.innerHTML = `<div class="alert-banner danger">
-      Has superado tu presupuesto mensual: ${eur(lastMonth.total)} de ${eur(limit)} (${lastMonth.label})
+      Has superado tu presupuesto mensual: ${eur(lastMonth.total)} de ${eur(limit)} (${escapeHTML(lastMonth.label)})
     </div>`;
   } else if (lastMonth.total > limit * 0.85) {
     el.style.display = "";
     el.innerHTML = `<div class="alert-banner warn">
-      Estás cerca de tu presupuesto mensual: ${eur(lastMonth.total)} de ${eur(limit)} (${lastMonth.label})
+      Estás cerca de tu presupuesto mensual: ${eur(lastMonth.total)} de ${eur(limit)} (${escapeHTML(lastMonth.label)})
     </div>`;
   }
 }
@@ -595,8 +596,11 @@ function exportCSV() {
   });
 
   const csvContent = rows.map(r => r.map(cell => {
-    const s = String(cell ?? "");
-    return s.includes(",") || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+    let s = String(cell ?? "");
+    if (typeof cell === "string" && /^[=+\-@\t\r]/.test(s)) {
+      s = "'" + s;
+    }
+    return /[,"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   }).join(",")).join("\n");
 
   const BOM = "\uFEFF";
