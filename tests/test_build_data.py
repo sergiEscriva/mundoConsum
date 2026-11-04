@@ -262,3 +262,175 @@ class TestValidateTicket:
         t = _make_ticket(items=[{"name": "TEST"}])
         issues = validate_ticket(t, "test.json")
         assert any("Item 0" in i for i in issues)
+
+
+class TestSmartBasketAnalytics:
+    def test_savings_summary_combines_verified_and_estimated_discounts(self):
+        tickets = [
+            {
+                **_make_ticket(date="2026-01-10", total=6.85, items=[_make_item(total=10.00)]),
+                "id": "t1",
+                "discounts": [{"name": "CHEQUE AHORRO SOCIO", "amount": -3.15}],
+            },
+            {
+                **_make_ticket(date="2026-01-15", total=7.20, items=[_make_item(total=10.00)]),
+                "id": "t2",
+            },
+            {
+                **_make_ticket(date="2026-01-20", total=5.00, items=[_make_item(total=5.00)]),
+                "id": "t3",
+            },
+        ]
+        summary = build_summary(tickets)
+        sav = summary["savings_summary"]
+        assert sav["verified_discounts_total"] == 3.15
+        assert sav["estimated_unparsed_discounts"] == 2.80
+        assert sav["total_estimated_saved"] == 5.95
+        assert sav["tickets_with_savings"] == 2
+        assert summary["data_quality"]["review_tickets"] == 1
+
+    def test_missing_months_filled_with_spanish_labels_and_intraday_chronological_sort(self):
+        tickets = [
+            {
+                **_make_ticket(date="2026-01-10", total=10.0),
+                "id": "99",
+                "datetime_iso": "2026-01-10T18:30:00+01:00",
+                "store": "Tienda Tarde",
+            },
+            {
+                **_make_ticket(date="2026-01-10", total=5.0),
+                "id": "100",
+                "datetime_iso": "2026-01-10T09:15:00+01:00",
+                "store": "Tienda Mañana",
+            },
+            {
+                **_make_ticket(date="2026-03-05", total=15.0),
+                "id": "101",
+                "datetime_iso": "2026-03-05T12:00:00+01:00",
+                "store": "Tienda Marzo",
+            },
+        ]
+        summary = build_summary(tickets)
+        assert [m["month"] for m in summary["monthly_data"]] == ["2026-01", "2026-02", "2026-03"]
+        assert [m["label"] for m in summary["monthly_data"]] == ["ene 2026", "feb 2026", "mar 2026"]
+        assert summary["monthly_data"][1] == {
+            "month": "2026-02",
+            "label": "feb 2026",
+            "total": 0.0,
+            "visits": 0,
+            "change_pct": -100.0,
+            "moving_avg": 7.5,
+        }
+        # El ticket de la tarde (18:30) debe quedar antes que el de la mañana (09:15) en recent_tickets
+        assert [t["store"] for t in summary["recent_tickets"]] == [
+            "Tienda Marzo",
+            "Tienda Tarde",
+            "Tienda Mañana",
+        ]
+
+    def test_personal_inflation_and_shrinkflation_detection(self):
+        tickets = [
+            {
+                **_make_ticket(
+                    date="2026-01-05",
+                    total=10.0,
+                    items=[
+                        {"name": "ACEITE OLIVA CONSUM 1L", "quantity": 1, "unit_price": 4.00, "total": 4.00, "category": "Conservas y Salsas"},
+                        {"name": "LECHE ENTERA 1L", "quantity": 2, "unit_price": 1.00, "total": 2.00, "category": "Lácteos y Huevos"},
+                        {"name": "ARROZ REDONDO CONSUM 500G", "quantity": 2, "unit_price": 1.50, "total": 3.00, "category": "Pasta, Arroz y Legumbres"},
+                        {"name": "PAN MOLDE 1U", "quantity": 1, "unit_price": 1.00, "total": 1.00, "category": "Pan y Bollería"},
+                    ],
+                ),
+                "id": "1",
+            },
+            {
+                **_make_ticket(
+                    date="2026-03-10",
+                    total=9.20,
+                    items=[
+                        {"name": "ACEITE OLIVA CONSUM 1L", "quantity": 1, "unit_price": 5.00, "total": 5.00, "category": "Conservas y Salsas"},
+                        {"name": "LECHE ENTERA 1L", "quantity": 2, "unit_price": 0.85, "total": 1.70, "category": "Lácteos y Huevos"},
+                        {"name": "ARROZ REDONDO CONSUM 450G", "quantity": 1, "unit_price": 1.50, "total": 1.50, "category": "Pasta, Arroz y Legumbres"},
+                        {"name": "PAN MOLDE 1U", "quantity": 1, "unit_price": 1.00, "total": 1.00, "category": "Pan y Bollería"},
+                    ],
+                ),
+                "id": "2",
+            },
+        ]
+        summary = build_summary(tickets)
+        inf = summary["inflation"]
+        assert inf["tracked_products"] == 3
+        assert inf["rising_products"] == 1
+        assert inf["falling_products"] == 1
+        assert inf["stable_products"] == 1
+        assert inf["personal_ipc_pct"] > 0
+        assert inf["annualized_ipc_pct"] is not None
+        assert len(inf["shrinkflation_alerts"]) == 1
+        alert = inf["shrinkflation_alerts"][0]
+        assert alert["previous_size"] == "500 g"
+        assert alert["current_size"] == "450 g"
+        assert alert["unit_cost_change_pct"] > 10.0
+
+    def test_budget_summary_burn_rate_and_category_statuses(self):
+        from datetime import datetime, timezone
+
+        tickets = [
+            _make_ticket(
+                date="2026-04-05",
+                total=90.0,
+                items=[
+                    _make_item(name="POLLO", total=50.0, category="Carne y Pescado"),
+                    _make_item(name="AGUA", total=25.0, category="Bebidas"),
+                    _make_item(name="MANZANA", total=15.0, category="Frutas y Verduras"),
+                ],
+            )
+        ]
+        budgets = {
+            "monthly": {"Carne y Pescado": 50.0, "Bebidas": 30.0, "Frutas y Verduras": 40.0},
+            "alert_monthly_total": 300.0,
+        }
+        now = datetime(2026, 4, 10, 12, 0, tzinfo=timezone.utc)
+        summary = build_summary(tickets, budgets=budgets, now=now)
+        bsum = summary["budget_summary"]
+        assert bsum["month"] == "2026-04"
+        assert bsum["is_current_month"] is True
+        assert bsum["overall"]["spent"] == 90.0
+        assert bsum["overall"]["burn_rate_daily"] == 9.0
+        assert bsum["overall"]["projected_month_end"] == 270.0
+        statuses = {c["category"]: c["status"] for c in bsum["categories"]}
+        assert statuses == {"Carne y Pescado": "over", "Bebidas": "warn", "Frutas y Verduras": "ok"}
+
+    def test_private_brand_share_and_nova_4_health_warning(self):
+        tickets = [
+            _make_ticket(
+                date="2026-03-10",
+                total=20.0,
+                items=[
+                    _make_item(name="REFRESCO COLA CONSUM 2L", total=8.0, category="Bebidas"),
+                    _make_item(name="PATATAS FRITAS BONTE", total=6.0, category="Snacks y Dulces"),
+                    _make_item(name="MANZANA GOLDEN", total=6.0, category="Frutas y Verduras"),
+                ],
+            )
+        ]
+        summary = build_summary(tickets)
+        assert summary["private_brand_share_pct"] == 70.0
+        nova_by_group = {g["group"]: g for g in summary["nova_distribution"]}
+        assert nova_by_group[4]["pct"] == 70.0
+        assert any("NOVA 4" in tip["title"] for tip in summary["health_tips"])
+
+    def test_anonymize_hides_store_names_and_ticket_ids(self):
+        tickets = [
+            {
+                **_make_ticket(date="2026-03-01", total=8.0, items=[_make_item(total=10.0)]),
+                "id": "secret-ticket-999",
+                "store": "Consum Calle Secreta 42",
+                "store_address": "Calle Secreta 42, Valencia",
+            }
+        ]
+        summary = build_summary(tickets, anonymize=True)
+        serialized = json.dumps(summary, ensure_ascii=False)
+        assert summary["anonymized"] is True
+        assert summary["recent_tickets"][0]["store"] == "Consum #1"
+        assert "id" not in summary["data_quality"]["issues"][0]
+        assert "secret-ticket-999" not in serialized
+        assert "Calle Secreta" not in serialized

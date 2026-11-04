@@ -2,7 +2,7 @@
 scraper.py — Lista y detalles de tickets en la misma pestaña de la aplicación.
 Se conservan el sessionStorage y los parámetros del iframe durante la extracción.
 """
-import asyncio, json, logging, os, re, sys, html as html_module
+import argparse, asyncio, json, logging, os, re, sys, html as html_module
 from pathlib import Path
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -23,16 +23,19 @@ except ImportError:
     logging.error("Playwright no instalado")
     sys.exit(1)
 
+ROOT        = Path(__file__).resolve().parent.parent
 MAIN_URL    = "https://www.consum.es/mundoconsum/mi-ahorro/"
 API_BASE    = "https://nomastickets.consum.es/api"
-TICKETS_DIR = Path("data/tickets")
+TICKETS_DIR = ROOT / "data/tickets"
+COOKIES_FILE = ROOT / "cookies.json"
 PAGE_SIZE   = 10
 
-CATEGORIES_FILE = Path("data/categories.json")
+CATEGORIES_FILE = ROOT / "data/categories.json"
 
 def load_categories() -> dict[str, list[str]]:
-    if CATEGORIES_FILE.exists():
-        return json.loads(CATEGORIES_FILE.read_text(encoding="utf-8"))
+    cat_file = CATEGORIES_FILE if CATEGORIES_FILE.exists() else Path("data/categories.json")
+    if cat_file.exists():
+        return json.loads(cat_file.read_text(encoding="utf-8"))
     log.warning("No se encontró %s, usando categorías por defecto", CATEGORIES_FILE)
     return {}
 
@@ -48,6 +51,39 @@ _SKIP_WORDS = {"IVA", "CAMBIO", "SILLA", "SOCIO", "BBVA", "VISA", "NIF", "ALGINE
 _SKIP_PREFIXES = ("FACTURA", "IMPORTE", "TOTAL", "CUOTA", "TARJ", "OPERACI", "AUTORI",
                   "ATENDIDO", "ABONAR", "CLIENTE", "COOP.V", "S.COOP", "F46078986")
 
+_DISCOUNT_PREFIX_RE = re.compile(
+    r"^(?:CHEQUE\s*AHORRO|MI\s+AHORRO|DTO(?:\b|\.)|DESCUENTO\b|DESC(?:\b|\.)|"
+    r"VALE(?:\b|\.)|CUP[OÓ]N(?:\b|\.)|BONO(?:\b|\.)|PROMO(?:CI[OÓ]N)?(?:\b|\.))",
+    re.IGNORECASE,
+)
+_INFO_LOYALTY_RE = re.compile(
+    r"\b(?:GENERAD|ACUMULAD|PR[OÓ]XIM|DISPONIBLE|SALDO|PENDIENTE)",
+    re.IGNORECASE,
+)
+_PAYMENT_FOOTER_WORDS = {"IVA", "CAMBIO", "SILLA", "BBVA", "VISA", "NIF", "ALGINET", "ARQUITECTO", "EFECTIVO", "ENTREGADO"}
+_PAYMENT_FOOTER_PREFIXES = ("FACTURA", "IMPORTE", "TOTAL", "CUOTA", "TARJ", "OPERACI", "AUTORI",
+                            "ATENDIDO", "COOP.V", "S.COOP", "F46078986")
+
+
+def _is_discount_name(name: str) -> bool:
+    """Detectar líneas de Cheque Ahorro, cupones o descuentos antes de filtrar cabeceras."""
+    cleaned = name.strip()
+    if len(cleaned) < 3:
+        return False
+    return bool(_DISCOUNT_PREFIX_RE.search(cleaned)) and not bool(_INFO_LOYALTY_RE.search(cleaned))
+
+
+def _is_payment_or_tax_footer(name: str) -> bool:
+    """Descartar líneas de pago/cambio/IVA sin bloquear descuentos de socio o cliente."""
+    upper = name.upper().strip()
+    if upper == "BASE" or re.search(r"\bBASE\s+(?:IMP|IVA|\d)", upper):
+        return True
+    tokens = re.findall(r"[A-ZÁÉÍÓÚÜÑ0-9.]+", upper)
+    for tok in tokens:
+        if tok in _PAYMENT_FOOTER_WORDS or tok.startswith(_PAYMENT_FOOTER_PREFIXES):
+            return True
+    return False
+
 
 def _is_invoice_line(name: str) -> bool:
     """Descartar pies/cabeceras de factura sin eliminar artículos reales como OLIVA o RECAMBIO."""
@@ -57,6 +93,26 @@ def _is_invoice_line(name: str) -> bool:
     tokens = re.findall(r"[A-ZÁÉÍÓÚÜÑ0-9.]+", upper)
     for tok in tokens:
         if tok in _SKIP_WORDS or tok.startswith(_SKIP_PREFIXES):
+            return True
+    return False
+
+
+def _is_sold_by_kg(qty_s: str, unit_s: str = "") -> bool:
+    """True solo cuando la cantidad tiene parte decimal/fraccionaria o la línea indica KG/€/KG."""
+    spec_upper = f"{qty_s} {unit_s}".upper()
+    if re.search(r"(?:€\s*/\s*KG|EUR\s*/\s*KG|\bKG\b)", spec_upper):
+        return True
+    qty_clean = re.sub(r"(?i)\s*KG\b", "", qty_s).strip()
+    if "," in qty_clean or "." in qty_clean:
+        try:
+            val = abs(number(qty_clean))
+        except ValueError:
+            return False
+        if val != int(val):
+            return True
+        # Básculas que imprimen 3 decimales exactos (ej. 1,000)
+        parts = re.split(r"[,\.]", qty_clean)
+        if len(parts) == 2 and len(parts[1]) == 3:
             return True
     return False
 
@@ -79,40 +135,174 @@ def categorize(name):
         log.debug("Producto sin categoría: %s", name)
     return "Otros"
 
-def parse_items_from_pre(pre_text: str) -> list:
+
+def parse_ticket_html(pre_text: str) -> dict:
+    """Extrae artículos y descuentos (Cheque Ahorro, cupones, vales) desde #ticketpre."""
+    if not pre_text:
+        return {"items": [], "discounts": []}
     text = html_module.unescape(pre_text)
     item_pat = re.compile(
-        r'<normal-pequenya>\s*([+-]?\d+(?:[,\.]\d+)?)\s*</normal-pequenya>'
+        r'<normal-pequenya>\s*([+-]?\d+(?:[,\.]\d+)?(?:\s*KG)?|\s*)\s*</normal-pequenya>'
         r'([A-ZÁÉÍÓÚÜÑ0-9][^\n<]{2,40}?)\s*'
-        r'<normal-pequenya>\s*([+-]?[\d,\.]*)\s*</normal-pequenya>'
-        r'\s*([+-]?\d+(?:[,\.]\d+)+)(?=\s|<|$)',
-        re.UNICODE
+        r'<normal-pequenya>\s*([^<\n]*?)\s*</normal-pequenya>'
+        r'\s*([+-]?\d+(?:\.\d{3})*[,\.]\d+|[+-]?\d+(?:[,\.]\d+)+)(?=\s|<|$)',
+        re.UNICODE | re.IGNORECASE,
     )
     items = []
+    discounts = []
+    consumed_spans = []
+
     for m in item_pat.finditer(text):
+        consumed_spans.append(m.span())
         qty_s, name, unit_s, total_s = m.groups()
         name = name.strip()
-        unit_s = unit_s.strip() if unit_s else ""
-        if _is_invoice_line(name) or len(name) < 3:
+        qty_s = (qty_s or "").strip()
+        unit_s = (unit_s or "").strip()
+        if len(name) < 3:
             continue
+        # Capturar descuentos ANTES de _is_invoice_line (que descarta SOCIO/CLIENTE).
+        if _is_discount_name(name) or (not qty_s and total_s.strip().startswith("-") and not _is_payment_or_tax_footer(name)):
+            try:
+                amt = -abs(number(total_s))
+                discounts.append({"name": name, "amount": amt})
+            except ValueError:
+                pass
+            continue
+        if not qty_s or _is_invoice_line(name):
+            continue
+        qty_num_s = re.sub(r"(?i)\s*KG\b", "", qty_s).strip()
+        unit_num_m = re.search(r"[+-]?\d+(?:\.\d{3})*[,\.]\d+|[+-]?\d+(?:\.\d+)?", unit_s)
         try:
-            qty   = number(qty_s)
+            qty = number(qty_num_s)
             total = number(total_s)
-            unit  = number(unit_s) if unit_s else round(total/qty, 4)
+            unit = number(unit_num_m.group(0)) if unit_num_m else round(total / qty, 4)
             items.append({
-                "name": name, "quantity": qty,
-                "unit_price": unit, "total": total,
+                "name": name,
+                "quantity": qty,
+                "unit_price": unit,
+                "total": total,
                 "category": categorize(name),
-                "sold_by_kg": bool(unit_s),
+                "sold_by_kg": _is_sold_by_kg(qty_s, unit_s),
             })
         except (ValueError, ZeroDivisionError):
             continue
-    return items
+
+    # Analizar líneas restantes fuera de los bloques item_pat (descuentos en texto plano o líneas multiplicadoras).
+    if consumed_spans:
+        chunks = []
+        last_idx = 0
+        for start, end in consumed_spans:
+            chunks.append(text[last_idx:start])
+            chunks.append("\n")
+            last_idx = end
+        chunks.append(text[last_idx:])
+        remainder = "".join(chunks)
+    else:
+        remainder = text
+
+    mult_only_pat = re.compile(
+        r"^\s*([+-]?\d+(?:[,\.]\d+)?)\s*(KG)?\s*[xX*]\s*"
+        r"([+-]?\d+(?:\.\d{3})*[,\.]\d+)\s*(€\s*/\s*KG|EUR\s*/\s*KG)?\s+"
+        r"([+-]?\d+(?:\.\d{3})*[,\.]\d+)\s*€?\s*$",
+        re.IGNORECASE,
+    )
+    inline_mult_pat = re.compile(
+        r"^\s*([A-ZÁÉÍÓÚÜÑ0-9].{2,38}?)\s+"
+        r"([+-]?\d+(?:[,\.]\d+)?)\s*(KG)?\s*[xX*]\s*"
+        r"([+-]?\d+(?:\.\d{3})*[,\.]\d+)\s*(€\s*/\s*KG|EUR\s*/\s*KG)?\s+"
+        r"([+-]?\d+(?:\.\d{3})*[,\.]\d+)\s*€?\s*$",
+        re.IGNORECASE,
+    )
+    trailing_amount_pat = re.compile(
+        r"^\s*(.+?)\s+([+-]?\d+(?:\.\d{3})*[,\.]\d+)\s*(-)?\s*€?\s*$"
+    )
+
+    clean_lines = [re.sub(r"<[^>]+>", " ", ln).strip() for ln in remainder.splitlines()]
+    clean_lines = [re.sub(r"\s+", " ", ln).strip() for ln in clean_lines if ln.strip()]
+
+    pending_name = None
+    for ln in clean_lines:
+        m_mult = mult_only_pat.match(ln)
+        if m_mult and pending_name and not _is_discount_name(pending_name) and not _is_invoice_line(pending_name):
+            qty_s, kg_tok, unit_s, eur_kg_tok, total_s = m_mult.groups()
+            try:
+                qty = number(qty_s)
+                unit = number(unit_s)
+                total = number(total_s)
+                items.append({
+                    "name": pending_name,
+                    "quantity": qty,
+                    "unit_price": unit,
+                    "total": total,
+                    "category": categorize(pending_name),
+                    "sold_by_kg": _is_sold_by_kg(f"{qty_s} {kg_tok or ''}", f"{unit_s} {eur_kg_tok or ''}"),
+                })
+                pending_name = None
+                continue
+            except ValueError:
+                pass
+
+        m_inline = inline_mult_pat.match(ln)
+        if m_inline:
+            p_name, qty_s, kg_tok, unit_s, eur_kg_tok, total_s = m_inline.groups()
+            p_name = p_name.strip()
+            if not _is_discount_name(p_name) and not _is_invoice_line(p_name):
+                try:
+                    qty = number(qty_s)
+                    unit = number(unit_s)
+                    total = number(total_s)
+                    items.append({
+                        "name": p_name,
+                        "quantity": qty,
+                        "unit_price": unit,
+                        "total": total,
+                        "category": categorize(p_name),
+                        "sold_by_kg": _is_sold_by_kg(f"{qty_s} {kg_tok or ''}", f"{unit_s} {eur_kg_tok or ''}"),
+                    })
+                    pending_name = None
+                    continue
+                except ValueError:
+                    pass
+
+        m_amt = trailing_amount_pat.match(ln)
+        if m_amt:
+            pending_name = None
+            raw_label, amt_s, trailing_minus = m_amt.groups()
+            raw_label = raw_label.rstrip(":- ").strip()
+            is_negative = amt_s.startswith("-") or bool(trailing_minus)
+            if _is_discount_name(raw_label):
+                try:
+                    amt = -abs(number(amt_s))
+                    discounts.append({"name": raw_label, "amount": amt})
+                except ValueError:
+                    pass
+                continue
+            if is_negative and len(raw_label) >= 3 and not _is_payment_or_tax_footer(raw_label):
+                if not _INFO_LOYALTY_RE.search(raw_label):
+                    try:
+                        amt = -abs(number(amt_s))
+                        discounts.append({"name": raw_label, "amount": amt})
+                    except ValueError:
+                        pass
+                continue
+            continue
+
+        if re.match(r"^[A-ZÁÉÍÓÚÜÑ0-9][A-ZÁÉÍÓÚÜÑ0-9\s.,/%'-]{2,39}$", ln, re.IGNORECASE):
+            pending_name = ln
+        else:
+            pending_name = None
+
+    return {"items": items, "discounts": discounts}
+
+
+def parse_items_from_pre(pre_text: str) -> list:
+    return parse_ticket_html(pre_text)["items"]
+
 
 def load_cookies():
     raw = os.environ.get("CONSUM_COOKIES", "")
     if not raw:
-        local = Path("cookies.json")
+        local = COOKIES_FILE if COOKIES_FILE.exists() else Path("cookies.json")
         if local.exists():
             try:
                 raw = local.read_text(encoding="utf-8-sig")
@@ -129,12 +319,23 @@ def load_cookies():
     except json.JSONDecodeError as exc:
         raise SessionError("CONSUM_COOKIES no es JSON válido") from exc
 
-def already_with_items():
+
+def already_with_items(retry_review: bool = False):
+    """Devuelve IDs ya procesados. Por defecto omite también needs_review con detalle DOM ya extraído."""
     done = set()
     for f in TICKETS_DIR.glob("*.json"):
         try:
             data = json.loads(f.read_text(encoding="utf-8-sig"))
-            if extraction_complete(data):
+            report = reconcile_ticket(data)
+            if report["status"] == "complete":
+                done.add(f.stem)
+            elif (
+                not retry_review
+                and report["status"] == "needs_review"
+                and data.get("source") == "dom_extracted"
+                and data.get("extraction_status") != "incomplete"
+                and bool(data.get("items"))
+            ):
                 done.add(f.stem)
         except (ValueError, OSError):
             log.warning("Ticket %s ilegible; se intentará descargar de nuevo", f.name)
@@ -383,10 +584,20 @@ async def fetch_ticket_detail(context, ticket_id: str, pass_token: str, version:
             await page.close()
 
 
-async def main():
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Descargar tickets de Consum")
+    parser.add_argument(
+        "--retry-review",
+        action="store_true",
+        help="Volver a descargar también los tickets marcados como needs_review",
+    )
+    return parser.parse_args(argv)
+
+
+async def main(*, retry_review: bool = False):
     TICKETS_DIR.mkdir(parents=True, exist_ok=True)
     cookies = load_cookies()
-    existing = already_with_items()
+    existing = already_with_items(retry_review=retry_review)
     log.info("Tickets ya con artículos: %d", len(existing))
 
     async with async_playwright() as p:
@@ -437,7 +648,10 @@ async def main():
 
                 jf = TICKETS_DIR / f"{tid}.json"
                 base = build_ticket_from_api(api_t)
-                base["items"] = parse_items_from_pre(pre_html) if pre_html else []
+                parsed = parse_ticket_html(pre_html) if pre_html else {"items": [], "discounts": []}
+                base["items"] = parsed["items"]
+                if parsed["discounts"]:
+                    base["discounts"] = parsed["discounts"]
                 base["source"] = "dom_extracted" if pre_html else "api_only"
                 fresh_detail = bool(pre_html)
                 fresh_items = bool(base["items"])
@@ -450,6 +664,8 @@ async def main():
                         previous = None
                     if not complete and previous and len(previous["items"]) > len(base["items"]):
                         base["items"] = previous["items"]
+                        if "discounts" in previous:
+                            base["discounts"] = previous["discounts"]
                         base["source"] = previous["source"]
                 report = reconcile_ticket(base)
                 base["reconciliation"] = report
@@ -487,9 +703,11 @@ async def main():
                     "Los totales originales se conservan; las categorías pueden estar incompletas", needs_review)
         raise SystemExit(4)
 
+
 if __name__ == "__main__":
+    cli_args = parse_args()
     try:
-        asyncio.run(main())
+        asyncio.run(main(retry_review=cli_args.retry_review))
     except SessionError as exc:
         log.error("%s", exc)
         sys.exit(1)

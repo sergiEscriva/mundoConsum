@@ -502,3 +502,86 @@ def test_quota_error_does_not_trigger_model_switch(catalog, monkeypatch):
     with pytest.raises(gemini.DailyQuotaExceeded):
         gemini.classify_tickets([ticket(["AGUA"])], root=catalog, strict=True)
     assert request.call_count == 1
+
+
+def test_api_json_retries_transient_urlerror_and_timeout_up_to_three_attempts(monkeypatch):
+    from urllib.error import URLError
+    from urllib.request import Request
+
+    sleeps = []
+    monkeypatch.setattr(gemini.time, "sleep", sleeps.append)
+
+    class _FakeResp:
+        def __enter__(self):
+            return io.BytesIO(b'{"ok": true}')
+
+        def __exit__(self, *args):
+            return False
+
+    opener = MagicMock()
+    opener.open.side_effect = [URLError("DNS temporary failure"), TimeoutError("timed out"), _FakeResp()]
+    monkeypatch.setattr(gemini, "build_opener", Mock(return_value=opener))
+
+    req = Request("https://generativelanguage.googleapis.com/v1beta/models")
+    assert gemini.api_json(req) == {"ok": True}
+    assert opener.open.call_count == 3
+    assert len(sleeps) == 2
+
+    opener_fail = MagicMock()
+    opener_fail.open.side_effect = [TimeoutError("t1"), URLError("t2"), TimeoutError("t3")]
+    monkeypatch.setattr(gemini, "build_opener", Mock(return_value=opener_fail))
+    with pytest.raises(gemini.ServiceUnavailable, match="No se pudo conectar"):
+        gemini.api_json(req)
+    assert opener_fail.open.call_count == 3
+
+
+def test_permissions_0644_for_catalog_caches_and_0600_for_dotenv(catalog, monkeypatch):
+    import stat
+
+    monkeypatch.setattr(gemini.sys.stdin, "isatty", Mock(return_value=True))
+    monkeypatch.setattr(gemini.getpass, "getpass", Mock(return_value="synthetic-secret"))
+    gemini.configure(catalog)
+    env_mode = stat.S_IMODE((catalog / ".env").stat().st_mode)
+    assert env_mode == 0o600
+
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-secret")
+    payload = response([
+        {
+            "id": 0,
+            "category": "Bebidas",
+            "canonical_name": "Agua Mineral Consum 1,5L",
+            "is_private_brand": True,
+            "brand_tier": "private",
+            "nova_group": 1,
+        }
+    ])
+    monkeypatch.setattr(gemini, "api_json", Mock(return_value=payload))
+    gemini.classify_tickets([ticket(["AGUA CONSUM 1,5L"])], root=catalog, strict=True)
+
+    cat_file = catalog / "data/product_categories.json"
+    meta_file = catalog / "data/product_metadata.json"
+    assert stat.S_IMODE(cat_file.stat().st_mode) == 0o644
+    assert stat.S_IMODE(meta_file.stat().st_mode) == 0o644
+
+    # Esquema intacto {KEY: category_str} en product_categories.json
+    saved_cats = json.loads(cat_file.read_text())["products"]
+    assert saved_cats == {"AGUA CONSUM 1,5L": "Bebidas"}
+
+    saved_meta = gemini.load_product_metadata(catalog)
+    assert saved_meta["AGUA CONSUM 1,5L"] == {
+        "canonical_name": "Agua Mineral Consum 1,5L",
+        "is_private_brand": True,
+        "brand_tier": "private",
+        "nova_group": 1,
+    }
+
+
+def test_local_private_brand_and_nova_heuristics():
+    assert gemini.is_private_brand("MOZZAR.RALL.CONSUM") is True
+    assert gemini.is_private_brand("GEL BAÑO KYREY") is True
+    assert gemini.is_private_brand("DESODORANTE BONTE") is True
+    assert gemini.is_private_brand("JAMÓN G.R.CONSU120G") is True
+    assert gemini.is_private_brand("COCA COLA ZERO 2L") is False
+    assert gemini.infer_nova_group("PECHUGA DE POLLO", "Carne y Pescado") == 1
+    assert gemini.infer_nova_group("ACEITE OLIVA VIRGEN 1L", "Conservas y Salsas") == 2
+    assert gemini.infer_nova_group("PIZZA BARBACOA", "Congelados y Preparados") == 4

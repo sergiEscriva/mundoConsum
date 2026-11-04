@@ -174,3 +174,26 @@ def test_failed_installation_is_not_marked_as_ready(monkeypatch, tmp_path):
     with pytest.raises(runner.LocalError, match="dependencias"):
         runner.prepare_python()
     assert not (tmp_path / ".venv/.consum-requirements.sha256").exists()
+
+
+def test_login_forwards_push_secret_trigger_workflow_and_repo(commands):
+    assert runner.main(["login", "--push-secret", "--trigger-workflow", "--repo", "owner/repo"]) == 0
+    runner.login.assert_called_once_with(
+        commands,
+        push_secret=True,
+        trigger_workflow=True,
+        repo="owner/repo",
+    )
+
+
+def test_build_forwards_anonymize_flag(commands):
+    assert runner.main(["build", "--anonymize"]) == 0
+    runner.build.assert_called_once_with(commands, refresh=False, anonymize=True)
+
+
+def test_test_command_enforces_require_browser_tests_when_chromium_available(commands, monkeypatch):
+    monkeypatch.setattr(runner, "has_chromium", Mock(return_value=True))
+    execute = Mock(return_value=0)
+    monkeypatch.setattr(runner, "execute", execute)
+    assert runner.main(["test"]) == 0
+    assert execute.call_args.kwargs["env"]["REQUIRE_BROWSER_TESTS"] == "1"

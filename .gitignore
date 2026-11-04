@@ -25,6 +25,7 @@ debug_apirest.js
 scripts/data/
 
 # IDEs y editores
+.claude/
 .idea/
 .vscode/
 *.swp
@@ -32,6 +33,9 @@ scripts/data/
 *~
 .DS_Store
 Thumbs.db
+
+# Exportación estática pública
+dist_site/
 
 # Playwright
 playwright-report/

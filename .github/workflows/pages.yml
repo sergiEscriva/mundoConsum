@@ -1,0 +1,59 @@
+name: Deploy Public Dashboard to Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "dashboard/**"
+      - "scripts/build_data.py"
+      - "scripts/export_public_site.py"
+      - "scripts/gemini_categories.py"
+      - "scripts/ticket_data.py"
+      - "data/tickets/**"
+      - "data/budgets.json"
+      - "data/categories.json"
+      - "data/product_categories.json"
+      - "data/product_metadata.json"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Exportar y publicar sitio anonimizado
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Exportar bundle público anonimizado
+        run: python scripts/export_public_site.py --out dist_site
+
+      - name: Subir artefacto de Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist_site
+
+      - name: Desplegar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

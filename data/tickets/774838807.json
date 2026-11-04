@@ -54,7 +54,7 @@
       "unit_price": 1.05,
       "total": 2.1,
       "category": "Conservas y Salsas",
-      "sold_by_kg": true
+      "sold_by_kg": false
     },
     {
       "name": "MOZZAR.RALL.CONSUM",
@@ -62,7 +62,7 @@
       "unit_price": 1.65,
       "total": 3.3,
       "category": "Lácteos y Huevos",
-      "sold_by_kg": true
+      "sold_by_kg": false
     },
     {
       "name": "YOG.PRO.STRAC 00%X4",
@@ -126,7 +126,7 @@
       "unit_price": 0.25,
       "total": 1.5,
       "category": "Bebidas",
-      "sold_by_kg": true
+      "sold_by_kg": false
     },
     {
       "name": "M.DES.GILLE BL.SL.P",
@@ -150,7 +150,7 @@
       "unit_price": 0.15,
       "total": 0.6,
       "category": "Higiene y Limpieza",
-      "sold_by_kg": true
+      "sold_by_kg": false
     }
   ],
   "tax_breakdown": [],

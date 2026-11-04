@@ -14,7 +14,7 @@
       "unit_price": 1.65,
       "total": 3.3,
       "category": "Lácteos y Huevos",
-      "sold_by_kg": true
+      "sold_by_kg": false
     },
     {
       "name": "PIZZA RIST.BABACOA",

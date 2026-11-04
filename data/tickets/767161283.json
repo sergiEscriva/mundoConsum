@@ -38,7 +38,7 @@
       "unit_price": 1.59,
       "total": 9.54,
       "category": "Lácteos y Huevos",
-      "sold_by_kg": true
+      "sold_by_kg": false
     }
   ],
   "tax_breakdown": [],

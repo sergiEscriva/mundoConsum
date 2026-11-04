@@ -14,7 +14,7 @@
       "unit_price": 1.0,
       "total": 3.0,
       "category": "Carne y Pescado",
-      "sold_by_kg": true
+      "sold_by_kg": false
     }
   ],
   "tax_breakdown": [],

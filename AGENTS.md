@@ -3,15 +3,16 @@
 ## Vision general
 - Este repo registra compras de supermercado en Consum y construye un dashboard estatico a partir de artefactos JSON locales.
 - El pipeline principal esta guiado por scripts: `scripts/scraper.py` -> `data/tickets/*.json` -> `scripts/build_data.py` -> `data/summary.json` -> `dashboard/index.html`.
-- Tambien existe un pipeline legacy para docs: `docs/index.html` lee `docs/data/summary.json` (esquema distinto de `data/summary.json`).
+- `docs/index.html` es ahora una redirección mínima hacia `../dashboard/` (sin contrato JSON duplicado), y `scripts/export_public_site.py` construye el bundle estático anonimizado para GitHub Pages (`.github/workflows/pages.yml`).
 
 ## Componentes y limites
-- `scripts/get_cookie.py`: login interactivo + captura de 2FA; escribe `cookies.json` para automatizacion posterior.
-- `scripts/scraper.py`: fetcher con Playwright que obtiene listas paginadas de tickets via API y extrae líneas desde `ticketdetail.html` (`#ticketpre`) en la misma pestaña de la aplicación, conservando sessionStorage y los parámetros del iframe.
-- `scripts/build_data.py`: capa de agregacion que calcula KPIs, categorias, top productos y recomendaciones.
-- `scripts/gemini_categories.py`: cliente REST de Gemini con lotes y caché. Clasifica todo el catálogo único, incluidos productos con categoría local. Solo envía nombres e ids de lote, nunca cookies ni datos completos de tickets.
-- `dashboard/index.html`: contrato de UI actual para `data/summary.json`.
-- `docs/index.html`: UI antigua con un contrato JSON distinto (`last_updated`, `stats`, `recommendations`).
+- `scripts/get_cookie.py`: login interactivo + captura de 2FA; escribe `cookies.json` y soporta `--push-secret` (por `stdin` a `gh secret set CONSUM_COOKIES`), `--trigger-workflow` y `--repo`.
+- `scripts/scraper.py`: fetcher con Playwright que obtiene listas paginadas de tickets via API y extrae artículos y descuentos (`discounts`) desde `ticketdetail.html` (`#ticketpre`). Omite por defecto tickets conciliados y `dom_extracted` `needs_review` ya extraídos (usa `--retry-review` para re-descargarlos), reintentando siempre los `incomplete`.
+- `scripts/build_data.py`: capa de agregacion que calcula KPIs, `savings_summary`, `inflation` (IPC personal y alertas de reduflación), `budget_summary` (ritmo diario y proyección), `private_brand_share_pct`, `nova_distribution` y modo `--anonymize`.
+- `scripts/gemini_categories.py`: cliente REST de Gemini con lotes, reintentos ante fallos transitorios HTTP 5xx / red (`URLError`, `TimeoutError`), caché intacta `data/product_categories.json` (`{KEY: category_str}`) y metadatos enriquecidos en `data/product_metadata.json`.
+- `scripts/notify_telegram.py`: resumen proactivo en español en Telegram tras compras nuevas (`exit_code` `0` o `4`), usando solo stdlib y sin exponer jamás `TELEGRAM_BOT_TOKEN`.
+- `scripts/export_public_site.py`: exportador estático que copia solo `index.html`, `dashboard/index.html`, `data/budgets.json` y `data/summary.json` anonimizado.
+- `dashboard/index.html`: interfaz única para `data/summary.json`.
 
 ## Flujos criticos (segun el comportamiento del repo)
 - Flujo local recomendado: `python run.py` crea/reutiliza `.venv`, instala dependencias si cambian, regenera datos y abre el dashboard. No requiere activar el entorno ni instalar Chromium para ver datos existentes.

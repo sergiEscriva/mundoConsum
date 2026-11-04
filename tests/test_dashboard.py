@@ -76,15 +76,18 @@ def dashboard(browser):
 
 def load(page):
     page.goto("http://dashboard.test/dashboard/", wait_until="networkidle")
-    page.wait_for_function('document.querySelectorAll("#kpi-grid .kpi").length === 4')
+    page.wait_for_function('document.querySelectorAll("#kpi-grid .kpi").length === 5')
 
 
 def test_current_month_budgets_and_kpis_use_madrid(dashboard):
     load(dashboard)
     assert dashboard.evaluate("currentMonth()") == "2026-11"
     assert "28.00" in dashboard.locator("#kpi-grid .kpi").nth(3).inner_text()
+    assert "AHORRO MUNDO CONSUM" in dashboard.locator("#kpi-grid .kpi").nth(4).inner_text().upper()
     assert "3.00" in dashboard.locator("#budget-bars").inner_text()
     assert "103.00" not in dashboard.locator("#budget-bars").inner_text()
+    assert "Ritmo diario" in dashboard.locator("#budget-overview").inner_text()
+    assert "Proyección fin de mes" in dashboard.locator("#budget-overview").inner_text()
     assert not dashboard.locator("#spending-alert").is_visible()
 
 
@@ -119,11 +122,11 @@ def test_chart_constructor_failure_is_isolated(dashboard):
     assert not dashboard.locator("#error-msg").is_visible()
 
 
-def test_no_current_month_activity_shows_zero(dashboard):
+def test_no_current_month_activity_shows_zero_and_allows_latest_month_toggle(dashboard):
     load(dashboard)
     dashboard.evaluate('''() => {
         DATA.monthly_data = DATA.monthly_data.filter(m => m.month !== currentMonth());
-        DATA.monthly_categories = {};
+        DATA.monthly_categories = {"2026-10": [{name: "Bebidas", total: 18}]};
         renderKPIs(DATA);
         renderBudgets(DATA, BUDGETS);
         renderSpendingAlert(DATA, BUDGETS);
@@ -131,24 +134,133 @@ def test_no_current_month_activity_shows_zero(dashboard):
     assert "0.00" in dashboard.locator("#kpi-grid .kpi").nth(3).inner_text()
     assert "0.00" in dashboard.locator("#budget-bars").inner_text()
     assert not dashboard.locator("#spending-alert").is_visible()
+    assert dashboard.locator("#budget-mode-toggle").is_visible()
+
+    dashboard.locator('[data-budget-mode="latest"]').click()
+    assert "18.00" in dashboard.locator("#budget-bars").inner_text()
+    assert "100.00" in dashboard.locator("#budget-overview").inner_text()
+
+    dashboard.locator('[data-budget-mode="current"]').click()
+    assert "0.00" in dashboard.locator("#budget-bars").inner_text()
 
 
-def test_review_banner_lists_discrepancies_without_breaking_dashboard(dashboard):
+def test_review_banner_lists_discrepancies_and_supports_anonymized_issues(dashboard):
     load(dashboard)
     assert not dashboard.locator("#data-quality").is_visible()
     dashboard.evaluate('''() => {
-        DATA.data_quality = {issues: [{id: "synthetic-id", date: "2026-11-01",
-            ticket_total: 8, items_total: 10, difference: -2, status: "needs_review"}]};
+        DATA.data_quality = {issues: [
+            {id: "synthetic-id", date: "2026-11-01", ticket_total: 8, items_total: 10, difference: -2, status: "needs_review"},
+            {date: "2026-11-02", ticket_total: 5, items_total: 0, difference: 5, status: "incomplete"}
+        ]};
         renderDataQuality(DATA);
     }''')
     assert dashboard.locator("#data-quality").is_visible()
     assert "importe original" in dashboard.locator("#data-quality").inner_text()
     dashboard.locator("#data-quality summary").click()
-    row = dashboard.locator("#data-quality .quality-ticket")
-    assert "synthetic-id" in row.inner_text()
-    assert "-2.00" in row.inner_text()
-    assert "Revisar líneas/descuentos" in row.inner_text()
+    rows = dashboard.locator("#data-quality .quality-ticket")
+    assert rows.count() == 2
+    assert "synthetic-id" in rows.nth(0).inner_text()
+    assert "-2.00" in rows.nth(0).inner_text()
+    assert "Revisar líneas/descuentos" in rows.nth(0).inner_text()
+    assert "—" in rows.nth(1).inner_text()
     assert dashboard.locator("#tickets-body tr").count() == 2
+
+
+def test_savings_kpi_inflation_shrinkflation_and_nova_cards_render(dashboard):
+    load(dashboard)
+    dashboard.evaluate('''() => {
+        DATA.savings_summary = {
+            verified_discounts_total: 3.15,
+            estimated_unparsed_discounts: 2.80,
+            total_estimated_saved: 5.95,
+            tickets_with_savings: 2
+        };
+        DATA.private_brand_share_pct = 34.5;
+        DATA.nova_distribution = [
+            {group: 1, label: "NOVA 1 · Alimentos frescos", total: 40, pct: 50.0, count: 10},
+            {group: 2, label: "NOVA 2 · Ingredientes", total: 8, pct: 10.0, count: 2},
+            {group: 3, label: "NOVA 3 · Procesados", total: 12, pct: 15.0, count: 3},
+            {group: 4, label: "NOVA 4 · Ultraprocesados", total: 20, pct: 25.0, count: 5},
+        ];
+        DATA.inflation = {
+            personal_ipc_pct: 4.25,
+            annualized_ipc_pct: 12.40,
+            tracked_products: 2,
+            rising_products: 1,
+            falling_products: 1,
+            stable_products: 0,
+            items: [
+                {
+                    name: "ACEITE OLIVA CONSUM 1L",
+                    canonical_name: "Aceite Oliva Consum 1L",
+                    category: "Conservas y Salsas",
+                    observations: 3,
+                    first_date: "2026-01-10",
+                    last_date: "2026-03-15",
+                    first_unit_price: 4.50,
+                    last_unit_price: 5.40,
+                    min_unit_price: 4.50,
+                    max_unit_price: 5.40,
+                    change_pct: 20.0,
+                    total_spent: 15.30
+                },
+                {
+                    name: "LECHE ENTERA CONSUM 1L",
+                    canonical_name: "Leche Entera Consum 1L",
+                    category: "Lácteos y Huevos",
+                    observations: 2,
+                    first_date: "2026-01-10",
+                    last_date: "2026-03-15",
+                    first_unit_price: 1.00,
+                    last_unit_price: 0.90,
+                    min_unit_price: 0.90,
+                    max_unit_price: 1.00,
+                    change_pct: -10.0,
+                    total_spent: 3.80
+                }
+            ],
+            shrinkflation_alerts: [
+                {
+                    base_name: "JAMÓN GRAN RESERVA CONSUM",
+                    previous_size: "250 g",
+                    current_size: "120 g",
+                    unit: "€/kg",
+                    first_date: "2026-01-14",
+                    last_date: "2026-03-27",
+                    previous_unit_cost: 17.0,
+                    current_unit_cost: 20.42,
+                    size_change_pct: -52.0,
+                    unit_cost_change_pct: 20.1
+                }
+            ]
+        };
+        renderKPIs(DATA);
+        renderNovaAndBrand(DATA);
+        renderInflation(DATA);
+        renderCharts(DATA);
+    }''')
+
+    sav_kpi = dashboard.locator("#kpi-grid .kpi").nth(4).inner_text()
+    assert "5.95" in sav_kpi
+    assert "2 tickets con ahorro" in sav_kpi
+    assert "3.15" in sav_kpi
+
+    assert "34.5%" in dashboard.locator("#private-brand-panel").inner_text()
+    assert dashboard.locator("#nova-panel .nova-row").count() == 4
+    assert "50.0%" in dashboard.locator("#nova-panel").inner_text()
+
+    assert "+4.25%" in dashboard.locator("#inflation-kpi-badge").inner_text()
+    assert "+12.40% anualizado" in dashboard.locator("#inflation-kpi-badge").inner_text()
+    assert "JAMÓN GRAN RESERVA CONSUM" in dashboard.locator("#shrinkflation-alerts").inner_text()
+    assert dashboard.locator("#inflation-body tr").count() == 2
+
+    dashboard.locator('[data-inf-filter="up"]').click()
+    assert dashboard.locator("#inflation-body tr").count() == 1
+    assert "Aceite Oliva Consum 1L" in dashboard.locator("#inflation-body").inner_text()
+
+    dashboard.locator('[data-inf-filter="down"]').click()
+    assert dashboard.locator("#inflation-body tr").count() == 1
+    assert "Leche Entera Consum 1L" in dashboard.locator("#inflation-body").inner_text()
 
 
 def test_gemini_coverage_and_pending_products_are_visible(dashboard):
