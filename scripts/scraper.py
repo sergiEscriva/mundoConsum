@@ -44,6 +44,23 @@ SKIP = {"FACTURA","IMPORTE","CAMBIO","TOTAL","BASE","IVA","CUOTA",
         "ATENDIDO","ABONAR","CLIENTE","COOP.V","NIF","ALGINET",
         "ARQUITECTO","S.COOP","F46078986"}
 
+_SKIP_WORDS = {"IVA", "CAMBIO", "SILLA", "SOCIO", "BBVA", "VISA", "NIF", "ALGINET", "ARQUITECTO"}
+_SKIP_PREFIXES = ("FACTURA", "IMPORTE", "TOTAL", "CUOTA", "TARJ", "OPERACI", "AUTORI",
+                  "ATENDIDO", "ABONAR", "CLIENTE", "COOP.V", "S.COOP", "F46078986")
+
+
+def _is_invoice_line(name: str) -> bool:
+    """Descartar pies/cabeceras de factura sin eliminar artículos reales como OLIVA o RECAMBIO."""
+    upper = name.upper().strip()
+    if upper == "BASE" or re.search(r"\bBASE\s+(?:IMP|IVA|\d)", upper):
+        return True
+    tokens = re.findall(r"[A-ZÁÉÍÓÚÜÑ0-9.]+", upper)
+    for tok in tokens:
+        if tok in _SKIP_WORDS or tok.startswith(_SKIP_PREFIXES):
+            return True
+    return False
+
+
 class SessionError(RuntimeError):
     """Sesión ausente o caducada; código de salida 1."""
 
@@ -66,7 +83,7 @@ def parse_items_from_pre(pre_text: str) -> list:
     text = html_module.unescape(pre_text)
     item_pat = re.compile(
         r'<normal-pequenya>\s*([+-]?\d+(?:[,\.]\d+)?)\s*</normal-pequenya>'
-        r'([A-ZÁÉÍÓÚÜÑ][^\n<]{2,40}?)\s*'
+        r'([A-ZÁÉÍÓÚÜÑ0-9][^\n<]{2,40}?)\s*'
         r'<normal-pequenya>\s*([+-]?[\d,\.]*)\s*</normal-pequenya>'
         r'\s*([+-]?\d+(?:[,\.]\d+)+)(?=\s|<|$)',
         re.UNICODE
@@ -76,7 +93,7 @@ def parse_items_from_pre(pre_text: str) -> list:
         qty_s, name, unit_s, total_s = m.groups()
         name = name.strip()
         unit_s = unit_s.strip() if unit_s else ""
-        if any(s in name.upper() for s in SKIP) or len(name) < 3:
+        if _is_invoice_line(name) or len(name) < 3:
             continue
         try:
             qty   = number(qty_s)
@@ -97,7 +114,10 @@ def load_cookies():
     if not raw:
         local = Path("cookies.json")
         if local.exists():
-            raw = local.read_text()
+            try:
+                raw = local.read_text(encoding="utf-8-sig")
+            except UnicodeDecodeError as exc:
+                raise SessionError("cookies.json no tiene codificación UTF-8 válida") from exc
             log.info("Usando cookies.json local")
         else:
             raise SessionError("No se encontró CONSUM_COOKIES ni cookies.json")
@@ -131,6 +151,7 @@ def build_ticket_from_api(t):
             date_str = dt.strftime("%Y-%m-%d")
         except ValueError:
             pass
+    payment = (t.get("PaymentMethod") or "").strip() or "Tarjeta"
     return {
         "id": str(t["Id"]),
         "ticket_code": t.get("TicketCode",""),
@@ -139,29 +160,85 @@ def build_ticket_from_api(t):
         "date": date_str,
         "datetime_iso": dt.isoformat() if dt else None,
         "total": number(t.get("TotalPrice")),
-        "payment_method": t.get("PaymentMethod") or "Tarjeta",
+        "payment_method": payment,
         "items": [], "tax_breakdown": [], "source": "api_only",
     }
 
-async def get_iframe_info(context: BrowserContext) -> tuple[str, str, str]:
-    """Devuelve (iframe_url, pass_token, version)."""
+
+def _is_login_url(url: str) -> bool:
+    """Detectar redirecciones a SSO/login o salida de /mundoconsum/mi-ahorro sin mirar la query."""
+    if not url:
+        return False
+    location = urlsplit(url)
+    host = (location.hostname or "").lower()
+    path = location.path.lower()
+    if host == "iam.consum.es":
+        return True
+    if any(seg in path for seg in ("/acceso", "/login", "/oauth2", "/saml", "/authenticationendpoint")):
+        return True
+    if host in ("www.consum.es", "consum.es") and not path.rstrip("/").endswith("/mi-ahorro"):
+        return True
+    return False
+
+
+def _has_unauthenticated_markers(html: str) -> bool:
+    lower = html.lower()
+    return any(marker in lower for marker in (
+        "iam.consum.es",
+        "/mundoconsum/acceso",
+        "iniciar sesión",
+        "iniciar sesion",
+        "identifícate",
+        "identificate",
+    ))
+
+
+async def get_iframe_info(context: BrowserContext, *, timeout: float = 15.0) -> tuple[str, str, str]:
+    """Devuelve (iframe_url, pass_token, version) o lanza SessionError si la sesión expiró."""
+    iframe_re = re.compile(r"""src=["'](https://nomastickets\.consum\.es/app/index\.html[^"']+)["']""")
     page = await context.new_page()
-    log.info("Cargando página principal...")
-    await page.goto(MAIN_URL, wait_until="domcontentloaded", timeout=30000)
-    await page.wait_for_timeout(3000)
-    if "acceso" in page.url or "login" in page.url.lower():
-        await page.close()
-        raise SessionError("Sesión expirada")
-    html = await page.content()
-    await page.close()
-    m = re.search(r'src="(https://nomastickets\.consum\.es/app/index\.html[^"]+)"', html)
-    if not m:
-        raise ScrapeError("No se encontró el iframe de tickets")
-    iframe_url = m.group(1).replace("&amp;", "&")
+    try:
+        log.info("Cargando página principal...")
+        response = await page.goto(MAIN_URL, wait_until="domcontentloaded", timeout=30000)
+        if response is not None:
+            if response.status in (401, 403):
+                raise SessionError(f"Acceso rechazado en página principal (HTTP {response.status})")
+            if response.status == 429:
+                raise ScrapeError("Consum limita las peticiones (HTTP 429). Espera antes de reintentar")
+            if response.status >= 400:
+                raise ScrapeError(f"El servidor devolvió HTTP {response.status} al cargar Mi ahorro")
+
+        deadline = asyncio.get_running_loop().time() + max(0.0, timeout)
+        html = ""
+        m = None
+        while True:
+            if _is_login_url(page.url):
+                raise SessionError("Sesión expirada")
+            html = await page.content()
+            m = iframe_re.search(html)
+            if m or asyncio.get_running_loop().time() >= deadline:
+                break
+            await asyncio.sleep(min(0.25, max(0.0, deadline - asyncio.get_running_loop().time())))
+
+        if not m:
+            if _is_login_url(page.url) or _has_unauthenticated_markers(html):
+                raise SessionError("Sesión expirada: Mi ahorro requiere iniciar sesión de nuevo")
+            raise ScrapeError("No se encontró el iframe de tickets")
+    finally:
+        if hasattr(page, "is_closed") and callable(page.is_closed):
+            closed = page.is_closed()
+            if asyncio.iscoroutine(closed):
+                closed = await closed
+        else:
+            closed = False
+        if not closed:
+            await page.close()
+
+    iframe_url = html_module.unescape(m.group(1))
     params = parse_qs(urlsplit(iframe_url).query)
     pass_token = params.get("pass", [""])[0]
     if not pass_token:
-        raise ScrapeError("El iframe no contiene un token de sesión")
+        raise SessionError("El iframe de tickets no contiene token de sesión activa")
     version = params.get("v", ["20251201"])[0]
     log.info("Sesión activa")
     return iframe_url, pass_token, version

@@ -3,22 +3,26 @@ name: Tests
 on:
   push:
     branches: [main]
-    paths: ["scripts/**", "tests/**", "dashboard/**", "run.py", "iniciar.*", "requirements.txt", "data/categories.json", ".github/workflows/**"]
+    paths: ["scripts/**", "tests/**", "dashboard/**", "docs/**", "index.html", "run.py", "iniciar.*", "requirements.txt", "data/categories.json", "data/budgets.json", "data/product_categories.json", ".github/workflows/**"]
   pull_request:
     branches: [main]
-    paths: ["scripts/**", "tests/**", "dashboard/**", "run.py", "iniciar.*", "requirements.txt", "data/categories.json", ".github/workflows/**"]
+    paths: ["scripts/**", "tests/**", "dashboard/**", "docs/**", "index.html", "run.py", "iniciar.*", "requirements.txt", "data/categories.json", "data/budgets.json", "data/product_categories.json", ".github/workflows/**"]
+
+permissions:
+  contents: read
 
 jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: "pip"

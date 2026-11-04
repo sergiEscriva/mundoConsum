@@ -169,6 +169,11 @@ class TestBuildTicketFromApi:
         ticket = build_ticket_from_api(api_data)
         assert ticket["payment_method"] == "Tarjeta"
 
+    def test_whitespace_payment_method_defaults_to_card(self):
+        api_data = {"Id": 5, "TotalPrice": 5, "PaymentMethod": "   "}
+        ticket = build_ticket_from_api(api_data)
+        assert ticket["payment_method"] == "Tarjeta"
+
 
 class TestSkipSet:
     def test_invoice_keywords_present(self):
@@ -178,3 +183,26 @@ class TestSkipSet:
     def test_card_keywords_present(self):
         for kw in ("VISA", "BBVA", "TARJ"):
             assert kw in SKIP
+
+    def test_real_products_with_skip_substrings_are_preserved(self):
+        lines = [
+            "ACEITE DE OLIVA 1L",
+            "GALLETA DIGESTIVA",
+            "RECAMBIO CEPILLO",
+            "BASE PIZZA FRESCA",
+            "1906 CERVEZA",
+        ]
+        pre = "\n".join(
+            f"<normal-pequenya>1</normal-pequenya>{name:<20}<normal-pequenya>2,50</normal-pequenya> 2,50"
+            for name in lines
+        )
+        parsed = [item["name"] for item in parse_items_from_pre(pre)]
+        assert parsed == lines
+
+    def test_invoice_footer_lines_are_still_skipped(self):
+        lines = ["BASE IMPONIBLE", "IVA 21%", "CAMBIO", "FACTURA SIMPLIF"]
+        pre = "\n".join(
+            f"<normal-pequenya>1</normal-pequenya>{name:<20}<normal-pequenya>2,50</normal-pequenya> 2,50"
+            for name in lines
+        )
+        assert parse_items_from_pre(pre) == []

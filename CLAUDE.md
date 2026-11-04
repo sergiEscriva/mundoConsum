@@ -34,27 +34,30 @@ python scripts/build_data.py
 
 ### Scripts principales
 
-- **scraper.py**: Se autentica con cookies, extrae el token `pass` de la URL de un iframe en la página de Consum, pagina la API de tickets (`POST nomastickets.consum.es/api/ticket/v2`), luego obtiene la página de detalle de cada ticket y parsea los artículos desde `<pre id="ticketpre">`. Solo procesa tickets que aún no tienen artículos. Escribe en `data/tickets/` y también en `scripts/data/tickets/`.
-- **build_data.py**: Agrega todos los JSON de tickets en `data/summary.json` con KPIs, totales mensuales, desglose por categorías, productos más comprados y consejos de ahorro/salud.
-- **get_cookie.py**: Abre un navegador visible para el login interactivo con 2FA y guarda las cookies en `scripts/cookies.json`.
+- **run.py**: Lanzador unificado (`start`, `update`, `login`, `setup`, `build`, `test`, `categorize`) con servidor HTTP local aislado en `127.0.0.1`.
+- **scraper.py**: Se autentica con cookies, extrae el token `pass` de la URL del iframe en la página de Consum, pagina la API de tickets (`POST nomastickets.consum.es/api/ticket/v2`), luego obtiene la página de detalle de cada ticket y parsea los artículos desde `<pre id="ticketpre">`. Solo omite tickets ya conciliados. Escribe en `data/tickets/`.
+- **build_data.py**: Agrega todos los JSON de tickets en `data/summary.json` con KPIs, totales mensuales, desglose por categorías (incluyendo clasificación opcional con Gemini vía `gemini_categories.py`), productos más comprados y consejos de ahorro/salud.
+- **get_cookie.py**: Abre un navegador visible para el login interactivo con 2FA y guarda las cookies en `cookies.json` (raíz del repositorio).
 
 ### Autenticación
 
-Las cookies de sesión se cargan desde la variable de entorno `CONSUM_COOKIES` (secreto de GitHub Actions) o, si no existe, desde `scripts/cookies.json` (desarrollo local). Las cookies caducan cada 2–4 semanas y hay que renovarlas con `get_cookie.py`.
+Las cookies de sesión se cargan desde la variable de entorno `CONSUM_COOKIES` (secreto de GitHub Actions) o, si no existe, desde `cookies.json` en la raíz del proyecto (desarrollo local). Las cookies caducan cada 2–4 semanas y hay que renovarlas con `python run.py login` o `python scripts/get_cookie.py`.
 
 ### Códigos de salida del scraper
 
-- `0` = éxito, se han procesado tickets nuevos
-- `1` = fallo de autenticación (cookies caducadas)
-- `2` = todos los tickets ya tienen artículos (sin cambios — no es un error)
+- `0` = éxito, se han procesado y conciliado tickets nuevos
+- `1` = fallo de autenticación (cookies ausentes o caducadas / redirección SSO)
+- `2` = todos los tickets ya tienen artículos conciliados (sin cambios — no es un error)
+- `3` = fallo de red, API o extracción incompleta
+- `4` = tickets descargados pero con diferencias de conciliación pendientes de revisión
 
-El workflow de GitHub Actions (`daily.yml`) trata el código 2 como señal de omisión para no generar cambios cuando no hay tickets nuevos.
+El workflow de GitHub Actions (`daily.yml`) omite `build_data.py` y el commit cuando el código es `2` para evitar commits vacíos.
 
 ### Formato de datos
 
-Cada ticket se almacena como `data/tickets/<Id>.json` con los campos: `id`, `ticket_code`, `store`, `date` (`YYYY-MM-DD`), `datetime_iso`, `total`, `payment_method`, `items[]`, `tax_breakdown[]`, `source`.
+Cada ticket se almacena como `data/tickets/<Id>.json` con los campos: `id`, `ticket_code`, `store`, `store_address`, `date` (`YYYY-MM-DD`), `datetime_iso`, `total`, `payment_method`, `items[]`, `tax_breakdown[]`, `source`, `reconciliation`, `extraction_status`.
 
-`build_data.py` ignora tickets malformados (sin `date` o sin `items`). Los totales mensuales usan claves `YYYY-MM`.
+`build_data.py` valida todos los tickets mediante `ticket_data.py` y aborta sin sobrescribir `data/summary.json` si encuentra archivos malformados. Los totales mensuales usan claves `YYYY-MM`.
 
 ### Dashboard
 

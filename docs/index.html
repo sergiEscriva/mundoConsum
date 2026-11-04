@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title> Consum Tracker</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous"></script>
   <style>
     /* ── Variables ────────────────────────────────────── */
     :root {
@@ -505,6 +505,10 @@ function renderCatChart(cats) {
   });
 }
 
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => (
+  {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]
+));
+
 // ── Category progress bars ───────────────────────────────
 function renderCatBars(cats) {
   if (!cats || cats.length === 0) {
@@ -512,11 +516,11 @@ function renderCatBars(cats) {
       '<p style="color:var(--text2);font-size:.82rem">Sin datos este mes.</p>';
     return;
   }
-  const max = cats[0].total;
+  const max = cats[0].total || 1;
   const html = cats.slice(0, 8).map((c, i) => `
     <div style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:3px">
-        <span>${c.emoji} ${c.categoria}</span>
+        <span>${escapeHTML(c.emoji || '')} ${escapeHTML(c.categoria)}</span>
         <span style="color:var(--accent2);font-weight:600">${fmt(c.total)}€</span>
       </div>
       <div class="progress-bar-wrap">
@@ -534,8 +538,8 @@ function renderTopList(top) {
   const html = top.map((p, i) => `
     <li>
       <div class="top-rank ${rankClass[i]||''}">${i+1}</div>
-      <span>${p.nombre}</span>
-      <span class="top-count">${p.veces}×</span>
+      <span>${escapeHTML(p.nombre)}</span>
+      <span class="top-count">${Number(p.veces) || 0}×</span>
     </li>`).join('');
   document.getElementById('top-list').innerHTML = html ||
     '<li style="color:var(--text2)">Sin datos suficientes</li>';
@@ -543,12 +547,13 @@ function renderTopList(top) {
 
 // ── Recomendaciones ──────────────────────────────────────
 function renderRec(items, containerId) {
+  const validTypes = new Set(['good', 'warn', 'bad', 'info', 'success', 'warning']);
   const html = items.map(r => `
-    <div class="rec-item ${r.tipo}">
-      <div class="rec-icon">${r.icon}</div>
+    <div class="rec-item ${validTypes.has(r.tipo) ? r.tipo : ''}">
+      <div class="rec-icon">${escapeHTML(r.icon)}</div>
       <div>
-        <div class="rec-titulo">${r.titulo}</div>
-        <div class="rec-texto">${r.texto}</div>
+        <div class="rec-titulo">${escapeHTML(r.titulo)}</div>
+        <div class="rec-texto">${escapeHTML(r.texto)}</div>
       </div>
     </div>`).join('');
   document.getElementById(containerId).innerHTML = html ||
@@ -569,10 +574,10 @@ function renderTickets(tickets) {
   tickets.forEach((t, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${formatFecha(t.fecha)}</td>
-      <td style="color:var(--text2)">${t.hora || ''}</td>
-      <td>${t.tienda || 'Consum'}</td>
-      <td style="color:var(--text2)">${t.num_articulos} art.</td>
+      <td>${escapeHTML(formatFecha(t.fecha))}</td>
+      <td style="color:var(--text2)">${escapeHTML(t.hora || '')}</td>
+      <td>${escapeHTML(t.tienda || 'Consum')}</td>
+      <td style="color:var(--text2)">${Number(t.num_articulos) || 0} art.</td>
       <td><span class="badge-total">${fmt(t.total)}€</span></td>
       <td>
         <button class="expand-btn" data-idx="${idx}" onclick="toggleArt(this, ${idx})">
@@ -590,8 +595,8 @@ function renderTickets(tickets) {
     const artHtml = artículos.length
       ? artículos.map(a => `
           <div class="artículo-item">
-            <span>${a.cantidad}× ${a.nombre}
-              <span class="cat-badge">${a.categoria}</span>
+            <span>${Number(a.cantidad) || 0}× ${escapeHTML(a.nombre)}
+              <span class="cat-badge">${escapeHTML(a.categoria)}</span>
             </span>
             <span style="color:var(--accent2);font-weight:600">${fmt(a.total)}€</span>
           </div>`).join('')
