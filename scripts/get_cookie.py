@@ -10,10 +10,13 @@ Instrucciones:
   6. Copia el contenido de cookies.json → GitHub Secret llamado CONSUM_COOKIES
 """
 
+import argparse
 import asyncio
 import json
 import logging
 import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -30,9 +33,89 @@ except ImportError:
     log.error("Playwright no está instalado. Ejecuta: pip install playwright && playwright install chromium")
     sys.exit(1)
 
+ROOT = Path(__file__).resolve().parent.parent
 LOGIN_URL = "https://www.consum.es/mundoconsum/acceso/"
 VERIFY_URL = "https://www.consum.es/mundoconsum/mi-ahorro/"
-OUTPUT_FILE = Path("cookies.json")
+OUTPUT_FILE = ROOT / "cookies.json"
+
+
+class CookieSyncError(RuntimeError):
+    """Error seguro al sincronizar secretos o disparar workflows con GitHub CLI."""
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Capturar cookies de sesión de Mundo Consum")
+    parser.add_argument(
+        "--push-secret",
+        action="store_true",
+        help="Subir cookies.json al secreto CONSUM_COOKIES en GitHub mediante 'gh secret set' (por stdin)",
+    )
+    parser.add_argument(
+        "--trigger-workflow",
+        action="store_true",
+        help="Lanzar 'gh workflow run daily.yml' tras guardar las cookies",
+    )
+    parser.add_argument(
+        "--repo",
+        type=str,
+        default=None,
+        help="Repositorio OWNER/REPO opcional para GitHub CLI",
+    )
+    return parser.parse_args(argv)
+
+
+def _require_gh() -> str:
+    gh = shutil.which("gh")
+    if not gh:
+        raise CookieSyncError(
+            "No se encontró GitHub CLI ('gh'). Instálalo desde https://cli.github.com/ "
+            "y autentícate con 'gh auth login'."
+        )
+    return gh
+
+
+def push_cookies_secret(cookies_file: Path, *, repo: str | None = None) -> None:
+    """Sube el contenido de cookies_file a CONSUM_COOKIES pasando el JSON por stdin (nunca en argv)."""
+    gh = _require_gh()
+    if not cookies_file.is_file():
+        raise CookieSyncError(f"No existe el archivo de cookies '{cookies_file}'.")
+    payload = cookies_file.read_text(encoding="utf-8")
+    cmd = [gh, "secret", "set", "CONSUM_COOKIES"]
+    if repo:
+        cmd.extend(["--repo", repo])
+    result = subprocess.run(cmd, input=payload, text=True, capture_output=True, check=False)
+    if result.returncode != 0:
+        stderr_lower = (result.stderr or "").lower()
+        if any(tok in stderr_lower for tok in ("auth", "login", "401", "token", "logged in")):
+            raise CookieSyncError(
+                "GitHub CLI ('gh') no está autenticado o no tiene permisos. "
+                "Ejecuta 'gh auth login' y vuelve a intentarlo."
+            )
+        raise CookieSyncError(
+            "No se pudo actualizar el secreto CONSUM_COOKIES en GitHub. "
+            "Verifica el repositorio (--repo OWNER/REPO) y 'gh auth status'."
+        )
+    log.info("Secreto CONSUM_COOKIES actualizado en GitHub Actions.")
+
+
+def trigger_daily_workflow(*, repo: str | None = None, workflow: str = "daily.yml") -> None:
+    """Dispara el workflow diario en GitHub Actions mediante gh workflow run."""
+    gh = _require_gh()
+    cmd = [gh, "workflow", "run", workflow]
+    if repo:
+        cmd.extend(["--repo", repo])
+    result = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if result.returncode != 0:
+        stderr_lower = (result.stderr or "").lower()
+        if any(tok in stderr_lower for tok in ("auth", "login", "401", "token", "logged in")):
+            raise CookieSyncError(
+                "GitHub CLI ('gh') no está autenticado. Ejecuta 'gh auth login' antes de lanzar el workflow."
+            )
+        raise CookieSyncError(
+            f"No se pudo lanzar el workflow '{workflow}' en GitHub Actions. "
+            "Verifica el repositorio (--repo OWNER/REPO) y 'gh auth status'."
+        )
+    log.info("Workflow '%s' iniciado en GitHub Actions.", workflow)
 
 
 async def prompt(message):
@@ -125,7 +208,8 @@ async def capture_session(context, output_file=None):
         return 0
 
 
-async def main():
+async def main(argv=None):
+    args = parse_args(argv)
     log.info("CAPTURADOR DE COOKIES — CONSUM TRACKER")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
@@ -137,9 +221,21 @@ async def main():
                     "Chrome/124.0.0.0 Safari/537.36"
                 )
             )
-            return await capture_session(context)
+            code = await capture_session(context, OUTPUT_FILE)
         finally:
             await browser.close()
+
+    if code != 0:
+        return code
+    try:
+        if args.push_secret:
+            push_cookies_secret(OUTPUT_FILE, repo=args.repo)
+        if args.trigger_workflow:
+            trigger_daily_workflow(repo=args.repo)
+    except CookieSyncError as exc:
+        log.error("%s", exc)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

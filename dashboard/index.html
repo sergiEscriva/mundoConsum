@@ -134,11 +134,56 @@
 
   .alert-banner {
     padding: 1rem 1.4rem; border-radius: var(--radius); margin-bottom: 1rem;
-    font-size: .9rem; font-weight: 500; display: flex; align-items: center; gap: .6rem;
+    font-size: .9rem; font-weight: 500; display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
   }
   .alert-banner.danger { background: #fdecea; color: var(--red); border: 1px solid #f5c6cb; }
   .alert-banner.warn { background: #fff8f0; color: var(--orange); border: 1px solid #ffd8b2; }
   .alert-banner.success { background: #edf8f0; color: var(--green); border: 1px solid #b3e4c3; }
+
+  /* Inflation & Shrinkflation */
+  .pill-badge {
+    display: inline-flex; align-items: center; gap: .25rem;
+    padding: .2rem .65rem; border-radius: 999px; font-size: .78rem; font-weight: 700;
+  }
+  .pill-badge.up { background: #fdecea; color: var(--red); }
+  .pill-badge.down { background: var(--green-lt); color: var(--green); }
+  .pill-badge.flat { background: var(--gray-1); color: var(--gray-4); }
+  .stat-strip {
+    display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem;
+  }
+  .stat-chip {
+    background: var(--gray-1); border-radius: 8px; padding: .45rem .8rem;
+    font-size: .82rem; color: var(--gray-4);
+  }
+  .stat-chip strong { color: var(--text); }
+  .shrink-alert {
+    background: #fff8f0; border: 1px solid #ffd8b2; border-left: 4px solid var(--orange);
+    border-radius: 8px; padding: .75rem 1rem; margin-bottom: .75rem; font-size: .84rem;
+  }
+  .shrink-alert strong { color: #b25000; }
+  .filter-pills { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .8rem; align-items: center; }
+  .btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn-sm { padding: .3rem .7rem; font-size: .78rem; }
+
+  /* Budget overview & NOVA bars */
+  .budget-overview {
+    background: var(--gray-1); border-radius: 10px; padding: .9rem 1rem; margin-bottom: 1rem;
+  }
+  .budget-overview-metrics {
+    display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between;
+    font-size: .84rem; margin-bottom: .5rem; color: var(--gray-4);
+  }
+  .nova-row { margin-bottom: .75rem; }
+  .nova-header { display: flex; justify-content: space-between; font-size: .83rem; margin-bottom: .25rem; gap: .5rem; }
+  .nova-bar-fill.n1 { background: var(--green); }
+  .nova-bar-fill.n2 { background: var(--blue); }
+  .nova-bar-fill.n3 { background: var(--orange); }
+  .nova-bar-fill.n4 { background: var(--red); }
+  .brand-split-bar {
+    display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--gray-2); margin: .6rem 0;
+  }
+  .brand-split-own { background: var(--green); height: 100%; }
+  .brand-split-other { background: #90caf9; height: 100%; }
 
   footer { text-align:center; font-size:.78rem; color:var(--gray-3); padding:1rem; border-top:1px solid var(--gray-2); margin-top:2rem; }
 </style>
@@ -193,12 +238,50 @@
       </div>
     </div>
 
+    <!-- Marca propia y perfil nutricional NOVA -->
+    <div class="card" id="nova-brand-card">
+      <div class="card-title">Marca propia y perfil nutricional (NOVA)</div>
+      <div class="two-col" style="margin-bottom:0">
+        <div id="private-brand-panel"></div>
+        <div id="nova-panel"></div>
+      </div>
+    </div>
+
+    <!-- Tu IPC personal y evolución de precios -->
+    <div class="card" id="inflation-card">
+      <div class="card-title" style="justify-content:space-between;flex-wrap:wrap">
+        <span>Tu IPC personal y evolución de precios</span>
+        <span id="inflation-kpi-badge"></span>
+      </div>
+      <div id="inflation-stats" class="stat-strip"></div>
+      <div id="shrinkflation-alerts"></div>
+      <div id="inflation-chart-container" class="chart-wrap" style="margin-bottom:1rem;display:none">
+        <canvas id="chart-inflation"></canvas>
+      </div>
+      <div class="filter-pills" id="inflation-controls" style="display:none">
+        <button type="button" class="btn btn-sm active" data-inf-filter="all" onclick="setInflationFilter('all')">Todos</button>
+        <button type="button" class="btn btn-sm" data-inf-filter="up" onclick="setInflationFilter('up')">Subidas</button>
+        <button type="button" class="btn btn-sm" data-inf-filter="down" onclick="setInflationFilter('down')">Bajadas</button>
+        <select id="inflation-sort" onchange="renderInflationTable()" style="margin-left:auto;padding:.3rem .6rem;border:1px solid var(--gray-2);border-radius:8px;font-size:.8rem">
+          <option value="impact">Ordenar: Mayor impacto (€)</option>
+          <option value="pct_desc">Ordenar: Mayor subida (%)</option>
+          <option value="pct_asc">Ordenar: Mayor bajada (%)</option>
+          <option value="name">Ordenar: Nombre</option>
+        </select>
+      </div>
+      <div id="inflation-table-wrap" style="overflow-x:auto"></div>
+    </div>
+
     <!-- Presupuestos -->
     <div class="card" id="budget-card">
-      <div class="card-title">Presupuesto por categoría (este mes)</div>
+      <div class="card-title" style="justify-content:space-between;flex-wrap:wrap">
+        <span id="budget-card-title">Presupuesto por categoría (este mes)</span>
+        <div id="budget-mode-toggle" style="display:none;gap:.35rem"></div>
+      </div>
       <div style="font-size:.82rem;color:var(--gray-3);margin-bottom:.8rem">
         Configura tus presupuestos editando <code>data/budgets.json</code>
       </div>
+      <div id="budget-overview"></div>
       <div id="budget-bars"></div>
     </div>
 
@@ -261,12 +344,27 @@ const PALETTE = [
 
 let DATA = null;
 let BUDGETS = null;
+let BUDGET_VIEW_MODE = "current";
+let INFLATION_FILTER = "all";
+const CHART_INSTANCES = {};
 
 function currentMonth(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en", {
     timeZone: "Europe/Madrid", year: "numeric", month: "2-digit"
   }).formatToParts(date);
   return `${parts.find(p => p.type === "year").value}-${parts.find(p => p.type === "month").value}`;
+}
+
+function currentDayMadrid(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Europe/Madrid", day: "numeric"
+  }).formatToParts(date);
+  return Math.max(1, parseInt(parts.find(p => p.type === "day").value, 10) || 1);
+}
+
+function daysInMonth(ym) {
+  const [y, m] = String(ym).split("-").map(Number);
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
 }
 
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => (
@@ -296,7 +394,7 @@ const fmt_date = iso => {
 };
 
 function renderKPIs(data) {
-  const md = data.monthly_data;
+  const md = data.monthly_data || [];
   const month = currentMonth();
   const last = md.find(m => m.month === month) || {total: 0, visits: 0};
   const previousDate = new Date(month + "-01T12:00:00Z");
@@ -312,11 +410,27 @@ function renderKPIs(data) {
     changeHtml = `<div class="change ${cls}">${arrow} ${Math.abs(changePct).toFixed(1)}% vs mes anterior</div>`;
   }
 
+  const sav = data.savings_summary || {
+    verified_discounts_total: 0,
+    estimated_unparsed_discounts: 0,
+    total_estimated_saved: 0,
+    tickets_with_savings: 0,
+  };
+  let savExtra = "";
+  if ((sav.verified_discounts_total || 0) > 0 && (sav.estimated_unparsed_discounts || 0) > 0) {
+    savExtra = `<div class="change down">${eur(sav.verified_discounts_total)} verificado · ${eur(sav.estimated_unparsed_discounts)} est.</div>`;
+  } else if ((sav.verified_discounts_total || 0) > 0) {
+    savExtra = `<div class="change down">${eur(sav.verified_discounts_total)} en cheques/vales</div>`;
+  } else if ((sav.estimated_unparsed_discounts || 0) > 0) {
+    savExtra = `<div class="change down">${eur(sav.estimated_unparsed_discounts)} estimado en cheques</div>`;
+  }
+
   document.getElementById("kpi-grid").innerHTML = [
-    { label:"Gasto total",    value: eur(data.total_spent),        sub: `${data.total_tickets} tickets` },
-    { label:"Ticket medio",   value: eur(data.avg_ticket),         sub: "por visita" },
-    { label:"Media mensual",  value: eur(data.avg_monthly_spent),  sub: "todos los meses" },
-    { label:"Este mes",       value: eur(last.total),              sub: `${last.visits||0} visitas`, extra: changeHtml },
+    { label:"Gasto total",          value: eur(data.total_spent),               sub: `${data.total_tickets} tickets` },
+    { label:"Ticket medio",         value: eur(data.avg_ticket),                sub: "por visita" },
+    { label:"Media mensual",        value: eur(data.avg_monthly_spent),         sub: "todos los meses" },
+    { label:"Este mes",             value: eur(last.total),                     sub: `${last.visits||0} visitas`, extra: changeHtml },
+    { label:"Ahorro Mundo Consum",  value: eur(sav.total_estimated_saved || 0), sub: `${sav.tickets_with_savings || 0} tickets con ahorro`, extra: savExtra },
   ].map(k => `
     <div class="kpi">
       <div class="label">${k.label}</div>
@@ -332,7 +446,7 @@ function renderMonthly(data) {
   const values = data.monthly_data.map(m => m.total);
   const movAvg = data.monthly_data.map(m => m.moving_avg);
 
-  new Chart(document.getElementById("chart-monthly"), {
+  return new Chart(document.getElementById("chart-monthly"), {
     type: "bar",
     data: {
       labels,
@@ -374,7 +488,7 @@ function renderMonthly(data) {
 
 function renderCategories(data) {
   const cats = data.categories.slice(0, 10);
-  new Chart(document.getElementById("chart-categories"), {
+  return new Chart(document.getElementById("chart-categories"), {
     type: "doughnut",
     data: {
       labels: cats.map(c => c.name),
@@ -394,6 +508,200 @@ function renderCategories(data) {
       cutout: "60%",
     }
   });
+}
+
+function renderInflationChart(data) {
+  const items = (data.inflation?.items || []).filter(i => i.change_pct !== 0).slice(0, 8);
+  if (!items.length) return null;
+  return new Chart(document.getElementById("chart-inflation"), {
+    type: "bar",
+    data: {
+      labels: items.map(i => i.canonical_name || i.name),
+      datasets: [{
+        label: "Variaci\u00F3n precio unitario (%)",
+        data: items.map(i => i.change_pct),
+        backgroundColor: items.map(i => i.change_pct > 0 ? "#e53935" : "#00843D"),
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw > 0 ? "+" : ""}${Number(ctx.raw).toFixed(2)}%` } }
+      },
+      scales: {
+        x: { ticks: { callback: v => `${v}%` }, grid: { color: "#f0f0f0" } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderNovaAndBrand(data) {
+  const brandPanel = document.getElementById("private-brand-panel");
+  const novaPanel = document.getElementById("nova-panel");
+  const share = Number(data.private_brand_share_pct ?? 0);
+  const clamped = Math.max(0, Math.min(share, 100));
+  const otherPct = Math.max(0, 100 - clamped);
+
+  brandPanel.innerHTML = `
+    <div style="font-size:.82rem;color:var(--gray-3);text-transform:uppercase;letter-spacing:.4px">Cuota marca propia</div>
+    <div style="font-size:1.75rem;font-weight:700;color:var(--green);margin:.2rem 0">${clamped.toFixed(1)}%</div>
+    <div class="brand-split-bar">
+      <div class="brand-split-own" style="width:${clamped}%"></div>
+      <div class="brand-split-other" style="width:${otherPct}%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--gray-4)">
+      <span>Marca propia (${clamped.toFixed(1)}%)</span>
+      <span>Fabricante / frescos (${otherPct.toFixed(1)}%)</span>
+    </div>
+    <div style="font-size:.78rem;color:var(--gray-3);margin-top:.4rem">
+      Incluye Consum, Kyrey, Bonté, Vikika y Electroobra.
+    </div>
+  `;
+
+  const nova = data.nova_distribution || [];
+  if (!nova.length) {
+    novaPanel.innerHTML = '<p style="color:#9e9e9e;font-size:.85rem">Sin distribución NOVA disponible.</p>';
+    return;
+  }
+  novaPanel.innerHTML = nova.map(g => {
+    const pct = Math.max(0, Math.min(Number(g.pct || 0), 100));
+    const grp = Number(g.group) || 1;
+    return `
+      <div class="nova-row" data-nova-group="${grp}">
+        <div class="nova-header">
+          <span style="font-weight:500">${escapeHTML(g.label)}</span>
+          <span style="color:var(--gray-4);white-space:nowrap"><strong>${pct.toFixed(1)}%</strong> · ${eur(g.total)} (${g.count || 0})</span>
+        </div>
+        <div class="budget-bar-bg">
+          <div class="budget-bar-fill nova-bar-fill n${grp}" style="width:${pct}%"></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function setInflationFilter(filter) {
+  INFLATION_FILTER = filter;
+  document.querySelectorAll("[data-inf-filter]").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-inf-filter") === filter);
+  });
+  renderInflationTable();
+}
+
+function renderInflationTable() {
+  const wrap = document.getElementById("inflation-table-wrap");
+  const inf = DATA?.inflation;
+  if (!inf || !inf.items || !inf.items.length) {
+    wrap.innerHTML = '<p style="color:#9e9e9e;font-size:.85rem">Se necesitan al menos 2 compras en distintas fechas de un mismo producto para calcular tu IPC personal.</p>';
+    return;
+  }
+  const sortMode = document.getElementById("inflation-sort")?.value || "impact";
+  let rows = inf.items.filter(item => {
+    if (INFLATION_FILTER === "up") return item.change_pct > 0;
+    if (INFLATION_FILTER === "down") return item.change_pct < 0;
+    return true;
+  });
+
+  rows = rows.slice().sort((a, b) => {
+    if (sortMode === "pct_desc") return (b.change_pct - a.change_pct) || a.name.localeCompare(b.name);
+    if (sortMode === "pct_asc") return (a.change_pct - b.change_pct) || a.name.localeCompare(b.name);
+    if (sortMode === "name") return (a.canonical_name || a.name).localeCompare(b.canonical_name || b.name);
+    const impA = Math.abs((a.total_spent || 0) * ((a.change_pct || 0) / 100));
+    const impB = Math.abs((b.total_spent || 0) * ((b.change_pct || 0) / 100));
+    return (impB - impA) || (Math.abs(b.change_pct) - Math.abs(a.change_pct));
+  });
+
+  if (!rows.length) {
+    wrap.innerHTML = '<p style="color:#9e9e9e;font-size:.85rem">No hay productos en este filtro.</p>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table class="tickets-table" id="inflation-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Evolución unitaria</th>
+          <th>Variación</th>
+          <th>Rango (mín – máx)</th>
+          <th>Fechas</th>
+        </tr>
+      </thead>
+      <tbody id="inflation-body">
+        ${rows.map(item => {
+          const pct = Number(item.change_pct || 0);
+          const cls = pct > 0 ? "up" : (pct < 0 ? "down" : "flat");
+          const sign = pct > 0 ? "+" : "";
+          const title = item.canonical_name || item.name;
+          return `
+            <tr class="inflation-row">
+              <td>
+                <div style="font-weight:600">${escapeHTML(title)}</div>
+                <div style="font-size:.76rem;color:var(--gray-3)">${escapeHTML(item.category || "")}</div>
+              </td>
+              <td>${eur(item.first_unit_price)} &rarr; <strong>${eur(item.last_unit_price)}</strong></td>
+              <td><span class="pill-badge ${cls}">${sign}${pct.toFixed(2)}%</span></td>
+              <td>${eur(item.min_unit_price)} – ${eur(item.max_unit_price)}</td>
+              <td>${item.observations} (${fmt_date(item.first_date)} &rarr; ${fmt_date(item.last_date)})</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderInflation(data) {
+  const inf = data.inflation || {
+    personal_ipc_pct: 0,
+    annualized_ipc_pct: null,
+    tracked_products: 0,
+    rising_products: 0,
+    falling_products: 0,
+    stable_products: 0,
+    items: [],
+    shrinkflation_alerts: [],
+  };
+  const badgeEl = document.getElementById("inflation-kpi-badge");
+  const statsEl = document.getElementById("inflation-stats");
+  const shrinkEl = document.getElementById("shrinkflation-alerts");
+  const controlsEl = document.getElementById("inflation-controls");
+  const chartWrap = document.getElementById("inflation-chart-container");
+
+  const ipc = Number(inf.personal_ipc_pct || 0);
+  const ipcCls = ipc > 0 ? "up" : (ipc < 0 ? "down" : "flat");
+  const ipcSign = ipc > 0 ? "+" : "";
+  const annText = inf.annualized_ipc_pct != null
+    ? ` · ${inf.annualized_ipc_pct > 0 ? "+" : ""}${Number(inf.annualized_ipc_pct).toFixed(2)}% anualizado`
+    : "";
+  badgeEl.innerHTML = `<span class="pill-badge ${ipcCls}">IPC cesta: ${ipcSign}${ipc.toFixed(2)}%${escapeHTML(annText)}</span>`;
+
+  statsEl.innerHTML = [
+    `<div class="stat-chip">Productos repetidos: <strong>${inf.tracked_products || 0}</strong></div>`,
+    `<div class="stat-chip">Subidas: <strong style="color:var(--red)">${inf.rising_products || 0}</strong></div>`,
+    `<div class="stat-chip">Bajadas: <strong style="color:var(--green)">${inf.falling_products || 0}</strong></div>`,
+    `<div class="stat-chip">Estables: <strong>${inf.stable_products || 0}</strong></div>`,
+  ].join("");
+
+  const alerts = inf.shrinkflation_alerts || [];
+  shrinkEl.innerHTML = alerts.map(a => `
+    <div class="shrink-alert">
+      <strong>Alerta de reduflación: ${escapeHTML(a.base_name)}</strong> —
+      formato ${escapeHTML(a.previous_size)} &rarr; ${escapeHTML(a.current_size)} (${Number(a.size_change_pct).toFixed(1)}%),
+      coste unitario ${Number(a.previous_unit_cost).toFixed(2)} &rarr; ${Number(a.current_unit_cost).toFixed(2)} ${escapeHTML(a.unit)}
+      (+${Number(a.unit_cost_change_pct).toFixed(1)}%, ${fmt_date(a.first_date)} &rarr; ${fmt_date(a.last_date)}).
+    </div>
+  `).join("");
+
+  const hasChanges = (inf.items || []).some(i => i.change_pct !== 0);
+  chartWrap.style.display = hasChanges ? "" : "none";
+  controlsEl.style.display = (inf.items || []).length ? "flex" : "none";
+  renderInflationTable();
 }
 
 function renderTopProducts(data) {
@@ -439,25 +747,96 @@ function renderTickets(data) {
     </td></tr>`;
 }
 
+function setBudgetMode(mode) {
+  BUDGET_VIEW_MODE = mode === "latest" ? "latest" : "current";
+  renderBudgets(DATA, BUDGETS);
+}
+
 function renderBudgets(data, budgets) {
   const container = document.getElementById("budget-bars");
+  const overview = document.getElementById("budget-overview");
+  const toggle = document.getElementById("budget-mode-toggle");
+  const titleEl = document.getElementById("budget-card-title");
+
   if (!budgets || !budgets.monthly) {
+    overview.innerHTML = "";
+    toggle.style.display = "none";
     container.innerHTML = '<p style="color:#9e9e9e;font-size:.85rem">Sin presupuestos definidos. Crea <code>data/budgets.json</code> para activarlos.</p>';
     return;
   }
 
   if (!data.monthly_categories) {
+    overview.innerHTML = "";
+    toggle.style.display = "none";
     container.textContent = "Regenera los datos para ver el presupuesto mensual.";
     return;
   }
-  const catSpentThisMonth = Object.fromEntries(
-    (data.monthly_categories[currentMonth()] || []).map(c => [c.name, c.total])
+
+  const curYm = currentMonth();
+  const md = data.monthly_data || [];
+  const curMonthEntry = md.find(m => m.month === curYm) || {month: curYm, label: curYm, total: 0, visits: 0};
+  const activeMonths = md.filter(m => (m.visits || 0) > 0 || (m.total || 0) > 0);
+  const latestActive = activeMonths.length ? activeMonths[activeMonths.length - 1] : null;
+  const canToggle = (curMonthEntry.total || 0) === 0 && latestActive && latestActive.month !== curYm;
+
+  if (!canToggle) {
+    BUDGET_VIEW_MODE = "current";
+    toggle.style.display = "none";
+    toggle.innerHTML = "";
+  } else {
+    toggle.style.display = "inline-flex";
+    toggle.innerHTML = `
+      <button type="button" class="btn btn-sm ${BUDGET_VIEW_MODE === "current" ? "active" : ""}" data-budget-mode="current" onclick="setBudgetMode('current')">Este mes</button>
+      <button type="button" class="btn btn-sm ${BUDGET_VIEW_MODE === "latest" ? "active" : ""}" data-budget-mode="latest" onclick="setBudgetMode('latest')">Último mes con compras (${escapeHTML(latestActive.label)})</button>
+    `;
+  }
+
+  const useLatest = canToggle && BUDGET_VIEW_MODE === "latest";
+  const targetYm = useLatest ? latestActive.month : curYm;
+  const targetEntry = useLatest ? latestActive : curMonthEntry;
+  titleEl.textContent = useLatest
+    ? `Presupuesto por categoría (${targetEntry.label})`
+    : "Presupuesto por categoría (este mes)";
+
+  const catEntries = Object.entries(budgets.monthly).filter(([, limit]) =>
+    typeof limit === "number" && Number.isFinite(limit) && limit > 0
+  );
+  const limitsSum = catEntries.reduce((acc, [, lim]) => acc + lim, 0);
+  const overallLimit = (typeof budgets.alert_monthly_total === "number" && budgets.alert_monthly_total > 0)
+    ? budgets.alert_monthly_total
+    : limitsSum;
+
+  const totalDays = daysInMonth(targetYm);
+  const elapsedDays = useLatest ? totalDays : Math.min(totalDays, currentDayMadrid());
+  const overallSpent = Number(targetEntry.total || 0);
+  const burnRate = elapsedDays > 0 ? overallSpent / elapsedDays : 0;
+  const projectedEnd = burnRate * totalDays;
+  const overallPct = overallLimit > 0 ? Math.max(0, Math.min((overallSpent / overallLimit) * 100, 100)) : 0;
+  const overallCls = overallPct >= 100 ? "over" : overallPct >= 80 ? "warn" : "ok";
+
+  if (overallLimit > 0) {
+    overview.innerHTML = `
+      <div class="budget-overview">
+        <div class="budget-overview-metrics">
+          <span>Gasto global: <strong>${eur(overallSpent)}</strong> / ${eur(overallLimit)}</span>
+          <span>Ritmo diario: <strong>${eur(burnRate)}/día</strong></span>
+          <span>Proyección fin de mes: <strong>${eur(projectedEnd)}</strong></span>
+        </div>
+        <div class="budget-bar-bg">
+          <div class="budget-bar-fill ${overallCls}" style="width:${overallPct}%"></div>
+        </div>
+      </div>
+    `;
+  } else {
+    overview.innerHTML = "";
+  }
+
+  const catSpentMap = Object.fromEntries(
+    (data.monthly_categories[targetYm] || []).map(c => [c.name, c.total])
   );
 
-  const html = Object.entries(budgets.monthly).filter(([, limit]) =>
-    typeof limit === "number" && Number.isFinite(limit) && limit > 0
-  ).map(([cat, limit]) => {
-    const spent = catSpentThisMonth[cat] || 0;
+  const html = catEntries.map(([cat, limit]) => {
+    const spent = catSpentMap[cat] || 0;
     const pct = Math.max(0, Math.min((spent / limit) * 100, 100));
     const cls = pct >= 100 ? "over" : pct >= 80 ? "warn" : "ok";
     return `
@@ -541,7 +920,7 @@ function renderDataQuality(data) {
       <div style="overflow-x:auto"><table class="tickets-table">
         <thead><tr><th>Ticket</th><th>Fecha</th><th>Total original</th><th>Líneas extraídas</th><th>Diferencia</th><th>Estado</th></tr></thead>
         <tbody>${issues.map(i => `<tr class="quality-ticket">
-          <td>${escapeHTML(i.id)}</td><td>${fmt_date(i.date)}</td>
+          <td>${escapeHTML(i.id || "\u2014")}</td><td>${fmt_date(i.date)}</td>
           <td>${eur(i.ticket_total)}</td><td>${eur(i.items_total)}</td><td>${eur(i.difference)}</td>
           <td>${i.status === "incomplete" ? "Sin líneas extraídas" : "Revisar líneas/descuentos"}</td>
         </tr>`).join("")}</tbody>
@@ -614,14 +993,23 @@ function exportCSV() {
 }
 
 function renderCharts(data) {
-  for (const [id, render] of [["chart-monthly", renderMonthly], ["chart-categories", renderCategories]]) {
+  const specs = [["chart-monthly", renderMonthly], ["chart-categories", renderCategories]];
+  if ((data.inflation?.items || []).some(i => i.change_pct !== 0)) {
+    specs.push(["chart-inflation", renderInflationChart]);
+  }
+  for (const [id, render] of specs) {
     const canvas = document.getElementById(id);
+    if (!canvas) continue;
+    if (CHART_INSTANCES[id]) {
+      try { CHART_INSTANCES[id].destroy(); } catch {}
+      delete CHART_INSTANCES[id];
+    }
     const prior = document.getElementById(id + "-error");
     if (prior) prior.remove();
     canvas.style.display = "";
     try {
       if (typeof Chart === "undefined") throw new Error("Chart.js no disponible");
-      render(data);
+      CHART_INSTANCES[id] = render(data);
     } catch (err) {
       canvas.style.display = "none";
       const message = document.createElement("p");
@@ -653,6 +1041,8 @@ function renderCharts(data) {
     renderClassification(data);
     renderKPIs(data);
     renderTopProducts(data);
+    renderNovaAndBrand(data);
+    renderInflation(data);
     renderBudgets(data, budgets);
     renderSearchCategories(data);
     renderTips(data.health_tips,  "health-tips");

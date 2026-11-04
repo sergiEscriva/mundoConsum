@@ -102,7 +102,7 @@
       "unit_price": 0.25,
       "total": 1.5,
       "category": "Bebidas",
-      "sold_by_kg": true
+      "sold_by_kg": false
     },
     {
       "name": "BOLSA COMPRA RECICL",
@@ -110,7 +110,7 @@
       "unit_price": 0.15,
       "total": 0.3,
       "category": "Higiene y Limpieza",
-      "sold_by_kg": true
+      "sold_by_kg": false
     }
   ],
   "tax_breakdown": [],

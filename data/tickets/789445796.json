@@ -14,7 +14,7 @@
       "unit_price": 0.96,
       "total": 2.88,
       "category": "Pan y Bollería",
-      "sold_by_kg": true
+      "sold_by_kg": false
     }
   ],
   "tax_breakdown": [],

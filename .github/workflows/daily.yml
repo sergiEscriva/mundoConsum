@@ -89,6 +89,14 @@ jobs:
             git push
           fi
 
+      - name: Notificar resumen de compra en Telegram
+        if: ${{ steps.scrape.outputs.exit_code == '0' || steps.scrape.outputs.exit_code == '4' }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/notify_telegram.py
+
       - name: Notificar si las cookies expiraron
         if: ${{ failure() && steps.scrape.outputs.exit_code == '1' }}
         run: |

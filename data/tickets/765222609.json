@@ -14,7 +14,7 @@
       "unit_price": 1.05,
       "total": 2.1,
       "category": "Conservas y Salsas",
-      "sold_by_kg": true
+      "sold_by_kg": false
     },
     {
       "name": "B.BASURA30LCONSUM20",

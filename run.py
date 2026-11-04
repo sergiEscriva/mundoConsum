@@ -65,19 +65,52 @@ def prepare_browser(python, with_deps=False):
         )
 
 
-def build(python, *, require_gemini=False, refresh=False):
+def build(python, *, require_gemini=False, refresh=False, anonymize=False):
     args = [python, ROOT / "scripts/build_data.py"]
     if require_gemini:
         args.append("--require-gemini")
     if refresh:
         args.append("--refresh-categories")
+    if anonymize:
+        args.append("--anonymize")
     if execute(args):
         raise LocalError("No se pudieron generar los datos. Revisa los archivos indicados en los mensajes anteriores.")
 
 
-def login(python):
-    if execute([python, ROOT / "scripts/get_cookie.py"]):
+def login(python, *, push_secret=False, trigger_workflow=False, repo=None):
+    args = [python, ROOT / "scripts/get_cookie.py"]
+    if push_secret:
+        args.append("--push-secret")
+    if trigger_workflow:
+        args.append("--trigger-workflow")
+    if repo:
+        args.extend(["--repo", repo])
+    if execute(args):
         raise LocalError("No se completó el inicio de sesión. Vuelve a ejecutar: python run.py login")
+
+
+def has_chromium(python) -> bool:
+    """Detecta si existe Chromium del sistema o de Playwright para exigir tests de navegador."""
+    import shutil
+
+    if shutil.which("chromium") or shutil.which("chromium-browser"):
+        return True
+    py_path = Path(python)
+    if py_path.is_file():
+        probe = subprocess.run(
+            [
+                str(py_path),
+                "-c",
+                "from pathlib import Path; from playwright.sync_api import sync_playwright; "
+                "p = sync_playwright().start(); ok = Path(p.chromium.executable_path).exists(); "
+                "p.stop(); raise SystemExit(0 if ok else 1)",
+            ],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return probe.returncode == 0
+    return False
 
 
 def update(python):
@@ -165,11 +198,19 @@ def main(argv=None):
     parser.add_argument("--no-browser", action="store_true", help="no abrir automáticamente el navegador")
     parser.add_argument("--with-deps", action="store_true", help="instalar también bibliotecas de Chromium (Linux)")
     parser.add_argument("--refresh-categories", action="store_true", help="volver a consultar a Gemini incluso para productos en caché")
+    parser.add_argument("--push-secret", action="store_true", help="subir cookies.json a CONSUM_COOKIES en GitHub tras login")
+    parser.add_argument("--trigger-workflow", action="store_true", help="lanzar daily.yml en GitHub Actions tras login")
+    parser.add_argument("--repo", default=None, help="repositorio OWNER/REPO opcional para GitHub CLI")
+    parser.add_argument("--anonymize", action="store_true", help="omitir tiendas concretas e IDs de ticket al generar summary.json")
     args = parser.parse_args(argv)
     if not 0 <= args.port <= 65535:
         parser.error("el puerto debe estar entre 0 y 65535")
     if args.refresh_categories and args.command not in {"categorize", "build"}:
         parser.error("--refresh-categories se usa con categorize o build")
+    if (args.push_secret or args.trigger_workflow or args.repo) and args.command != "login":
+        parser.error("--push-secret, --trigger-workflow y --repo solo se usan con login")
+    if args.anonymize and args.command != "build":
+        parser.error("--anonymize solo se usa con build")
     if sys.version_info < (3, 10):
         parser.error("se necesita Python 3.10 o superior; se recomienda 3.12")
     try:
@@ -179,13 +220,21 @@ def main(argv=None):
         if args.command == "setup":
             print("Entorno preparado. Para abrir el dashboard: python run.py", flush=True)
         elif args.command == "login":
-            login(python)
+            if args.push_secret or args.trigger_workflow or args.repo:
+                login(
+                    python,
+                    push_secret=args.push_secret,
+                    trigger_workflow=args.trigger_workflow,
+                    repo=args.repo,
+                )
+            else:
+                login(python)
             print("Sesión guardada. Para descargar tus tickets: python run.py update", flush=True)
         elif args.command == "update":
             update(python)
         elif args.command == "build":
-            if args.refresh_categories:
-                build(python, refresh=True)
+            if args.refresh_categories or args.anonymize:
+                build(python, refresh=args.refresh_categories, anonymize=args.anonymize)
             else:
                 build(python)
         elif args.command == "categorize":
@@ -194,6 +243,9 @@ def main(argv=None):
             build(python, require_gemini=True, refresh=args.refresh_categories)
             print("Catálogo clasificado con Gemini. Recarga el dashboard o ábrelo con python run.py.", flush=True)
         elif args.command == "test":
+            if has_chromium(python):
+                return execute([python, "-m", "pytest", ROOT / "tests", "-v"],
+                               env={**os.environ, "REQUIRE_BROWSER_TESTS": "1"})
             return execute([python, "-m", "pytest", ROOT / "tests", "-v"])
         else:
             build(python)

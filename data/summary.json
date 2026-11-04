@@ -1,13 +1,822 @@
 {
-  "generated_at": "2026-11-02T15:34:27.093883",
+  "generated_at": "2026-11-04T11:37:45.525205+00:00",
   "total_tickets": 46,
   "total_spent": 376.92,
   "avg_ticket": 8.19,
   "avg_monthly_spent": 125.64,
+  "savings_summary": {
+    "verified_discounts_total": 0.0,
+    "estimated_unparsed_discounts": 16.2,
+    "total_estimated_saved": 16.2,
+    "tickets_with_savings": 4
+  },
+  "private_brand_share_pct": 23.8,
+  "nova_distribution": [
+    {
+      "group": 1,
+      "label": "NOVA 1 · Alimentos frescos o mínimamente procesados",
+      "total": 142.03,
+      "pct": 41.9,
+      "count": 49
+    },
+    {
+      "group": 2,
+      "label": "NOVA 2 · Ingredientes culinarios procesados",
+      "total": 14.39,
+      "pct": 4.2,
+      "count": 7
+    },
+    {
+      "group": 3,
+      "label": "NOVA 3 · Alimentos procesados",
+      "total": 47.67,
+      "pct": 14.1,
+      "count": 26
+    },
+    {
+      "group": 4,
+      "label": "NOVA 4 · Ultraprocesados",
+      "total": 135.15,
+      "pct": 39.8,
+      "count": 56
+    }
+  ],
+  "inflation": {
+    "personal_ipc_pct": 0.88,
+    "annualized_ipc_pct": 3.98,
+    "span_days": 82,
+    "tracked_products": 23,
+    "rising_products": 5,
+    "falling_products": 3,
+    "stable_products": 15,
+    "items": [
+      {
+        "name": "POLLO LIMPIO",
+        "canonical_name": "POLLO LIMPIO",
+        "category": "Carne y Pescado",
+        "observations": 3,
+        "first_date": "2026-01-19",
+        "last_date": "2026-02-24",
+        "first_unit_price": 7.05,
+        "last_unit_price": 6.23,
+        "min_unit_price": 6.23,
+        "max_unit_price": 7.05,
+        "change_pct": -11.63,
+        "total_spent": 19.63,
+        "price_history": [
+          {
+            "date": "2026-01-19",
+            "unit_price": 7.05
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 6.35
+          },
+          {
+            "date": "2026-02-24",
+            "unit_price": 6.23
+          }
+        ]
+      },
+      {
+        "name": "BOLSA COMPRA RECICL",
+        "canonical_name": "BOLSA COMPRA RECICL",
+        "category": "Higiene y Limpieza",
+        "observations": 6,
+        "first_date": "2026-01-07",
+        "last_date": "2026-02-24",
+        "first_unit_price": 0.07,
+        "last_unit_price": 0.15,
+        "min_unit_price": 0.07,
+        "max_unit_price": 0.15,
+        "change_pct": 114.29,
+        "total_spent": 1.49,
+        "price_history": [
+          {
+            "date": "2026-01-07",
+            "unit_price": 0.07
+          },
+          {
+            "date": "2026-01-13",
+            "unit_price": 0.15
+          },
+          {
+            "date": "2026-01-19",
+            "unit_price": 0.15
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 0.15
+          },
+          {
+            "date": "2026-02-10",
+            "unit_price": 0.07
+          },
+          {
+            "date": "2026-02-24",
+            "unit_price": 0.15
+          }
+        ]
+      },
+      {
+        "name": "AGUA CONSUM 1,5L",
+        "canonical_name": "AGUA CONSUM 1,5L",
+        "category": "Bebidas",
+        "observations": 8,
+        "first_date": "2026-01-19",
+        "last_date": "2026-03-26",
+        "first_unit_price": 0.25,
+        "last_unit_price": 0.27,
+        "min_unit_price": 0.25,
+        "max_unit_price": 0.27,
+        "change_pct": 8.0,
+        "total_spent": 14.22,
+        "price_history": [
+          {
+            "date": "2026-01-19",
+            "unit_price": 0.25
+          },
+          {
+            "date": "2026-01-29",
+            "unit_price": 0.25
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 0.25
+          },
+          {
+            "date": "2026-02-10",
+            "unit_price": 0.27
+          },
+          {
+            "date": "2026-02-24",
+            "unit_price": 0.27
+          },
+          {
+            "date": "2026-03-03",
+            "unit_price": 0.27
+          },
+          {
+            "date": "2026-03-21",
+            "unit_price": 0.27
+          },
+          {
+            "date": "2026-03-26",
+            "unit_price": 0.27
+          }
+        ]
+      },
+      {
+        "name": "BONIATO ROJO",
+        "canonical_name": "BONIATO ROJO",
+        "category": "Frutas y Verduras",
+        "observations": 3,
+        "first_date": "2026-02-02",
+        "last_date": "2026-02-24",
+        "first_unit_price": 2.29,
+        "last_unit_price": 2.6,
+        "min_unit_price": 2.29,
+        "max_unit_price": 2.87,
+        "change_pct": 13.54,
+        "total_spent": 7.76,
+        "price_history": [
+          {
+            "date": "2026-02-02",
+            "unit_price": 2.29
+          },
+          {
+            "date": "2026-02-10",
+            "unit_price": 2.87
+          },
+          {
+            "date": "2026-02-24",
+            "unit_price": 2.6
+          }
+        ]
+      },
+      {
+        "name": "ALAS PARTIDAS POLLO",
+        "canonical_name": "ALAS PARTIDAS POLLO",
+        "category": "Carne y Pescado",
+        "observations": 3,
+        "first_date": "2026-03-05",
+        "last_date": "2026-03-30",
+        "first_unit_price": 2.78,
+        "last_unit_price": 2.5,
+        "min_unit_price": 2.5,
+        "max_unit_price": 3.18,
+        "change_pct": -10.07,
+        "total_spent": 8.46,
+        "price_history": [
+          {
+            "date": "2026-03-05",
+            "unit_price": 2.78
+          },
+          {
+            "date": "2026-03-23",
+            "unit_price": 3.18
+          },
+          {
+            "date": "2026-03-30",
+            "unit_price": 2.5
+          }
+        ]
+      },
+      {
+        "name": "BURGER POLLO VERDUR",
+        "canonical_name": "BURGER POLLO VERDUR",
+        "category": "Carne y Pescado",
+        "observations": 2,
+        "first_date": "2026-01-13",
+        "last_date": "2026-03-21",
+        "first_unit_price": 2.44,
+        "last_unit_price": 2.65,
+        "min_unit_price": 2.44,
+        "max_unit_price": 2.65,
+        "change_pct": 8.61,
+        "total_spent": 5.09,
+        "price_history": [
+          {
+            "date": "2026-01-13",
+            "unit_price": 2.44
+          },
+          {
+            "date": "2026-03-21",
+            "unit_price": 2.65
+          }
+        ]
+      },
+      {
+        "name": "PATATA FREIR 2 KG",
+        "canonical_name": "PATATA FREIR 2KG",
+        "category": "Frutas y Verduras",
+        "observations": 2,
+        "first_date": "2026-01-13",
+        "last_date": "2026-03-21",
+        "first_unit_price": 3.8,
+        "last_unit_price": 3.9,
+        "min_unit_price": 3.8,
+        "max_unit_price": 3.9,
+        "change_pct": 2.63,
+        "total_spent": 7.7,
+        "price_history": [
+          {
+            "date": "2026-01-13",
+            "unit_price": 3.8
+          },
+          {
+            "date": "2026-03-21",
+            "unit_price": 3.9
+          }
+        ]
+      },
+      {
+        "name": "LONGANIZA POLLO",
+        "canonical_name": "LONGANIZA POLLO",
+        "category": "Carne y Pescado",
+        "observations": 2,
+        "first_date": "2026-01-19",
+        "last_date": "2026-02-02",
+        "first_unit_price": 2.91,
+        "last_unit_price": 2.88,
+        "min_unit_price": 2.88,
+        "max_unit_price": 2.91,
+        "change_pct": -1.03,
+        "total_spent": 5.79,
+        "price_history": [
+          {
+            "date": "2026-01-19",
+            "unit_price": 2.91
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 2.88
+          }
+        ]
+      },
+      {
+        "name": "ALBONDIGA MIXTA",
+        "canonical_name": "ALBONDIGA MIXTA",
+        "category": "Carne y Pescado",
+        "observations": 2,
+        "first_date": "2026-01-13",
+        "last_date": "2026-01-19",
+        "first_unit_price": 3.25,
+        "last_unit_price": 3.25,
+        "min_unit_price": 3.25,
+        "max_unit_price": 3.25,
+        "change_pct": 0.0,
+        "total_spent": 6.5,
+        "price_history": [
+          {
+            "date": "2026-01-13",
+            "unit_price": 3.25
+          },
+          {
+            "date": "2026-01-19",
+            "unit_price": 3.25
+          }
+        ]
+      },
+      {
+        "name": "B.BASURA30LCONSUM20",
+        "canonical_name": "B.BASURA30LCONSUM20",
+        "category": "Higiene y Limpieza",
+        "observations": 3,
+        "first_date": "2026-01-10",
+        "last_date": "2026-03-21",
+        "first_unit_price": 1.45,
+        "last_unit_price": 1.45,
+        "min_unit_price": 1.45,
+        "max_unit_price": 1.45,
+        "change_pct": 0.0,
+        "total_spent": 4.35,
+        "price_history": [
+          {
+            "date": "2026-01-10",
+            "unit_price": 1.45
+          },
+          {
+            "date": "2026-02-06",
+            "unit_price": 1.45
+          },
+          {
+            "date": "2026-03-21",
+            "unit_price": 1.45
+          }
+        ]
+      },
+      {
+        "name": "BARRA DE PAN 2 UDS",
+        "canonical_name": "BARRA DE PAN 2UDS",
+        "category": "Pan y Bollería",
+        "observations": 2,
+        "first_date": "2026-03-02",
+        "last_date": "2026-03-09",
+        "first_unit_price": 0.96,
+        "last_unit_price": 0.96,
+        "min_unit_price": 0.96,
+        "max_unit_price": 0.96,
+        "change_pct": 0.0,
+        "total_spent": 3.84,
+        "price_history": [
+          {
+            "date": "2026-03-02",
+            "unit_price": 0.96
+          },
+          {
+            "date": "2026-03-09",
+            "unit_price": 0.96
+          }
+        ]
+      },
+      {
+        "name": "BARRA ESPIGA TRADIC",
+        "canonical_name": "BARRA ESPIGA TRADIC",
+        "category": "Pan y Bollería",
+        "observations": 5,
+        "first_date": "2026-01-07",
+        "last_date": "2026-02-05",
+        "first_unit_price": 0.69,
+        "last_unit_price": 0.69,
+        "min_unit_price": 0.69,
+        "max_unit_price": 0.69,
+        "change_pct": 0.0,
+        "total_spent": 3.45,
+        "price_history": [
+          {
+            "date": "2026-01-07",
+            "unit_price": 0.69
+          },
+          {
+            "date": "2026-01-13",
+            "unit_price": 0.69
+          },
+          {
+            "date": "2026-01-14",
+            "unit_price": 0.69
+          },
+          {
+            "date": "2026-01-27",
+            "unit_price": 0.69
+          },
+          {
+            "date": "2026-02-05",
+            "unit_price": 0.69
+          }
+        ]
+      },
+      {
+        "name": "BURGER POLLO PAVO",
+        "canonical_name": "BURGER POLLO PAVO",
+        "category": "Carne y Pescado",
+        "observations": 2,
+        "first_date": "2026-02-24",
+        "last_date": "2026-03-30",
+        "first_unit_price": 2.53,
+        "last_unit_price": 2.53,
+        "min_unit_price": 2.53,
+        "max_unit_price": 2.53,
+        "change_pct": 0.0,
+        "total_spent": 5.06,
+        "price_history": [
+          {
+            "date": "2026-02-24",
+            "unit_price": 2.53
+          },
+          {
+            "date": "2026-03-30",
+            "unit_price": 2.53
+          }
+        ]
+      },
+      {
+        "name": "CHAP.CRISTAL ACEITE",
+        "canonical_name": "CHAP.CRISTAL ACEITE",
+        "category": "Conservas y Salsas",
+        "observations": 4,
+        "first_date": "2026-01-10",
+        "last_date": "2026-02-10",
+        "first_unit_price": 1.05,
+        "last_unit_price": 1.05,
+        "min_unit_price": 1.05,
+        "max_unit_price": 1.05,
+        "change_pct": 0.0,
+        "total_spent": 6.3,
+        "price_history": [
+          {
+            "date": "2026-01-10",
+            "unit_price": 1.05
+          },
+          {
+            "date": "2026-01-27",
+            "unit_price": 1.05
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 1.05
+          },
+          {
+            "date": "2026-02-10",
+            "unit_price": 1.05
+          }
+        ]
+      },
+      {
+        "name": "GALL.TOSTA RICA760",
+        "canonical_name": "GALL.TOSTA RICA760",
+        "category": "Pan y Bollería",
+        "observations": 2,
+        "first_date": "2026-01-07",
+        "last_date": "2026-01-19",
+        "first_unit_price": 3.99,
+        "last_unit_price": 3.99,
+        "min_unit_price": 3.99,
+        "max_unit_price": 3.99,
+        "change_pct": 0.0,
+        "total_spent": 7.98,
+        "price_history": [
+          {
+            "date": "2026-01-07",
+            "unit_price": 3.99
+          },
+          {
+            "date": "2026-01-19",
+            "unit_price": 3.99
+          }
+        ]
+      },
+      {
+        "name": "JAMÓN G.R.CONSU120G",
+        "canonical_name": "JAMÓN G.R.CONSU120G",
+        "category": "Carne y Pescado",
+        "observations": 2,
+        "first_date": "2026-02-24",
+        "last_date": "2026-03-03",
+        "first_unit_price": 2.45,
+        "last_unit_price": 2.45,
+        "min_unit_price": 2.45,
+        "max_unit_price": 2.45,
+        "change_pct": 0.0,
+        "total_spent": 4.9,
+        "price_history": [
+          {
+            "date": "2026-02-24",
+            "unit_price": 2.45
+          },
+          {
+            "date": "2026-03-03",
+            "unit_price": 2.45
+          }
+        ]
+      },
+      {
+        "name": "KIWI VERDE BANDEJA",
+        "canonical_name": "KIWI VERDE BANDEJA",
+        "category": "Frutas y Verduras",
+        "observations": 2,
+        "first_date": "2026-01-19",
+        "last_date": "2026-02-24",
+        "first_unit_price": 2.69,
+        "last_unit_price": 2.69,
+        "min_unit_price": 2.69,
+        "max_unit_price": 2.69,
+        "change_pct": 0.0,
+        "total_spent": 5.38,
+        "price_history": [
+          {
+            "date": "2026-01-19",
+            "unit_price": 2.69
+          },
+          {
+            "date": "2026-02-24",
+            "unit_price": 2.69
+          }
+        ]
+      },
+      {
+        "name": "MOZZAR.RALL.CONSUM",
+        "canonical_name": "MOZZAR.RALL.CONSUM",
+        "category": "Lácteos y Huevos",
+        "observations": 8,
+        "first_date": "2026-01-07",
+        "last_date": "2026-03-24",
+        "first_unit_price": 1.65,
+        "last_unit_price": 1.65,
+        "min_unit_price": 1.65,
+        "max_unit_price": 1.65,
+        "change_pct": 0.0,
+        "total_spent": 18.15,
+        "price_history": [
+          {
+            "date": "2026-01-07",
+            "unit_price": 1.65
+          },
+          {
+            "date": "2026-01-14",
+            "unit_price": 1.65
+          },
+          {
+            "date": "2026-01-23",
+            "unit_price": 1.65
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 1.65
+          },
+          {
+            "date": "2026-02-10",
+            "unit_price": 1.65
+          },
+          {
+            "date": "2026-02-23",
+            "unit_price": 1.65
+          },
+          {
+            "date": "2026-02-24",
+            "unit_price": 1.65
+          },
+          {
+            "date": "2026-03-24",
+            "unit_price": 1.65
+          }
+        ]
+      },
+      {
+        "name": "PESTO CONSUM 185 G",
+        "canonical_name": "PESTO CONSUM 185G",
+        "category": "Conservas y Salsas",
+        "observations": 2,
+        "first_date": "2026-01-10",
+        "last_date": "2026-02-02",
+        "first_unit_price": 1.95,
+        "last_unit_price": 1.95,
+        "min_unit_price": 1.95,
+        "max_unit_price": 1.95,
+        "change_pct": 0.0,
+        "total_spent": 3.9,
+        "price_history": [
+          {
+            "date": "2026-01-10",
+            "unit_price": 1.95
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 1.95
+          }
+        ]
+      },
+      {
+        "name": "PIMIENTO TRICOLOR",
+        "canonical_name": "PIMIENTO TRICOLOR",
+        "category": "Frutas y Verduras",
+        "observations": 2,
+        "first_date": "2026-01-15",
+        "last_date": "2026-02-02",
+        "first_unit_price": 1.99,
+        "last_unit_price": 1.99,
+        "min_unit_price": 1.99,
+        "max_unit_price": 1.99,
+        "change_pct": 0.0,
+        "total_spent": 3.98,
+        "price_history": [
+          {
+            "date": "2026-01-15",
+            "unit_price": 1.99
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 1.99
+          }
+        ]
+      },
+      {
+        "name": "SAZ. FAJITA 24X30G",
+        "canonical_name": "SAZ. FAJITA 24X30G",
+        "category": "Conservas y Salsas",
+        "observations": 3,
+        "first_date": "2026-01-15",
+        "last_date": "2026-02-02",
+        "first_unit_price": 1.0,
+        "last_unit_price": 1.0,
+        "min_unit_price": 1.0,
+        "max_unit_price": 1.0,
+        "change_pct": 0.0,
+        "total_spent": 3.0,
+        "price_history": [
+          {
+            "date": "2026-01-15",
+            "unit_price": 1.0
+          },
+          {
+            "date": "2026-01-19",
+            "unit_price": 1.0
+          },
+          {
+            "date": "2026-02-02",
+            "unit_price": 1.0
+          }
+        ]
+      },
+      {
+        "name": "TOR. TRIGO CONS 10U",
+        "canonical_name": "TOR. TRIGO CONSUM 10U",
+        "category": "Pan y Bollería",
+        "observations": 2,
+        "first_date": "2026-02-02",
+        "last_date": "2026-03-11",
+        "first_unit_price": 1.15,
+        "last_unit_price": 1.15,
+        "min_unit_price": 1.15,
+        "max_unit_price": 1.15,
+        "change_pct": 0.0,
+        "total_spent": 2.3,
+        "price_history": [
+          {
+            "date": "2026-02-02",
+            "unit_price": 1.15
+          },
+          {
+            "date": "2026-03-11",
+            "unit_price": 1.15
+          }
+        ]
+      },
+      {
+        "name": "WRAP TRIGO CONSUM",
+        "canonical_name": "WRAP TRIGO CONSUM",
+        "category": "Otros",
+        "observations": 2,
+        "first_date": "2026-01-15",
+        "last_date": "2026-01-19",
+        "first_unit_price": 1.5,
+        "last_unit_price": 1.5,
+        "min_unit_price": 1.5,
+        "max_unit_price": 1.5,
+        "change_pct": 0.0,
+        "total_spent": 3.0,
+        "price_history": [
+          {
+            "date": "2026-01-15",
+            "unit_price": 1.5
+          },
+          {
+            "date": "2026-01-19",
+            "unit_price": 1.5
+          }
+        ]
+      }
+    ],
+    "shrinkflation_alerts": [
+      {
+        "base_name": "JAMÓN GRAN RESERVA CONSUM",
+        "previous_name": "JAMÓN G.RES.CONS250",
+        "current_name": "JAMÓN G.R.CONSU120G",
+        "previous_size": "250 g",
+        "current_size": "120 g",
+        "unit": "€/kg",
+        "first_date": "2026-01-13",
+        "last_date": "2026-03-03",
+        "previous_price": 4.25,
+        "current_price": 2.45,
+        "previous_unit_cost": 17.0,
+        "current_unit_cost": 20.42,
+        "size_change_pct": -52.0,
+        "unit_cost_change_pct": 20.1
+      }
+    ]
+  },
+  "budget_summary": {
+    "month": "2026-03",
+    "label": "mar 2026",
+    "is_current_month": false,
+    "categories": [
+      {
+        "category": "Carne y Pescado",
+        "spent": 46.65,
+        "limit": 80.0,
+        "pct": 58.3,
+        "status": "ok"
+      },
+      {
+        "category": "Lácteos y Huevos",
+        "spent": 4.49,
+        "limit": 30.0,
+        "pct": 15.0,
+        "status": "ok"
+      },
+      {
+        "category": "Bebidas",
+        "spent": 12.69,
+        "limit": 20.0,
+        "pct": 63.4,
+        "status": "ok"
+      },
+      {
+        "category": "Frutas y Verduras",
+        "spent": 5.78,
+        "limit": 40.0,
+        "pct": 14.5,
+        "status": "ok"
+      },
+      {
+        "category": "Pan y Bollería",
+        "spent": 11.42,
+        "limit": 25.0,
+        "pct": 45.7,
+        "status": "ok"
+      },
+      {
+        "category": "Congelados y Preparados",
+        "spent": 11.05,
+        "limit": 20.0,
+        "pct": 55.2,
+        "status": "ok"
+      },
+      {
+        "category": "Pasta, Arroz y Legumbres",
+        "spent": 0.0,
+        "limit": 15.0,
+        "pct": 0.0,
+        "status": "ok"
+      },
+      {
+        "category": "Conservas y Salsas",
+        "spent": 1.59,
+        "limit": 15.0,
+        "pct": 10.6,
+        "status": "ok"
+      },
+      {
+        "category": "Snacks y Dulces",
+        "spent": 2.45,
+        "limit": 15.0,
+        "pct": 16.3,
+        "status": "ok"
+      },
+      {
+        "category": "Higiene y Limpieza",
+        "spent": 15.23,
+        "limit": 20.0,
+        "pct": 76.2,
+        "status": "ok"
+      }
+    ],
+    "overall": {
+      "spent": 108.55,
+      "limit": 300.0,
+      "pct": 36.2,
+      "status": "ok",
+      "burn_rate_daily": 3.5,
+      "projected_month_end": 108.55,
+      "days_elapsed": 31,
+      "days_in_month": 31
+    }
+  },
   "monthly_data": [
     {
       "month": "2026-01",
-      "label": "Jan 2026",
+      "label": "ene 2026",
       "total": 151.85,
       "visits": 18,
       "change_pct": null,
@@ -15,7 +824,7 @@
     },
     {
       "month": "2026-02",
-      "label": "Feb 2026",
+      "label": "feb 2026",
       "total": 116.52,
       "visits": 12,
       "change_pct": -23.3,
@@ -23,7 +832,7 @@
     },
     {
       "month": "2026-03",
-      "label": "Mar 2026",
+      "label": "mar 2026",
       "total": 108.55,
       "visits": 16,
       "change_pct": -6.8,
@@ -97,121 +906,141 @@
       "name": "AGUA CONSUM 1,5L",
       "category": "Bebidas",
       "times": 9,
-      "total_spent": 14.22
+      "total_spent": 14.22,
+      "is_private_brand": true
     },
     {
       "name": "MOZZAR.RALL.CONSUM",
       "category": "Lácteos y Huevos",
       "times": 8,
-      "total_spent": 18.15
+      "total_spent": 18.15,
+      "is_private_brand": true
     },
     {
       "name": "BOLSA COMPRA RECICL",
       "category": "Higiene y Limpieza",
       "times": 6,
-      "total_spent": 1.49
+      "total_spent": 1.49,
+      "is_private_brand": false
     },
     {
       "name": "BARRA ESPIGA TRADIC",
       "category": "Pan y Bollería",
       "times": 5,
-      "total_spent": 3.45
+      "total_spent": 3.45,
+      "is_private_brand": false
     },
     {
       "name": "CHAP.CRISTAL ACEITE",
       "category": "Conservas y Salsas",
       "times": 4,
-      "total_spent": 6.3
+      "total_spent": 6.3,
+      "is_private_brand": false
     },
     {
       "name": "ALAS PARTIDAS POLLO",
       "category": "Carne y Pescado",
       "times": 3,
-      "total_spent": 8.46
+      "total_spent": 8.46,
+      "is_private_brand": false
     },
     {
       "name": "B.BASURA30LCONSUM20",
       "category": "Higiene y Limpieza",
       "times": 3,
-      "total_spent": 4.35
+      "total_spent": 4.35,
+      "is_private_brand": true
     },
     {
       "name": "BONIATO ROJO",
       "category": "Frutas y Verduras",
       "times": 3,
-      "total_spent": 7.76
+      "total_spent": 7.76,
+      "is_private_brand": false
     },
     {
       "name": "POLLO LIMPIO",
       "category": "Carne y Pescado",
       "times": 3,
-      "total_spent": 19.63
+      "total_spent": 19.63,
+      "is_private_brand": false
     },
     {
       "name": "SAZ. FAJITA 24X30G",
       "category": "Conservas y Salsas",
       "times": 3,
-      "total_spent": 3.0
+      "total_spent": 3.0,
+      "is_private_brand": false
     },
     {
       "name": "ALBONDIGA MIXTA",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 6.5
+      "total_spent": 6.5,
+      "is_private_brand": false
     },
     {
       "name": "BARRA DE PAN 2 UDS",
       "category": "Pan y Bollería",
       "times": 2,
-      "total_spent": 3.84
+      "total_spent": 3.84,
+      "is_private_brand": false
     },
     {
       "name": "BURGER POLLO PAVO",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 5.06
+      "total_spent": 5.06,
+      "is_private_brand": false
     },
     {
       "name": "BURGER POLLO VERDUR",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 5.09
+      "total_spent": 5.09,
+      "is_private_brand": false
     },
     {
       "name": "GALL.TOSTA RICA760",
       "category": "Pan y Bollería",
       "times": 2,
-      "total_spent": 7.98
+      "total_spent": 7.98,
+      "is_private_brand": false
     },
     {
       "name": "JAMÓN G.R.CONSU120G",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 4.9
+      "total_spent": 4.9,
+      "is_private_brand": true
     },
     {
       "name": "KIWI VERDE BANDEJA",
       "category": "Frutas y Verduras",
       "times": 2,
-      "total_spent": 5.38
+      "total_spent": 5.38,
+      "is_private_brand": false
     },
     {
       "name": "LONGANIZA POLLO",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 5.79
+      "total_spent": 5.79,
+      "is_private_brand": false
     },
     {
       "name": "PATATA FREIR 2 KG",
       "category": "Frutas y Verduras",
       "times": 2,
-      "total_spent": 7.7
+      "total_spent": 7.7,
+      "is_private_brand": false
     },
     {
       "name": "PESTO CONSUM 185 G",
       "category": "Conservas y Salsas",
       "times": 2,
-      "total_spent": 3.9
+      "total_spent": 3.9,
+      "is_private_brand": true
     }
   ],
   "products": [
@@ -219,679 +1048,792 @@
       "name": "AGUA CONSUM 1,5L",
       "category": "Bebidas",
       "times": 9,
-      "total_spent": 14.22
+      "total_spent": 14.22,
+      "is_private_brand": true
     },
     {
       "name": "MOZZAR.RALL.CONSUM",
       "category": "Lácteos y Huevos",
       "times": 8,
-      "total_spent": 18.15
+      "total_spent": 18.15,
+      "is_private_brand": true
     },
     {
       "name": "BOLSA COMPRA RECICL",
       "category": "Higiene y Limpieza",
       "times": 6,
-      "total_spent": 1.49
+      "total_spent": 1.49,
+      "is_private_brand": false
     },
     {
       "name": "BARRA ESPIGA TRADIC",
       "category": "Pan y Bollería",
       "times": 5,
-      "total_spent": 3.45
+      "total_spent": 3.45,
+      "is_private_brand": false
     },
     {
       "name": "CHAP.CRISTAL ACEITE",
       "category": "Conservas y Salsas",
       "times": 4,
-      "total_spent": 6.3
+      "total_spent": 6.3,
+      "is_private_brand": false
     },
     {
       "name": "ALAS PARTIDAS POLLO",
       "category": "Carne y Pescado",
       "times": 3,
-      "total_spent": 8.46
+      "total_spent": 8.46,
+      "is_private_brand": false
     },
     {
       "name": "B.BASURA30LCONSUM20",
       "category": "Higiene y Limpieza",
       "times": 3,
-      "total_spent": 4.35
+      "total_spent": 4.35,
+      "is_private_brand": true
     },
     {
       "name": "BONIATO ROJO",
       "category": "Frutas y Verduras",
       "times": 3,
-      "total_spent": 7.76
+      "total_spent": 7.76,
+      "is_private_brand": false
     },
     {
       "name": "POLLO LIMPIO",
       "category": "Carne y Pescado",
       "times": 3,
-      "total_spent": 19.63
+      "total_spent": 19.63,
+      "is_private_brand": false
     },
     {
       "name": "SAZ. FAJITA 24X30G",
       "category": "Conservas y Salsas",
       "times": 3,
-      "total_spent": 3.0
+      "total_spent": 3.0,
+      "is_private_brand": false
     },
     {
       "name": "ALBONDIGA MIXTA",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 6.5
+      "total_spent": 6.5,
+      "is_private_brand": false
     },
     {
       "name": "BARRA DE PAN 2 UDS",
       "category": "Pan y Bollería",
       "times": 2,
-      "total_spent": 3.84
+      "total_spent": 3.84,
+      "is_private_brand": false
     },
     {
       "name": "BURGER POLLO PAVO",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 5.06
+      "total_spent": 5.06,
+      "is_private_brand": false
     },
     {
       "name": "BURGER POLLO VERDUR",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 5.09
+      "total_spent": 5.09,
+      "is_private_brand": false
     },
     {
       "name": "GALL.TOSTA RICA760",
       "category": "Pan y Bollería",
       "times": 2,
-      "total_spent": 7.98
+      "total_spent": 7.98,
+      "is_private_brand": false
     },
     {
       "name": "JAMÓN G.R.CONSU120G",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 4.9
+      "total_spent": 4.9,
+      "is_private_brand": true
     },
     {
       "name": "KIWI VERDE BANDEJA",
       "category": "Frutas y Verduras",
       "times": 2,
-      "total_spent": 5.38
+      "total_spent": 5.38,
+      "is_private_brand": false
     },
     {
       "name": "LONGANIZA POLLO",
       "category": "Carne y Pescado",
       "times": 2,
-      "total_spent": 5.79
+      "total_spent": 5.79,
+      "is_private_brand": false
     },
     {
       "name": "PATATA FREIR 2 KG",
       "category": "Frutas y Verduras",
       "times": 2,
-      "total_spent": 7.7
+      "total_spent": 7.7,
+      "is_private_brand": false
     },
     {
       "name": "PESTO CONSUM 185 G",
       "category": "Conservas y Salsas",
       "times": 2,
-      "total_spent": 3.9
+      "total_spent": 3.9,
+      "is_private_brand": true
     },
     {
       "name": "PIMIENTO TRICOLOR",
       "category": "Frutas y Verduras",
       "times": 2,
-      "total_spent": 3.98
+      "total_spent": 3.98,
+      "is_private_brand": false
     },
     {
       "name": "TOR. TRIGO CONS 10U",
       "category": "Pan y Bollería",
       "times": 2,
-      "total_spent": 2.3
+      "total_spent": 2.3,
+      "is_private_brand": true
     },
     {
       "name": "WRAP TRIGO CONSUM",
       "category": "Otros",
       "times": 2,
-      "total_spent": 3.0
+      "total_spent": 3.0,
+      "is_private_brand": true
     },
     {
       "name": "A.FONTVELLA 1,5 P-6",
       "category": "Bebidas",
       "times": 1,
-      "total_spent": 4.32
+      "total_spent": 4.32,
+      "is_private_brand": false
     },
     {
       "name": "AC.OL.1L VIRG.CARBO",
       "category": "Conservas y Salsas",
       "times": 1,
-      "total_spent": 4.99
+      "total_spent": 4.99,
+      "is_private_brand": false
     },
     {
       "name": "AGUA CONSUM 1L",
       "category": "Bebidas",
       "times": 1,
-      "total_spent": 2.4
+      "total_spent": 2.4,
+      "is_private_brand": true
     },
     {
       "name": "AJO MOLIDO CONS 85G",
       "category": "Frutas y Verduras",
       "times": 1,
-      "total_spent": 0.89
+      "total_spent": 0.89,
+      "is_private_brand": true
     },
     {
       "name": "ALAS CRUNCHY CHICKE",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 4.02
+      "total_spent": 4.02,
+      "is_private_brand": false
     },
     {
       "name": "ALAS DE POLLO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 4.15
+      "total_spent": 4.15,
+      "is_private_brand": false
     },
     {
       "name": "ALLIOLI CHOVI 200ML",
       "category": "Conservas y Salsas",
       "times": 1,
-      "total_spent": 1.59
+      "total_spent": 1.59,
+      "is_private_brand": false
     },
     {
       "name": "ANACARDO TOS CONSUM",
       "category": "Snacks y Dulces",
       "times": 1,
-      "total_spent": 2.8
+      "total_spent": 2.8,
+      "is_private_brand": true
     },
     {
       "name": "BANANA",
       "category": "Frutas y Verduras",
       "times": 1,
-      "total_spent": 1.88
+      "total_spent": 1.88,
+      "is_private_brand": false
     },
     {
       "name": "BARRA ALDEANA 240G",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 0.89
+      "total_spent": 0.89,
+      "is_private_brand": false
     },
     {
       "name": "BARRA DE PAN 250G",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 0.5
+      "total_spent": 0.5,
+      "is_private_brand": false
     },
     {
       "name": "BARRA RÚSTICA 245 G",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 0.85
+      "total_spent": 0.85,
+      "is_private_brand": false
     },
     {
       "name": "BERLIBLANCA RAYADA",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 1.0
+      "total_spent": 1.0,
+      "is_private_brand": false
     },
     {
       "name": "BROCHETA DE POLLO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 2.89
+      "total_spent": 2.89,
+      "is_private_brand": false
     },
     {
       "name": "BROWNIE CHOCO MILKA",
       "category": "Snacks y Dulces",
       "times": 1,
-      "total_spent": 3.8
+      "total_spent": 3.8,
+      "is_private_brand": false
     },
     {
       "name": "BURGER CRISTAL 2UN",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 0.99
+      "total_spent": 0.99,
+      "is_private_brand": false
     },
     {
       "name": "CACAO POLV.VALOR500",
       "category": "Snacks y Dulces",
       "times": 1,
-      "total_spent": 4.1
+      "total_spent": 4.1,
+      "is_private_brand": false
     },
     {
       "name": "CAFE SOL.NAT.CON100",
       "category": "Bebidas",
       "times": 1,
-      "total_spent": 2.95
+      "total_spent": 2.95,
+      "is_private_brand": true
     },
     {
       "name": "CAFÉ ESPRESO 250 CO",
       "category": "Bebidas",
       "times": 1,
-      "total_spent": 0.85
+      "total_spent": 0.85,
+      "is_private_brand": false
     },
     {
       "name": "CAFÉ REFRIG. LIGHT",
       "category": "Bebidas",
       "times": 1,
-      "total_spent": 0.85
+      "total_spent": 0.85,
+      "is_private_brand": false
     },
     {
       "name": "CARNE PICADA MIXTA",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.45
+      "total_spent": 3.45,
+      "is_private_brand": false
     },
     {
       "name": "CEBOLLA DULCE 500 G",
       "category": "Frutas y Verduras",
       "times": 1,
-      "total_spent": 1.79
+      "total_spent": 1.79,
+      "is_private_brand": false
     },
     {
       "name": "CEPILLO BETUNE.",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 1.25
+      "total_spent": 1.25,
+      "is_private_brand": false
     },
     {
       "name": "CHOCO POSTRE NES200",
       "category": "Snacks y Dulces",
       "times": 1,
-      "total_spent": 3.79
+      "total_spent": 3.79,
+      "is_private_brand": false
     },
     {
       "name": "CHOPIR REB HUEV PES",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.15
+      "total_spent": 3.15,
+      "is_private_brand": false
     },
     {
       "name": "CHORIZO TIPO PUEBLO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.66
+      "total_spent": 3.66,
+      "is_private_brand": false
     },
     {
       "name": "CHULETA DE AGUJA",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.48
+      "total_spent": 3.48,
+      "is_private_brand": false
     },
     {
       "name": "COCA-COLA 0,33L.",
       "category": "Bebidas",
       "times": 1,
-      "total_spent": 0.95
+      "total_spent": 0.95,
+      "is_private_brand": false
     },
     {
       "name": "COCIDO MADR.LTOR425",
       "category": "Congelados y Preparados",
       "times": 1,
-      "total_spent": 2.55
+      "total_spent": 2.55,
+      "is_private_brand": false
     },
     {
       "name": "COMPRESA ULTRA SUPE",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 1.19
+      "total_spent": 1.19,
+      "is_private_brand": false
     },
     {
       "name": "CONTR. DESHUESADOS",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.95
+      "total_spent": 3.95,
+      "is_private_brand": false
     },
     {
       "name": "COOKIE CHOCO LECHE",
       "category": "Lácteos y Huevos",
       "times": 1,
-      "total_spent": 1.19
+      "total_spent": 1.19,
+      "is_private_brand": false
     },
     {
       "name": "CROQUETAS IBÉRICO",
       "category": "Congelados y Preparados",
       "times": 1,
-      "total_spent": 1.8
+      "total_spent": 1.8,
+      "is_private_brand": false
     },
     {
       "name": "D.C.LIMP.MENT.ORALB",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 2.49
+      "total_spent": 2.49,
+      "is_private_brand": false
     },
     {
       "name": "D.LÍQ.FRES.CONSUM52",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 3.7
+      "total_spent": 3.7,
+      "is_private_brand": true
     },
     {
       "name": "F.CABEZA LOMO CERDO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.77
+      "total_spent": 3.77,
+      "is_private_brand": false
     },
     {
       "name": "FIAMBRE SAN.250 CON",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 1.54
+      "total_spent": 1.54,
+      "is_private_brand": true
     },
     {
       "name": "FIDEO Nº0 GALLO 400",
       "category": "Pasta, Arroz y Legumbres",
       "times": 1,
-      "total_spent": 1.0
+      "total_spent": 1.0,
+      "is_private_brand": false
     },
     {
       "name": "FIGATELL BANDEJA",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 4.22
+      "total_spent": 4.22,
+      "is_private_brand": false
     },
     {
       "name": "FLTE MLZA ARGENTINA",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 4.17
+      "total_spent": 4.17,
+      "is_private_brand": false
     },
     {
       "name": "GOMA LIMP.ANTE-PIEL",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 4.49
+      "total_spent": 4.49,
+      "is_private_brand": false
     },
     {
       "name": "HAMBUR. BRIOCHE300G",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 1.89
+      "total_spent": 1.89,
+      "is_private_brand": false
     },
     {
       "name": "HIG.COMPACT.CONSUM6",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 2.3
+      "total_spent": 2.3,
+      "is_private_brand": true
     },
     {
       "name": "HILO DENTAL C/FLUOR",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 1.15
+      "total_spent": 1.15,
+      "is_private_brand": false
     },
     {
       "name": "HORCHATA CHUFI 1L",
       "category": "Bebidas",
       "times": 1,
-      "total_spent": 1.89
+      "total_spent": 1.89,
+      "is_private_brand": false
     },
     {
       "name": "HUEVO L DOCENA",
       "category": "Lácteos y Huevos",
       "times": 1,
-      "total_spent": 3.3
+      "total_spent": 3.3,
+      "is_private_brand": false
     },
     {
       "name": "HUEVO M DOCENA",
       "category": "Lácteos y Huevos",
       "times": 1,
-      "total_spent": 3.1
+      "total_spent": 3.1,
+      "is_private_brand": false
     },
     {
       "name": "J.COCIDO 2X200 POZO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.49
+      "total_spent": 3.49,
+      "is_private_brand": false
     },
     {
       "name": "J.CURADO NAVIDUL 45",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.0
+      "total_spent": 3.0,
+      "is_private_brand": false
     },
     {
       "name": "J.CURADO RED.SAL",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 1.0
+      "total_spent": 1.0,
+      "is_private_brand": false
     },
     {
       "name": "JAMÓN G.RES.CON.150",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 2.99
+      "total_spent": 2.99,
+      "is_private_brand": true
     },
     {
       "name": "JAMÓN G.RES.CONS250",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 4.25
+      "total_spent": 4.25,
+      "is_private_brand": true
     },
     {
       "name": "L.CALC.ENT.CONSUM1L",
       "category": "Otros",
       "times": 1,
-      "total_spent": 1.17
+      "total_spent": 1.17,
+      "is_private_brand": true
     },
     {
       "name": "LIMP.CALZ.DEP.CONSU",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 1.45
+      "total_spent": 1.45,
+      "is_private_brand": true
     },
     {
       "name": "LONGANIZA EXTRA BAN",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.78
+      "total_spent": 3.78,
+      "is_private_brand": false
     },
     {
       "name": "LONGANIZA SIN TRIPA",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 2.47
+      "total_spent": 2.47,
+      "is_private_brand": false
     },
     {
       "name": "M.DES.GILLE BL.SL.P",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 2.99
+      "total_spent": 2.99,
+      "is_private_brand": false
     },
     {
       "name": "M.R BROWNIE C/ CHOC",
       "category": "Snacks y Dulces",
       "times": 1,
-      "total_spent": 2.45
+      "total_spent": 2.45,
+      "is_private_brand": false
     },
     {
       "name": "MANTEQUI.250 CONSUM",
       "category": "Repostería",
       "times": 1,
-      "total_spent": 2.1
+      "total_spent": 2.1,
+      "is_private_brand": true
     },
     {
       "name": "MIK.SÁNDALO PRE.100",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 4.95
+      "total_spent": 4.95,
+      "is_private_brand": false
     },
     {
       "name": "MOLDE PAPEL AIR FRY",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 2.5
+      "total_spent": 2.5,
+      "is_private_brand": false
     },
     {
       "name": "MUSLO DESHUESADO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.02
+      "total_spent": 3.02,
+      "is_private_brand": false
     },
     {
       "name": "P.HAMBURGUESA RÚSTI",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 1.59
+      "total_spent": 1.59,
+      "is_private_brand": false
     },
     {
       "name": "PALETA LONCHAS CONS",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 2.1
+      "total_spent": 2.1,
+      "is_private_brand": true
     },
     {
       "name": "PAN RALLADO CONSUM",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 0.99
+      "total_spent": 0.99,
+      "is_private_brand": true
     },
     {
       "name": "PAN RUSTIC BURGER4U",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 1.29
+      "total_spent": 1.29,
+      "is_private_brand": false
     },
     {
       "name": "PANCETA DE CERDO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.76
+      "total_spent": 3.76,
+      "is_private_brand": false
     },
     {
       "name": "PAT.CAMPESINAS CONS",
       "category": "Frutas y Verduras",
       "times": 1,
-      "total_spent": 1.2
+      "total_spent": 1.2,
+      "is_private_brand": true
     },
     {
       "name": "PATÉ FI. HIER. TARR",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 1.39
+      "total_spent": 1.39,
+      "is_private_brand": false
     },
     {
       "name": "PATÉ PIM. TARRADELL",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 1.39
+      "total_spent": 1.39,
+      "is_private_brand": false
     },
     {
       "name": "PECHUGA DE POLLO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.2
+      "total_spent": 3.2,
+      "is_private_brand": false
     },
     {
       "name": "PELUCHE BOLI CORAZO",
       "category": "Otros",
       "times": 1,
-      "total_spent": 7.99
+      "total_spent": 7.99,
+      "is_private_brand": false
     },
     {
       "name": "PIZZA RIS.ATÚN D.OE",
       "category": "Congelados y Preparados",
       "times": 1,
-      "total_spent": 3.35
+      "total_spent": 3.35,
+      "is_private_brand": false
     },
     {
       "name": "PIZZA RIST.BABACOA",
       "category": "Congelados y Preparados",
       "times": 1,
-      "total_spent": 3.35
+      "total_spent": 3.35,
+      "is_private_brand": false
     },
     {
       "name": "PLÁTANO CANARIO IGP",
       "category": "Frutas y Verduras",
       "times": 1,
-      "total_spent": 2.12
+      "total_spent": 2.12,
+      "is_private_brand": false
     },
     {
       "name": "PORRA PREF.320 MAHE",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 2.65
+      "total_spent": 2.65,
+      "is_private_brand": false
     },
     {
       "name": "PULEVA CALC.ENTE.1L",
       "category": "Lácteos y Huevos",
       "times": 1,
-      "total_spent": 9.54
+      "total_spent": 9.54,
+      "is_private_brand": false
     },
     {
       "name": "R.COCINA S.CONSUM 2",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 4.19
+      "total_spent": 4.19,
+      "is_private_brand": true
     },
     {
       "name": "REC.SENS.LEA,4UN.5H",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 4.8
+      "total_spent": 4.8,
+      "is_private_brand": false
     },
     {
       "name": "SALSA ALLIOLI CHOVI",
       "category": "Conservas y Salsas",
       "times": 1,
-      "total_spent": 1.95
+      "total_spent": 1.95,
+      "is_private_brand": false
     },
     {
       "name": "SERV.NEGRA 40X40CON",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 1.65
+      "total_spent": 1.65,
+      "is_private_brand": true
     },
     {
       "name": "SOLOMILLO DE POLLO",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 5.02
+      "total_spent": 5.02,
+      "is_private_brand": false
     },
     {
       "name": "SOLUCIÓN ÚNICA SENT",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 4.0
+      "total_spent": 4.0,
+      "is_private_brand": false
     },
     {
       "name": "SPAGHETT BARILLA500",
       "category": "Pasta, Arroz y Legumbres",
       "times": 1,
-      "total_spent": 1.69
+      "total_spent": 1.69,
+      "is_private_brand": false
     },
     {
       "name": "SUAV.FR.CONSUM80LV",
       "category": "Higiene y Limpieza",
       "times": 1,
-      "total_spent": 1.9
+      "total_spent": 1.9,
+      "is_private_brand": true
     },
     {
       "name": "T.FRITO CONS.P3X210",
       "category": "Conservas y Salsas",
       "times": 1,
-      "total_spent": 0.95
+      "total_spent": 0.95,
+      "is_private_brand": true
     },
     {
       "name": "TAQUITO CERDO ANDAL",
       "category": "Carne y Pescado",
       "times": 1,
-      "total_spent": 3.97
+      "total_spent": 3.97,
+      "is_private_brand": false
     },
     {
       "name": "TOM.FRITO CONSU.P-3",
       "category": "Conservas y Salsas",
       "times": 1,
-      "total_spent": 1.35
+      "total_spent": 1.35,
+      "is_private_brand": true
     },
     {
       "name": "VALENC.DULCESOL350",
       "category": "Pan y Bollería",
       "times": 1,
-      "total_spent": 1.99
+      "total_spent": 1.99,
+      "is_private_brand": false
     },
     {
       "name": "YOG.PRO.STRAC 00%X4",
       "category": "Lácteos y Huevos",
       "times": 1,
-      "total_spent": 1.99
+      "total_spent": 1.99,
+      "is_private_brand": false
     }
   ],
   "monthly_categories": {
@@ -1060,7 +2002,7 @@
       "store": "55 - V.Arquitecto Alfaro",
       "total": 0.27,
       "items_count": 2,
-      "payment": " ",
+      "payment": "",
       "needs_review": true
     },
     {
@@ -1107,6 +2049,7 @@
         "status": "needs_review",
         "ticket_total": 2.94,
         "items_total": 6.09,
+        "discounts_total": 0.0,
         "difference": -3.15
       },
       {
@@ -1115,6 +2058,7 @@
         "status": "needs_review",
         "ticket_total": 0.73,
         "items_total": 10.68,
+        "discounts_total": 0.0,
         "difference": -9.95
       },
       {
@@ -1123,6 +2067,7 @@
         "status": "needs_review",
         "ticket_total": 37.52,
         "items_total": 37.82,
+        "discounts_total": 0.0,
         "difference": -0.3
       },
       {
@@ -1131,6 +2076,7 @@
         "status": "needs_review",
         "ticket_total": 0.27,
         "items_total": 3.07,
+        "discounts_total": 0.0,
         "difference": -2.8
       }
     ]
@@ -1140,7 +2086,13 @@
       "icon": "",
       "type": "warning",
       "title": "Poca fruta y verdura",
-      "text": "Solo el 8.7% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
+      "text": "Solo el 8.3% de tu gasto es en frutas/verduras. Los expertos recomiendan al menos 5 raciones al día."
+    },
+    {
+      "icon": "",
+      "type": "warning",
+      "title": "Alto peso de ultraprocesados (NOVA 4)",
+      "text": "El 39.8% del gasto alimentario corresponde a ultraprocesados (NOVA 4). Priorizar frescos (NOVA 1) mejora tu perfil nutricional."
     }
   ],
   "saving_tips": [

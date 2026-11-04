@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
-from scraper import categorize, parse_items_from_pre, build_ticket_from_api, SKIP
+from scraper import categorize, parse_items_from_pre, parse_ticket_html, build_ticket_from_api, SKIP
 
 
 class TestCategorize:
@@ -114,7 +114,45 @@ class TestParseItemsFromPre:
 
     def test_sold_by_kg_flag(self):
         items = parse_items_from_pre(SAMPLE_PRE)
-        assert items[0]["sold_by_kg"] is True
+        assert items[0]["sold_by_kg"] is False
+        assert items[1]["sold_by_kg"] is False
+
+        bulk_and_multi = (
+            "<normal-pequenya>6</normal-pequenya>AGUA CONSUM 1,5L    <normal-pequenya>0,25</normal-pequenya> 1,50\n"
+            "<normal-pequenya>1,245</normal-pequenya>PLATANO CANARIO     <normal-pequenya>2,99</normal-pequenya> 3,72\n"
+            "<normal-pequenya>1</normal-pequenya>MANZANA GRANEL      <normal-pequenya>1,99 €/KG</normal-pequenya> 1,99\n"
+            "6 x 0,25            1,50\n"
+            "NARANJA MESA\n"
+            "1,245 x 1,99        2,48\n"
+            "AGUA PACK\n"
+            "6 x 0,25            1,50\n"
+        )
+        parsed = parse_items_from_pre(bulk_and_multi)
+        by_name = {i["name"]: i for i in parsed}
+        assert by_name["AGUA CONSUM 1,5L"]["sold_by_kg"] is False
+        assert by_name["PLATANO CANARIO"]["sold_by_kg"] is True
+        assert by_name["MANZANA GRANEL"]["sold_by_kg"] is True
+        assert by_name["NARANJA MESA"]["sold_by_kg"] is True
+        assert by_name["AGUA PACK"]["sold_by_kg"] is False
+
+
+class TestParseTicketHtmlDiscounts:
+    def test_cheque_ahorro_and_coupons_captured_as_discounts_not_items(self):
+        pre = (
+            "<normal-pequenya>1</normal-pequenya>ACEITE OLIVA 1L     <normal-pequenya>5,50</normal-pequenya> 5,50\n"
+            "<normal-pequenya></normal-pequenya>CHEQUE AHORRO SOCIO <normal-pequenya></normal-pequenya> -3,15\n"
+            "DTO. PROMO MI CONSUM     -0,50\n"
+            "CUPON BIENVENIDA         -1,00\n"
+            "CHEQUE AHORRO ACUMULADO   4,20\n"
+            "<normal-pequenya>1</normal-pequenya>TOTAL               <normal-pequenya>0,85</normal-pequenya> 0,85\n"
+        )
+        parsed = parse_ticket_html(pre)
+        assert [i["name"] for i in parsed["items"]] == ["ACEITE OLIVA 1L"]
+        assert parsed["discounts"] == [
+            {"name": "CHEQUE AHORRO SOCIO", "amount": -3.15},
+            {"name": "DTO. PROMO MI CONSUM", "amount": -0.50},
+            {"name": "CUPON BIENVENIDA", "amount": -1.00},
+        ]
 
 
 class TestBuildTicketFromApi:

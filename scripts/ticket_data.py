@@ -60,24 +60,51 @@ def normalize_ticket(data: dict) -> dict:
                     raise ValueError(f"{field} no válido")
             for field in ("quantity", "total"):
                 item[field] = number(item[field])
+            if "unit_price" in item and item["unit_price"] is not None:
+                item["unit_price"] = number(item["unit_price"])
+            if "sold_by_kg" in item:
+                item["sold_by_kg"] = bool(item["sold_by_kg"])
             ticket["items"].append(item)
         except ValueError as exc:
             raise ValueError(f"Item {index}: {exc}") from exc
+    if "discounts" in data and data["discounts"] is not None:
+        if not isinstance(data["discounts"], list):
+            raise ValueError("'discounts' no es una lista")
+        ticket["discounts"] = []
+        for index, raw_discount in enumerate(data["discounts"]):
+            try:
+                if not isinstance(raw_discount, dict) or {"name", "amount"} - raw_discount.keys():
+                    raise ValueError("campos faltantes")
+                d_name = raw_discount["name"]
+                if not isinstance(d_name, str) or not d_name.strip():
+                    raise ValueError("name no válido")
+                d_amount = number(raw_discount["amount"])
+                if d_amount > 0:
+                    raise ValueError("amount debe ser negativo o cero")
+                ticket["discounts"].append({"name": d_name.strip(), "amount": d_amount})
+            except ValueError as exc:
+                raise ValueError(f"Discount {index}: {exc}") from exc
     return ticket
 
 
 def reconcile_ticket(ticket: dict) -> dict:
-    """Informar del descuadre sin inventar descuentos ni modificar el total original."""
+    """Informar del descuadre conciliando artículos y descuentos extraídos sin alterar el total original."""
     ticket = normalize_ticket(ticket)
     total = Decimal(str(ticket["total"]))
     item_total = sum((Decimal(str(i["total"])) for i in ticket["items"]), Decimal(0))
-    difference = total - item_total
+    discounts_total = sum((Decimal(str(d["amount"])) for d in ticket.get("discounts", [])), Decimal(0))
+    expected_total = item_total + discounts_total
+    difference = total - expected_total
     status = "complete" if abs(difference) <= Decimal("0.02") else "needs_review"
     if not ticket["items"]:
         status = "incomplete"
-    return {"status": status, "ticket_total": float(total),
-            "items_total": float(item_total.quantize(Decimal("0.01"))),
-            "difference": float(difference.quantize(Decimal("0.01")))}
+    return {
+        "status": status,
+        "ticket_total": float(total),
+        "items_total": float(item_total.quantize(Decimal("0.01"))),
+        "discounts_total": float(discounts_total.quantize(Decimal("0.01"))),
+        "difference": float(difference.quantize(Decimal("0.01"))),
+    }
 
 
 def extraction_complete(ticket: dict) -> bool:

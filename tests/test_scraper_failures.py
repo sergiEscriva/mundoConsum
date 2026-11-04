@@ -71,14 +71,24 @@ def test_failure_on_later_page_does_not_return_partial_result():
         asyncio.run(scraper.fetch_tickets_list(context, "unused", "token"))
 
 
-def test_only_reconciled_tickets_are_skipped(monkeypatch, tmp_path):
+def test_only_reconciled_or_reviewed_dom_tickets_are_skipped_by_default(monkeypatch, tmp_path):
     monkeypatch.setattr(scraper, "TICKETS_DIR", tmp_path)
-    for name, total in [("complete", 2), ("partial", 5)]:
+    for name, total, source, items in [
+        ("complete", 2, "dom_extracted", [{"name": "LECHE", "quantity": 1, "total": 2, "category": "Lácteos"}]),
+        ("review_dom", 5, "dom_extracted", [{"name": "LECHE", "quantity": 1, "total": 2, "category": "Lácteos"}]),
+        ("incomplete_dom", 5, "dom_extracted", []),
+        ("partial_api", 5, "api_only", [{"name": "LECHE", "quantity": 1, "total": 2, "category": "Lácteos"}]),
+    ]:
         ticket = scraper.build_ticket_from_api(api_ticket(total=total))
-        ticket["items"] = [{"name": "LECHE", "quantity": 1, "total": 2, "category": "Lácteos"}]
+        ticket["source"] = source
+        ticket["items"] = items
         (tmp_path / f"{name}.json").write_text(json.dumps(ticket))
     (tmp_path / "broken.json").write_text("invalid json")
-    assert scraper.already_with_items() == {"complete"}
+
+    assert scraper.already_with_items() == {"complete", "review_dom"}
+    assert scraper.already_with_items(retry_review=True) == {"complete"}
+    assert scraper.parse_args(["--retry-review"]).retry_review is True
+    assert scraper.parse_args([]).retry_review is False
 
 
 @pytest.mark.parametrize("quantity,total", [("1", "-1,20"), ("-1", "-1.20")])
@@ -186,7 +196,8 @@ def test_23_downloaded_tickets_with_four_differences_return_review_status(mocked
     assert len(pending) == 4
     assert all(t["total"] == 8.39 and t["reconciliation"]["difference"] == 7.19 for t in pending)
     assert "total 8.39€, líneas 1.20€, diferencia +7.19€" in caplog.text
-    assert len(scraper.already_with_items()) == 19
+    assert len(scraper.already_with_items()) == 23
+    assert len(scraper.already_with_items(retry_review=True)) == 19
     browser.close.assert_awaited_once()
 
 

@@ -156,3 +156,53 @@ def test_real_browser_login_redirects_continue_while_user_is_in_terminal(monkeyp
                 await browser.close()
 
     asyncio.run(scenario())
+
+
+def test_push_cookies_secret_passes_payload_via_stdin_never_argv(monkeypatch, tmp_path):
+    import subprocess
+
+    cookies_file = tmp_path / "cookies.json"
+    secret_payload = '[{"name": "SUPER_SECRET_COOKIE", "value": "do-not-expose-in-argv"}]'
+    cookies_file.write_text(secret_payload, encoding="utf-8")
+
+    monkeypatch.setattr(get_cookie.shutil, "which", lambda name: "/usr/bin/gh" if name == "gh" else None)
+    run_mock = Mock(return_value=subprocess.CompletedProcess(["/usr/bin/gh"], 0, "", ""))
+    monkeypatch.setattr(get_cookie.subprocess, "run", run_mock)
+
+    get_cookie.push_cookies_secret(cookies_file, repo="owner/repo")
+    call = run_mock.call_args
+    cmd = call.args[0]
+    assert cmd == ["/usr/bin/gh", "secret", "set", "CONSUM_COOKIES", "--repo", "owner/repo"]
+    assert all("do-not-expose-in-argv" not in str(arg) for arg in cmd)
+    assert call.kwargs["input"] == secret_payload
+
+
+def test_trigger_daily_workflow_runs_gh_workflow_run(monkeypatch):
+    import subprocess
+
+    monkeypatch.setattr(get_cookie.shutil, "which", lambda name: "/usr/bin/gh")
+    run_mock = Mock(return_value=subprocess.CompletedProcess(["/usr/bin/gh"], 0, "", ""))
+    monkeypatch.setattr(get_cookie.subprocess, "run", run_mock)
+
+    get_cookie.trigger_daily_workflow(repo="owner/repo")
+    assert run_mock.call_args.args[0] == ["/usr/bin/gh", "workflow", "run", "daily.yml", "--repo", "owner/repo"]
+
+
+def test_push_cookies_secret_reports_clear_spanish_errors_when_gh_missing_or_unauthenticated(monkeypatch, tmp_path):
+    import subprocess
+
+    cookies_file = tmp_path / "cookies.json"
+    cookies_file.write_text('[{"name": "s", "value": "1"}]', encoding="utf-8")
+
+    monkeypatch.setattr(get_cookie.shutil, "which", lambda name: None)
+    with pytest.raises(get_cookie.CookieSyncError, match="No se encontró GitHub CLI"):
+        get_cookie.push_cookies_secret(cookies_file)
+
+    monkeypatch.setattr(get_cookie.shutil, "which", lambda name: "/usr/bin/gh")
+    monkeypatch.setattr(
+        get_cookie.subprocess,
+        "run",
+        Mock(return_value=subprocess.CompletedProcess(["gh"], 1, "", "not logged in to any github hosts; run gh auth login")),
+    )
+    with pytest.raises(get_cookie.CookieSyncError, match="gh auth login"):
+        get_cookie.push_cookies_secret(cookies_file)

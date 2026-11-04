@@ -46,7 +46,7 @@
       "unit_price": 0.4,
       "total": 2.4,
       "category": "Bebidas",
-      "sold_by_kg": true
+      "sold_by_kg": false
     },
     {
       "name": "BOLSA COMPRA RECICL",

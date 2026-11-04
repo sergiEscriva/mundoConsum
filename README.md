@@ -32,16 +32,17 @@
 
 ## Características
 
-- **Scraping automatizado** de tickets mediante Playwright y la API de `nomastickets.consum.es`.
-- **Clasificación por categorías** (carne, bebidas, frutas, higiene, etc.) con reglas configurables en `data/categories.json`.
-- **Dashboard interactivo** con Chart.js: gasto mensual, distribución por categoría, productos frecuentes, media móvil y comparativas temporales.
-- **Presupuestos por categoría** con barras de progreso y alertas visuales cuando se excede el límite.
-- **Exportación a CSV** directamente desde el dashboard.
+- **Scraping automatizado** de tickets mediante Playwright y la API de `nomastickets.consum.es`, con modelado explícito de **Cheque Ahorro, cupones y descuentos** y detección precisa de venta al peso (`sold_by_kg`).
+- **Clasificación por categorías y metadatos** con reglas configurables (`data/categories.json`) y enriquecimiento opcional con Gemini (`data/product_categories.json` y `data/product_metadata.json`: nombre canónico, marca propia y grupo nutricional **NOVA 1–4**).
+- **Tu IPC personal y detector de reduflación**: seguimiento de evolución de precios unitarios en productos recurrentes (IPC ponderado por gasto y anualizado) y alertas automáticas cuando disminuye el gramaje/volumen aumentando el coste `€/kg` o `€/L`.
+- **Dashboard interactivo** con Chart.js: gasto mensual (rellenando meses sin compras), distribución por categoría, cuota de marca propia Consum/Kyrey/Bonté/Vikika, perfil NOVA, ahorro estimado en cheques y comparativas temporales.
+- **Presupuestos activos y proyección de ritmo diario** (`burn_rate_daily` y proyección a fin de mes), con conmutador entre *Este mes* y *Último mes con compras*.
+- **Exportación a CSV** directamente desde el dashboard y exportación estática **anonimizada** (`export_public_site.py` + `pages.yml`) para publicar en GitHub Pages sin exponer tickets crudos, direcciones ni IDs.
 - **Buscador de productos** integrado con filtro por categoría.
-- **Tips de salud y ahorro** generados a partir de los patrones de compra.
-- **Notificaciones automáticas**: issue en GitHub y notificación opcional por Telegram cuando las cookies expiran.
+- **Tips de salud y ahorro** generados a partir de los patrones de compra y peso de ultraprocesados (NOVA 4).
+- **Notificaciones proactivas en Telegram**: resumen en español tras cada compra nueva (`notify_telegram.py`) y alerta + issue automático cuando las cookies expiran.
 - **Ejecución diaria desatendida** vía GitHub Actions (cron a las 08:00 hora de España).
-- **Suite de tests** con pytest para validar la lógica de negocio.
+- **Suite de tests** unitarios y de navegador real (Playwright + pytest).
 
 ---
 
@@ -140,7 +141,8 @@ consecutivos inaccesibles, se detiene en lugar de repetir el fallo en toda la li
 | `python run.py` | Preparar y abrir el dashboard |
 | `python run.py update` | Descargar tickets y regenerar los datos |
 | `python run.py login` | Iniciar sesión o renovar las cookies |
-| `python run.py build` | Regenerar el resumen sin descargar tickets |
+| `python run.py login --push-secret --trigger-workflow` | Renovar cookies, subir `CONSUM_COOKIES` por `stdin` y lanzar `daily.yml` |
+| `python run.py build` | Regenerar el resumen sin descargar tickets (`--anonymize` para ocultar tiendas/IDs) |
 | `python run.py categorize` | Configurar Gemini y clasificar todos los productos históricos |
 | `python run.py setup` | Preparar dependencias y Chromium por adelantado |
 | `python run.py test` | Ejecutar las pruebas con el entorno del proyecto |
@@ -294,17 +296,18 @@ El fichero `cookies.json` se generará en la raíz del proyecto. **Este fichero 
 
 ---
 
-## Despliegue del dashboard
+## Despliegue del dashboard (privacidad segura)
+
+Para evitar exponer `data/tickets/*.json`, direcciones de tienda o IDs de compra en repositorios públicos, el despliegue usa un artefacto estático anonimizado (`.github/workflows/pages.yml`):
 
 1. En tu repositorio, accede a **Settings > Pages**.
-2. Selecciona **Deploy from a branch**.
-3. Configura: branch `main`, carpeta `/ (root)`.
-4. Guarda los cambios.
+2. En **Build and deployment > Source**, selecciona **GitHub Actions**.
+3. El workflow `pages.yml` ejecuta `python scripts/export_public_site.py --out dist_site` y publica únicamente `index.html`, `dashboard/index.html`, `data/budgets.json` y un `data/summary.json` generado con `--anonymize`.
 
 El dashboard estará disponible en:
 
 ```
-https://TU_USUARIO.github.io/consum-tracker/dashboard/
+https://TU_USUARIO.github.io/mundoConsum/dashboard/
 ```
 
 ---
@@ -317,9 +320,9 @@ El workflow `daily.yml` se ejecuta cada día a las 08:00 (hora de España). El p
 
 1. Autenticación con las cookies almacenadas.
 2. Descarga de tickets nuevos desde la API de Consum.
-3. Extracción y clasificación de artículos por categoría.
+3. Extracción y clasificación de artículos y descuentos por categoría.
 4. Generación del fichero `data/summary.json`.
-5. Commit automático y actualización del dashboard.
+5. Commit automático y envío opcional de resumen de compra en español a Telegram (`notify_telegram.py`).
 
 No requiere intervención manual.
 
@@ -335,7 +338,7 @@ Para lanzar el workflow manualmente, ve a **Actions > Consum Daily Tracker > Run
 | `1` | Cookies ausentes, inválidas o sesión rechazada |
 | `2` | Sin tickets nuevos por procesar (no-op) |
 | `3` | Error de red/API o detalles inaccesibles; revisar los logs y reintentar |
-| `4` | Detalles descargados con descuadres o líneas sin reconocer; el lanzador genera el dashboard con avisos |
+| `4` | Detalles descargados con descuadres o líneas sin reconocer; el lanzador genera el dashboard con avisos (usa `python scripts/scraper.py --retry-review` si quieres forzar su re-descarga más adelante) |
 
 ---
 
@@ -346,14 +349,13 @@ Las cookies de sesión expiran aproximadamente cada 2 a 4 semanas. Cuando esto o
 - El workflow fallará y se creará automáticamente un **issue** en el repositorio.
 - Si tienes configurado Telegram, recibirás una **notificación** en tu chat.
 
-Para renovarlas:
+Para renovarlas y sincronizar GitHub en un solo comando (requiere [GitHub CLI `gh`](https://cli.github.com/) autenticado):
 
 ```bash
-source venv/bin/activate          # o venv\Scripts\activate en Windows
-python scripts/get_cookie.py
+python run.py login --push-secret --trigger-workflow
 ```
 
-Después, actualiza el secreto `CONSUM_COOKIES` en GitHub con el nuevo contenido de `cookies.json`.
+O manualmente ejecutando `python scripts/get_cookie.py` y actualizando el secreto `CONSUM_COOKIES` en GitHub con el contenido de `cookies.json`.
 
 ---
 
