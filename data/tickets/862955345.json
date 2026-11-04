@@ -1,0 +1,94 @@
+{
+  "id": "862955345",
+  "ticket_code": "141172",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-09-01",
+  "datetime_iso": "2026-09-01T21:18:47+02:00",
+  "total": 57.91,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "ALITAS BROOKLYN BBQ",
+      "quantity": 1.0,
+      "unit_price": 4.28,
+      "total": 4.28,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BARRA FAMILIAR 315G",
+      "quantity": 2.0,
+      "unit_price": 1.15,
+      "total": 2.3,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "JAMÓN G.RES.CONS250",
+      "quantity": 1.0,
+      "unit_price": 4.1,
+      "total": 4.1,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "MOZZAR.RALL.CONSUM",
+      "quantity": 2.0,
+      "unit_price": 1.6,
+      "total": 3.2,
+      "category": "Lácteos y Huevos",
+      "sold_by_kg": false
+    },
+    {
+      "name": "AGUA S.CABRAS 0,5L",
+      "quantity": 1.0,
+      "unit_price": 0.69,
+      "total": 0.69,
+      "category": "Bebidas",
+      "sold_by_kg": false
+    },
+    {
+      "name": "B.BASURA LILA 30L",
+      "quantity": 1.0,
+      "unit_price": 2.3,
+      "total": 2.3,
+      "category": "Higiene y Limpieza",
+      "sold_by_kg": false
+    },
+    {
+      "name": "JARRA +1 FILTRO AQU",
+      "quantity": 1.0,
+      "unit_price": 19.9,
+      "total": 19.9,
+      "category": "Hogar y Menaje",
+      "sold_by_kg": false
+    },
+    {
+      "name": "JGO. SÁBANAS GRIS 1",
+      "quantity": 1.0,
+      "unit_price": 20.99,
+      "total": 20.99,
+      "category": "Hogar y Menaje",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "quantity": 1.0,
+      "unit_price": 0.15,
+      "total": 0.15,
+      "category": "Higiene y Limpieza",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 57.91,
+    "items_total": 57.91,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

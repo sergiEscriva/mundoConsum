@@ -1,0 +1,110 @@
+{
+  "id": "870500478",
+  "ticket_code": "147655",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-09-18",
+  "datetime_iso": "2026-09-18T21:20:20+02:00",
+  "total": 25.55,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "PAN DE PUEBLO",
+      "quantity": 1.0,
+      "unit_price": 1.19,
+      "total": 1.19,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "MANTEQUI.250 CONSUM",
+      "quantity": 1.0,
+      "unit_price": 2.05,
+      "total": 2.05,
+      "category": "Repostería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CALDO COCIDO G.BLAN",
+      "quantity": 1.0,
+      "unit_price": 2.3,
+      "total": 2.3,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "LETRAS CONSUM 500",
+      "quantity": 1.0,
+      "unit_price": 0.85,
+      "total": 0.85,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CHOC.POSTRE CONS200",
+      "quantity": 1.0,
+      "unit_price": 2.25,
+      "total": 2.25,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CHOCO.POSTRES CONSU",
+      "quantity": 1.0,
+      "unit_price": 2.25,
+      "total": 2.25,
+      "category": "Snacks y Dulces",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CHOCO BCO. CONSU200",
+      "quantity": 1.0,
+      "unit_price": 2.25,
+      "total": 2.25,
+      "category": "Snacks y Dulces",
+      "sold_by_kg": false
+    },
+    {
+      "name": "GALL.TOSTARICA 570G",
+      "quantity": 1.0,
+      "unit_price": 2.95,
+      "total": 2.95,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "LECHE ENT.CONSUM 1L",
+      "quantity": 6.0,
+      "unit_price": 0.96,
+      "total": 5.76,
+      "category": "Lácteos y Huevos",
+      "sold_by_kg": false
+    },
+    {
+      "name": "NATA MONT.CONSU.P-3",
+      "quantity": 1.0,
+      "unit_price": 2.25,
+      "total": 2.25,
+      "category": "Lácteos y Huevos",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CUAJADA ROYAL 4 SOB",
+      "quantity": 1.0,
+      "unit_price": 1.45,
+      "total": 1.45,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 25.55,
+    "items_total": 25.55,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

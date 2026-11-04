@@ -1,0 +1,96 @@
+{
+  "id": "884379125",
+  "ticket_code": "159377",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-10-21",
+  "datetime_iso": "2026-10-21T20:47:07+02:00",
+  "total": 10.56,
+  "payment_method": "Cheque regalo (292) T.Pago TEF",
+  "items": [
+    {
+      "name": "PECHUGA DE POLLO",
+      "quantity": 1.0,
+      "unit_price": 4.48,
+      "total": 4.48,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "LONGANIZA EXTRA BAN",
+      "quantity": 1.0,
+      "unit_price": 3.29,
+      "total": 3.29,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BARRA DE PAN 2 UDS",
+      "quantity": 1.0,
+      "unit_price": 0.96,
+      "total": 0.96,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PAVO MAXI RICURA",
+      "quantity": 1.0,
+      "unit_price": 3.35,
+      "total": 3.35,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "MOZZAR.RALL.CONSUM",
+      "quantity": 1.0,
+      "unit_price": 1.6,
+      "total": 1.6,
+      "category": "Lácteos y Huevos",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CEBOLLA CRUJIENTE",
+      "quantity": 1.0,
+      "unit_price": 1.59,
+      "total": 1.59,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "TOMAT FRIT.CONS 550",
+      "quantity": 1.0,
+      "unit_price": 0.9,
+      "total": 0.9,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "MACARRONES CONS.500",
+      "quantity": 1.0,
+      "unit_price": 0.85,
+      "total": 0.85,
+      "category": "Pasta, Arroz y Legumbres",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "discounts": [
+    {
+      "name": "Descuento mensual",
+      "amount": -3.21
+    },
+    {
+      "name": "Dto Mis Fav/Ch-Crece",
+      "amount": -3.25
+    }
+  ],
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 10.56,
+    "items_total": 17.02,
+    "discounts_total": -6.46,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

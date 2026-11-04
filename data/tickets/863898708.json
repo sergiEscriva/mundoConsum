@@ -1,0 +1,102 @@
+{
+  "id": "863898708",
+  "ticket_code": "545011",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-09-03",
+  "datetime_iso": "2026-09-03T21:09:59+02:00",
+  "total": 36.08,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "PATATA COCER 2 KG",
+      "quantity": 1.0,
+      "unit_price": 3.4,
+      "total": 3.4,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PIMIENTO TRICOLOR",
+      "quantity": 1.0,
+      "unit_price": 1.99,
+      "total": 1.99,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "LOMO EXTRA ADOBADO",
+      "quantity": 1.0,
+      "unit_price": 4.53,
+      "total": 4.53,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CONTRAMUSLOS S/PIEL",
+      "quantity": 1.0,
+      "unit_price": 3.21,
+      "total": 3.21,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CARNE PICADA MIXTA",
+      "quantity": 2.0,
+      "unit_price": 3.29,
+      "total": 6.58,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "HUEVO L DOCENA",
+      "quantity": 1.0,
+      "unit_price": 3.05,
+      "total": 3.05,
+      "category": "Lácteos y Huevos",
+      "sold_by_kg": false
+    },
+    {
+      "name": "ARROZ BRILLAN.2X125",
+      "quantity": 1.0,
+      "unit_price": 1.2,
+      "total": 1.2,
+      "category": "Pasta, Arroz y Legumbres",
+      "sold_by_kg": false
+    },
+    {
+      "name": "ZAN.RALLADA CON.180",
+      "quantity": 1.0,
+      "unit_price": 0.99,
+      "total": 0.99,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "HERMET.RECT.1L QUTT",
+      "quantity": 2.0,
+      "unit_price": 5.49,
+      "total": 10.98,
+      "category": "Hogar y Menaje",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "quantity": 1.0,
+      "unit_price": 0.15,
+      "total": 0.15,
+      "category": "Higiene y Limpieza",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 36.08,
+    "items_total": 36.08,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "890011220",
+  "ticket_code": "53336",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-11-03",
+  "datetime_iso": "2026-11-03T20:23:15+01:00",
+  "total": 2.41,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "PICADA DE CERDO",
+      "quantity": 1.0,
+      "unit_price": 2.41,
+      "total": 2.41,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 2.41,
+    "items_total": 2.41,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

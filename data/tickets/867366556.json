@@ -1,0 +1,30 @@
+{
+  "id": "867366556",
+  "ticket_code": "23149",
+  "store": "1089 - Betera  Pais Valencia",
+  "store_address": "Avda. Pais Valencia 77",
+  "date": "2026-09-11",
+  "datetime_iso": "2026-09-11T20:47:55+02:00",
+  "total": 2.5,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "LAVAPAR.AUTOBRILL",
+      "quantity": 1.0,
+      "unit_price": 2.5,
+      "total": 2.5,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 2.5,
+    "items_total": 2.5,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

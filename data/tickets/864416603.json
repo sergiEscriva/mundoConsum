@@ -1,0 +1,46 @@
+{
+  "id": "864416603",
+  "ticket_code": "766675",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-09-05",
+  "datetime_iso": "2026-09-05T09:29:13+02:00",
+  "total": 5.63,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "CHAP.CRISTAL ACEITE",
+      "quantity": 2.0,
+      "unit_price": 1.02,
+      "total": 2.04,
+      "category": "Conservas y Salsas",
+      "sold_by_kg": false
+    },
+    {
+      "name": "C.LATTE CAPUCCI DES",
+      "quantity": 1.0,
+      "unit_price": 1.0,
+      "total": 1.0,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "COLCAO ENERGY 0% 4U",
+      "quantity": 1.0,
+      "unit_price": 2.59,
+      "total": 2.59,
+      "category": "Otros",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 5.63,
+    "items_total": 5.63,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

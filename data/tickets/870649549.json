@@ -1,0 +1,62 @@
+{
+  "id": "870649549",
+  "ticket_code": "188818",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-09-19",
+  "datetime_iso": "2026-09-19T12:01:17+02:00",
+  "total": 11.89,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "BERLIBLANCA RAYADA",
+      "quantity": 1.0,
+      "unit_price": 1.0,
+      "total": 1.0,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "COLOMBIA 100%ARABIC",
+      "quantity": 1.0,
+      "unit_price": 3.7,
+      "total": 3.7,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "D.R.MOSQUETA 60CON",
+      "quantity": 1.0,
+      "unit_price": 4.19,
+      "total": 4.19,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "SUAVIZAN.FLOR 59LV",
+      "quantity": 1.0,
+      "unit_price": 2.85,
+      "total": 2.85,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BOLSA COMPRA RECICL",
+      "quantity": 1.0,
+      "unit_price": 0.15,
+      "total": 0.15,
+      "category": "Higiene y Limpieza",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 11.89,
+    "items_total": 11.89,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

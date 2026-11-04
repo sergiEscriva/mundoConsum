@@ -1,0 +1,21 @@
+{
+  "id": "878167944",
+  "ticket_code": "115948",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-10-06",
+  "datetime_iso": "2026-10-06T20:38:16+02:00",
+  "total": 6.47,
+  "payment_method": "T.Pago TEF",
+  "items": [],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "incomplete",
+    "ticket_total": 6.47,
+    "items_total": 0.0,
+    "discounts_total": 0.0,
+    "difference": 6.47
+  },
+  "extraction_status": "incomplete"
+}

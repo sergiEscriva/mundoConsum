@@ -1,0 +1,21 @@
+{
+  "id": "877652379",
+  "ticket_code": "551047",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-10-05",
+  "datetime_iso": "2026-10-05T20:27:35+02:00",
+  "total": 19.79,
+  "payment_method": "T.Pago TEF",
+  "items": [],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "incomplete",
+    "ticket_total": 19.79,
+    "items_total": 0.0,
+    "discounts_total": 0.0,
+    "difference": 19.79
+  },
+  "extraction_status": "incomplete"
+}

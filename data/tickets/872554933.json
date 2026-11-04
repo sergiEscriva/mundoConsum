@@ -1,0 +1,30 @@
+{
+  "id": "872554933",
+  "ticket_code": "114537",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-09-23",
+  "datetime_iso": "2026-09-23T20:26:27+02:00",
+  "total": 0.96,
+  "payment_method": "T.Pago TEF",
+  "items": [
+    {
+      "name": "BARRA DE PAN 2 UDS",
+      "quantity": 1.0,
+      "unit_price": 0.96,
+      "total": 0.96,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 0.96,
+    "items_total": 0.96,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}

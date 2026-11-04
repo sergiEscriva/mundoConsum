@@ -1,0 +1,94 @@
+{
+  "id": "880812648",
+  "ticket_code": "552350",
+  "store": "412 - V.Avda.Blasco Ibanez",
+  "store_address": "Avda. Blasco Ibanyez, 139",
+  "date": "2026-10-13",
+  "datetime_iso": "2026-10-13T20:40:29+02:00",
+  "total": 16.99,
+  "payment_method": "Efectivo",
+  "items": [
+    {
+      "name": "PATATAS PREF.GRUESO",
+      "quantity": 1.0,
+      "unit_price": 1.85,
+      "total": 1.85,
+      "category": "Frutas y Verduras",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CRISPY CHICKEN",
+      "quantity": 1.0,
+      "unit_price": 2.25,
+      "total": 2.25,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "PICADA DE CERDO",
+      "quantity": 1.0,
+      "unit_price": 2.41,
+      "total": 2.41,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "LONGANIZA EXTRA BAN",
+      "quantity": 1.0,
+      "unit_price": 3.26,
+      "total": 3.26,
+      "category": "Carne y Pescado",
+      "sold_by_kg": false
+    },
+    {
+      "name": "BARRA DE PAN 250G",
+      "quantity": 2.0,
+      "unit_price": 0.5,
+      "total": 1.0,
+      "category": "Pan y Bollería",
+      "sold_by_kg": false
+    },
+    {
+      "name": "CHAP.CRISTAL ACEITE",
+      "quantity": 1.0,
+      "unit_price": 1.02,
+      "total": 1.02,
+      "category": "Conservas y Salsas",
+      "sold_by_kg": false
+    },
+    {
+      "name": "TIRAS BACON 2X50 PO",
+      "quantity": 1.0,
+      "unit_price": 1.5,
+      "total": 1.5,
+      "category": "Otros",
+      "sold_by_kg": false
+    },
+    {
+      "name": "ARROZ CON MUCHO PAV",
+      "quantity": 1.0,
+      "unit_price": 2.55,
+      "total": 2.55,
+      "category": "Pasta, Arroz y Legumbres",
+      "sold_by_kg": false
+    },
+    {
+      "name": "ARROZ EXT.CONSUM 1K",
+      "quantity": 1.0,
+      "unit_price": 1.15,
+      "total": 1.15,
+      "category": "Pasta, Arroz y Legumbres",
+      "sold_by_kg": false
+    }
+  ],
+  "tax_breakdown": [],
+  "source": "dom_extracted",
+  "reconciliation": {
+    "status": "complete",
+    "ticket_total": 16.99,
+    "items_total": 16.99,
+    "discounts_total": 0.0,
+    "difference": 0.0
+  },
+  "extraction_status": "complete"
+}
